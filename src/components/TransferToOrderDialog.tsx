@@ -44,6 +44,8 @@ type Props = {
   onOpenChange: (v: boolean) => void;
   sourceDocId: string | null;
   sourceDocNo: string | null;
+  targetDocType?: "sales_order" | "sales_invoice";
+  targetLabel?: string; // e.g. "訂單" / "銷貨單"
   onTransferred?: (newDocId: string, newDocNo: string | null) => void;
 };
 
@@ -52,6 +54,8 @@ export function TransferToOrderDialog({
   onOpenChange,
   sourceDocId,
   sourceDocNo,
+  targetDocType = "sales_order",
+  targetLabel = "訂單",
   onTransferred,
 }: Props) {
   const [loading, setLoading] = useState(true);
@@ -124,7 +128,7 @@ export function TransferToOrderDialog({
     setSubmitting(true);
     const { data, error } = await supabase.rpc("transfer_document", {
       p_source_doc_id: sourceDocId,
-      p_target_doc_type: "sales_order",
+      p_target_doc_type: targetDocType,
       p_lines: payload,
     });
     setSubmitting(false);
@@ -132,7 +136,6 @@ export function TransferToOrderDialog({
       toast.error("轉單失敗:" + error.message);
       return;
     }
-    // 嘗試解析回傳:可能是 uuid 字串、或物件 { id, doc_no }
     let newId: string | null = null;
     let newNo: string | null = null;
     if (typeof data === "string") {
@@ -142,7 +145,7 @@ export function TransferToOrderDialog({
       newId = d.id ?? null;
       newNo = d.doc_no ?? null;
     }
-    toast.success(`已轉為訂單${newNo ? ` ${newNo}` : ""}`);
+    toast.success(`已轉為${targetLabel}${newNo ? ` ${newNo}` : ""}`);
     onOpenChange(false);
     if (newId) onTransferred?.(newId, newNo);
   };
@@ -152,7 +155,7 @@ export function TransferToOrderDialog({
       <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            轉訂單{sourceDocNo ? ` · 來源 ${sourceDocNo}` : ""}
+            轉{targetLabel}{sourceDocNo ? ` · 來源 ${sourceDocNo}` : ""}
           </DialogTitle>
         </DialogHeader>
 

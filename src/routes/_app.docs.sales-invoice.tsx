@@ -1,10 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, ArrowRightLeft } from "lucide-react";
-import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
+import { Loader2, Plus, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePermission } from "@/hooks/usePermission";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,8 +31,8 @@ import {
 } from "@/components/ui/table";
 import { DocumentForm, StatusBadge } from "@/components/DocumentForm";
 
-export const Route = createFileRoute("/_app/docs/sales-order")({
-  component: SalesOrderListPage,
+export const Route = createFileRoute("/_app/docs/sales-invoice")({
+  component: SalesInvoiceListPage,
 });
 
 type DocRow = {
@@ -43,11 +43,39 @@ type DocRow = {
   total_amount: number | null;
   status: string;
   source_doc_no: string | null;
+  payment_status: string | null;
 };
 
-function SalesOrderListPage() {
+function PaymentBadge({ status }: { status: string | null }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    unpaid: {
+      label: "未收款",
+      cls: "bg-destructive/15 text-destructive",
+    },
+    partial: {
+      label: "部分收款",
+      cls: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+    },
+    paid: { label: "已收款", cls: "bg-success/15 text-success" },
+  };
+  const s = map[status ?? ""] ?? {
+    label: status ?? "—",
+    cls: "bg-muted text-muted-foreground",
+  };
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium",
+        s.cls,
+      )}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+function SalesInvoiceListPage() {
   const canWrite = usePermission("sales", "write");
-  const canConfirm = usePermission("sales", "confirm");
   const [list, setList] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string>("all");
@@ -55,17 +83,15 @@ function SalesOrderListPage() {
   const [dateTo, setDateTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [transferTarget, setTransferTarget] = useState<DocRow | null>(null);
-  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
     let q = supabase
       .from("doc_headers")
       .select(
-        "id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no",
+        "id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no, payment_status",
       )
-      .eq("doc_type", "sales_order")
+      .eq("doc_type", "sales_invoice")
       .order("doc_date", { ascending: false })
       .order("doc_no", { ascending: false });
     if (status !== "all") q = q.eq("status", status);
@@ -73,7 +99,7 @@ function SalesOrderListPage() {
     if (dateTo) q = q.lte("doc_date", dateTo);
     const { data, error } = await q;
     if (error) {
-      toast.error("讀取訂單失敗:" + error.message);
+      toast.error("讀取銷貨單失敗:" + error.message);
     } else {
       setList((data ?? []) as DocRow[]);
     }
@@ -106,16 +132,16 @@ function SalesOrderListPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">訂單</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">銷貨單</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            管理銷售訂單,可由報價單轉入。共 {summary.count} 筆,總金額{" "}
+            管理已出貨之銷貨單據,可由訂單轉入。共 {summary.count} 筆,總金額{" "}
             {summary.total.toLocaleString()}。
           </p>
         </div>
         {canWrite && (
           <Button onClick={openCreate}>
             <Plus className="mr-1.5 h-4 w-4" />
-            新增訂單
+            新增銷貨單
           </Button>
         )}
       </div>
@@ -180,21 +206,22 @@ function SalesOrderListPage() {
               <TableHead>客戶</TableHead>
               <TableHead className="w-32 text-right">總金額</TableHead>
               <TableHead className="w-24">狀態</TableHead>
-              <TableHead className="w-36">來源報價單</TableHead>
+              <TableHead className="w-28">收款</TableHead>
+              <TableHead className="w-36">來源訂單</TableHead>
               <TableHead className="w-20 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   <Loader2 className="inline h-5 w-5 animate-spin text-muted-foreground" />
                 </TableCell>
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={8}
                   className="h-24 text-center text-sm text-muted-foreground"
                 >
                   尚無資料
@@ -214,29 +241,20 @@ function SalesOrderListPage() {
                   <TableCell>
                     <StatusBadge status={d.status} />
                   </TableCell>
+                  <TableCell>
+                    <PaymentBadge status={d.payment_status} />
+                  </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {d.source_doc_no ?? "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      {canConfirm && d.status === "confirmed" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setTransferTarget(d)}
-                        >
-                          <ArrowRightLeft className="mr-1 h-3.5 w-3.5" />
-                          轉銷貨
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openEdit(d.id)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => openEdit(d.id)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -245,15 +263,14 @@ function SalesOrderListPage() {
         </Table>
       </div>
 
-      {/* 編輯/新增 Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? "編輯訂單" : "新增訂單"}</DialogTitle>
+            <DialogTitle>{editingId ? "編輯銷貨單" : "新增銷貨單"}</DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm
-              docType="sales_order"
+              docType="sales_invoice"
               docId={editingId}
               onCancel={() => setDialogOpen(false)}
               onSaved={() => {
@@ -264,20 +281,6 @@ function SalesOrderListPage() {
           )}
         </DialogContent>
       </Dialog>
-
-      <TransferToOrderDialog
-        open={Boolean(transferTarget)}
-        onOpenChange={(v) => !v && setTransferTarget(null)}
-        sourceDocId={transferTarget?.id ?? null}
-        sourceDocNo={transferTarget?.doc_no ?? null}
-        targetDocType="sales_invoice"
-        targetLabel="銷貨單"
-        onTransferred={() => {
-          setTransferTarget(null);
-          load();
-          navigate({ to: "/docs/sales-invoice" });
-        }}
-      />
     </div>
   );
 }

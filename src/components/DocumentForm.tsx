@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/table";
 import { SearchSelect, type SearchOption } from "@/components/SearchSelect";
 
-export type DocType = "quotation" | "sales_order" | "sales";
+export type DocType = "quotation" | "sales_order" | "sales_invoice";
 
 export type DocLine = {
   id?: string;
@@ -49,6 +49,10 @@ export type DocLine = {
   quantity: number;
   unit_price: number;
   discount_pct: number;
+  // 銷貨單確認後由後端寫入的成本快照
+  unit_cost?: number | null;
+  gross_profit?: number | null;
+  margin_pct?: number | null;
 };
 
 export type DocHeader = {
@@ -185,7 +189,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
         const { data: ls } = await supabase
           .from("doc_lines")
           .select(
-            "id, line_no, product_id, product_code, product_name, unit, quantity, unit_price, discount_pct",
+            "id, line_no, product_id, product_code, product_name, unit, quantity, unit_price, discount_pct, unit_cost, gross_profit, margin_pct",
           )
           .eq("header_id", docId)
           .order("line_no");
@@ -228,6 +232,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
   const isEdit = Boolean(header.id);
   const isDraft = header.status === "draft";
   const readOnly = !isDraft || !canWrite;
+  const showCostCols =
+    docType === "sales_invoice" && header.status !== "draft";
 
   // ---- 客戶選擇 ----
   const selectedContact = contacts.find((c) => c.id === header.contact_id);
@@ -527,6 +533,13 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
               <TableHead className="w-28 text-right">單價</TableHead>
               <TableHead className="w-24 text-right">折扣%</TableHead>
               <TableHead className="w-32 text-right">金額</TableHead>
+              {showCostCols && (
+                <>
+                  <TableHead className="w-24 text-right">單位成本</TableHead>
+                  <TableHead className="w-28 text-right">毛利</TableHead>
+                  <TableHead className="w-20 text-right">毛利率%</TableHead>
+                </>
+              )}
               {!readOnly && <TableHead className="w-12" />}
             </TableRow>
           </TableHeader>
@@ -608,6 +621,29 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
                       maximumFractionDigits: 2,
                     })}
                   </TableCell>
+                  {showCostCols && (
+                    <>
+                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                        {l.unit_cost != null
+                          ? Number(l.unit_cost).toLocaleString(undefined, {
+                              maximumFractionDigits: 2,
+                            })
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {l.gross_profit != null
+                          ? Number(l.gross_profit).toLocaleString(undefined, {
+                              maximumFractionDigits: 2,
+                            })
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {l.margin_pct != null
+                          ? `${Number(l.margin_pct).toFixed(1)}%`
+                          : "—"}
+                      </TableCell>
+                    </>
+                  )}
                   {!readOnly && (
                     <TableCell className="text-right">
                       <Button
