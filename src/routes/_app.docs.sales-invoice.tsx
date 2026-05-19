@@ -224,12 +224,16 @@ function SalesInvoiceListPage() {
                   colSpan={8}
                   className="h-24 text-center text-sm text-muted-foreground"
                 >
-                  尚無資料
+                  尚無銷貨單
                 </TableCell>
               </TableRow>
             ) : (
               list.map((d) => (
-                <TableRow key={d.id}>
+                <TableRow
+                  key={d.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => openEdit(d.id)}
+                >
                   <TableCell className="font-mono">{d.doc_no ?? "—"}</TableCell>
                   <TableCell>{d.doc_date}</TableCell>
                   <TableCell className="font-medium">
@@ -251,7 +255,10 @@ function SalesInvoiceListPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => openEdit(d.id)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openEdit(d.id);
+                      }}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
