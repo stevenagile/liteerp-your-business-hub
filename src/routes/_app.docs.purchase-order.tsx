@@ -30,6 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DocumentForm, StatusBadge } from "@/components/DocumentForm";
+import { VoidDocumentButton } from "@/components/VoidDocumentButton";
 
 export const Route = createFileRoute("/_app/docs/purchase-order")({
   component: PurchaseOrderListPage,
@@ -244,6 +245,14 @@ function PurchaseOrderListPage() {
                           <Printer className="h-4 w-4" />
                         </a>
                       </Button>
+                      <VoidDocumentButton
+                        docId={d.id}
+                        docNo={d.doc_no}
+                        status={d.status}
+                        module="purchase"
+                        variant="ghost"
+                        onVoided={load}
+                      />
                       <Button
                         size="sm"
                         variant="ghost"

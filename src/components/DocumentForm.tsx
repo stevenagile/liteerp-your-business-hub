@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SearchSelect, type SearchOption } from "@/components/SearchSelect";
+import { VoidDocumentButton } from "@/components/VoidDocumentButton";
 
 export type DocType =
   | "quotation"
@@ -78,6 +79,8 @@ export type DocHeader = {
   notes: string | null;
   company_id: string | null;
   sales_person_id: string | null;
+  void_reason?: string | null;
+  voided_at?: string | null;
 };
 
 export function emptyHeader(doc_type: DocType): DocHeader {
@@ -149,6 +152,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const partyLabel = isPurchase ? "廠商" : "客戶";
   const canWrite = usePermission(permModule, "write");
   const canConfirm = usePermission(permModule, "confirm");
+  const voidModule = permModule as "sales" | "purchase" | "inventory";
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -173,7 +177,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     const { data: h, error: he } = await supabase
       .from("doc_headers")
       .select(
-        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id",
+        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, void_reason, voided_at",
       )
       .eq("id", id)
       .maybeSingle();
@@ -777,6 +781,27 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
         </div>
       </section>
 
+      {/* ============ 作廢資訊 ============ */}
+      {header.status === "voided" && (
+        <section className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          <div className="font-semibold text-destructive">此單據已作廢</div>
+          <div className="mt-1 text-muted-foreground">
+            <div>
+              作廢原因:
+              <span className="ml-2 text-foreground">{header.void_reason ?? "—"}</span>
+            </div>
+            <div>
+              作廢時間:
+              <span className="ml-2 text-foreground">
+                {header.voided_at
+                  ? new Date(header.voided_at).toLocaleString()
+                  : "—"}
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ============ 操作 ============ */}
       <div className="flex items-center justify-end gap-2">
         {onCancel && (
@@ -805,6 +830,19 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
               </a>
             </Button>
           )}
+        {isEdit && header.status !== "voided" && (
+          <VoidDocumentButton
+            docId={header.id}
+            docNo={header.doc_no}
+            status={header.status}
+            module={voidModule}
+            stopPropagation={false}
+            onVoided={() => {
+              loadDoc(header.id);
+              onChanged?.();
+            }}
+          />
+        )}
         {isDraft && canWrite && (
           <Button type="button" onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -879,7 +917,10 @@ export function StatusBadge({ status }: { status: string }) {
     draft: { label: "草稿", cls: "bg-muted text-muted-foreground" },
     confirmed: { label: "已確認", cls: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" },
     completed: { label: "已完成", cls: "bg-success/15 text-success" },
-    voided: { label: "已作廢", cls: "bg-destructive/15 text-destructive" },
+    voided: {
+      label: "已作廢",
+      cls: "bg-muted text-muted-foreground line-through",
+    },
   };
   const s = map[status] ?? { label: status, cls: "bg-muted" };
   return (
