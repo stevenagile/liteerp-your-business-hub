@@ -232,6 +232,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
   const isEdit = Boolean(header.id);
   const isDraft = header.status === "draft";
   const readOnly = !isDraft || !canWrite;
+  const showCostCols =
+    docType === "sales_invoice" && header.status !== "draft";
 
   // ---- 客戶選擇 ----
   const selectedContact = contacts.find((c) => c.id === header.contact_id);
