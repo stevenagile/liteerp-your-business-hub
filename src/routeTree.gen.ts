@@ -14,7 +14,6 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReceivablesRouteImport } from './routes/_app.receivables'
-import { Route as AppPayablesRouteImport } from './routes/_app.payables'
 import { Route as AppProductsRouteImport } from './routes/_app.products'
 import { Route as AppPayablesRouteImport } from './routes/_app.payables'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
@@ -55,11 +54,6 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
 const AppReceivablesRoute = AppReceivablesRouteImport.update({
   id: '/receivables',
   path: '/receivables',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPayablesRoute = AppPayablesRouteImport.update({
-  id: '/payables',
-  path: '/payables',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProductsRoute = AppProductsRouteImport.update({
@@ -158,7 +152,6 @@ export interface FileRoutesByFullPath {
   '/payables': typeof AppPayablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
-  '/payables': typeof AppPayablesRoute
   '/settings': typeof AppSettingsRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
   '/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
@@ -181,7 +174,6 @@ export interface FileRoutesByTo {
   '/payables': typeof AppPayablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
-  '/payables': typeof AppPayablesRoute
   '/settings': typeof AppSettingsRoute
   '/': typeof AppIndexRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
@@ -207,7 +199,6 @@ export interface FileRoutesById {
   '/_app/payables': typeof AppPayablesRoute
   '/_app/products': typeof AppProductsRoute
   '/_app/receivables': typeof AppReceivablesRoute
-  '/_app/payables': typeof AppPayablesRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/': typeof AppIndexRoute
   '/_app/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
@@ -234,7 +225,6 @@ export interface FileRouteTypes {
     | '/payables'
     | '/products'
     | '/receivables'
-    | '/payables'
     | '/settings'
     | '/docs/inventory-adjust'
     | '/docs/purchase-order'
@@ -257,7 +247,6 @@ export interface FileRouteTypes {
     | '/payables'
     | '/products'
     | '/receivables'
-    | '/payables'
     | '/settings'
     | '/'
     | '/docs/inventory-adjust'
@@ -282,7 +271,6 @@ export interface FileRouteTypes {
     | '/_app/payables'
     | '/_app/products'
     | '/_app/receivables'
-    | '/_app/payables'
     | '/_app/settings'
     | '/_app/'
     | '/_app/docs/inventory-adjust'
@@ -339,13 +327,6 @@ declare module '@tanstack/react-router' {
       path: '/receivables'
       fullPath: '/receivables'
       preLoaderRoute: typeof AppReceivablesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/payables': {
-      id: '/_app/payables'
-      path: '/payables'
-      fullPath: '/payables'
-      preLoaderRoute: typeof AppPayablesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/products': {
@@ -489,7 +470,6 @@ interface AppRouteChildren {
   AppPayablesRoute: typeof AppPayablesRoute
   AppProductsRoute: typeof AppProductsRoute
   AppReceivablesRoute: typeof AppReceivablesRoute
-  AppPayablesRoute: typeof AppPayablesRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDocsInventoryAdjustRoute: typeof AppDocsInventoryAdjustRoute
@@ -512,7 +492,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppPayablesRoute: AppPayablesRoute,
   AppProductsRoute: AppProductsRoute,
   AppReceivablesRoute: AppReceivablesRoute,
-  AppPayablesRoute: AppPayablesRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
   AppDocsInventoryAdjustRoute: AppDocsInventoryAdjustRoute,
