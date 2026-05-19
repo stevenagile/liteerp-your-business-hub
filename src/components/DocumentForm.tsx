@@ -385,18 +385,25 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
       toast.error("請先儲存草稿");
       return;
     }
+    console.log("[confirm_document] calling RPC with id:", header.id);
     setConfirming(true);
-    const { error } = await supabase.rpc("confirm_document", {
+    const { data, error } = await supabase.rpc("confirm_document", {
       p_doc_id: header.id,
     });
-    setConfirming(false);
+    console.log("[confirm_document] result", { data, error });
     if (error) {
-      toast.error("確認失敗:" + error.message);
+      setConfirming(false);
+      toast.error(
+        "確認失敗:" + (error.message || error.details || JSON.stringify(error)),
+      );
       return;
     }
-    toast.success("已確認");
-    onSaved?.();
+    toast.success("已確認,庫存與成本已更新");
+    // 重新讀取單據,顯示確認後的成本/毛利快照
+    await loadDoc(header.id);
+    setConfirming(false);
   };
+
 
   if (loading) {
     return (
