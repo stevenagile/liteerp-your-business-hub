@@ -1,4 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+
+const DOC_STATUS_LABEL: Record<string, string> = {
+  draft: "草稿",
+  confirmed: "已確認",
+  completed: "已完成",
+  voided: "已作廢",
+};
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -167,6 +175,19 @@ function InventoryAdjustListPage() {
             清除篩選
           </Button>
         )}
+        <div className="ml-auto">
+          <ExportExcelButton
+            rows={list as unknown as Record<string, unknown>[]}
+            filename="庫存調整"
+            columns={[
+              { key: "doc_no", label: "單號" },
+              { key: "doc_date", label: "日期" },
+              { key: "warehouse_id", label: "倉庫", value: (r: Record<string, unknown>) => warehouseMap[(r as { warehouse_id: string | null }).warehouse_id ?? ""] ?? "—" },
+              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              { key: "notes", label: "備註" },
+            ]}
+          />
+        </div>
       </div>
 
       <div className="rounded-lg border bg-card shadow-sm">

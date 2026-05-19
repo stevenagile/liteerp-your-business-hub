@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
 
 export const Route = createFileRoute("/_app/reports/sales-detail")({
   component: SalesDetailReport,
@@ -154,6 +155,24 @@ function SalesDetailReport() {
         <Button onClick={run} disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}查詢
         </Button>
+        <ExportExcelButton
+          rows={rows as unknown as Record<string, unknown>[]}
+          filename="銷貨明細"
+          columns={[
+            { key: "doc_date", label: "日期" },
+            { key: "doc_no", label: "單號" },
+            { key: "customer_name", label: "客戶" },
+            { key: "sales_person_name", label: "業務" },
+            { key: "product_code", label: "產品編號" },
+            { key: "product_name", label: "品名" },
+            { key: "quantity", label: "數量", type: "number" },
+            { key: "unit_price", label: "單價", type: "number" },
+            { key: "amount", label: "金額", type: "number" },
+            { key: "unit_cost", label: "成本", type: "number" },
+            { key: "gross_profit", label: "毛利", type: "number" },
+            { key: "margin_pct", label: "毛利率(%)", type: "number" },
+          ]}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">

@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/inventory/ledger")({
@@ -255,6 +256,24 @@ function InventoryLedgerPage() {
               清除篩選
             </Button>
           )}
+          <div className="ml-auto mb-0.5">
+            <ExportExcelButton
+              rows={list as unknown as Record<string, unknown>[]}
+              filename="庫存異動明細"
+              columns={[
+                { key: "movement_date", label: "異動時間" },
+                { key: "product_code", label: "產品編號" },
+                { key: "product_name", label: "產品名稱" },
+                { key: "warehouse_name", label: "倉庫" },
+                { key: "movement_type", label: "異動類型", value: (r: Record<string, unknown>) => ({ opening: "期初入庫", sale: "銷貨出庫", purchase: "進貨入庫", sales_return: "銷退入庫", purchase_return: "進退出庫", adjust: "庫存調整", void_reverse: "作廢沖回" }[(r.movement_type as string) ?? ""] ?? (r.movement_type as string) ?? "") },
+                { key: "quantity_change", label: "異動數量", type: "number" },
+                { key: "balance_after", label: "異動後餘額", type: "number" },
+                { key: "unit_cost", label: "單位成本", type: "number" },
+                { key: "movement_value", label: "異動金額", type: "number" },
+                { key: "source_doc_no", label: "來源單號" },
+              ]}
+            />
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

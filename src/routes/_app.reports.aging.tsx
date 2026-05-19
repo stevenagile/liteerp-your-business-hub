@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+import { PrintReportButton } from "@/components/PrintReportButton";
+import { ReportPrintHeader } from "@/components/ReportPrintHeader";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -128,12 +131,33 @@ function AgingTable({ rows, partyLabel }: { rows: Row[]; partyLabel: string }) {
 function AgingReport() {
   const ar = useAging("v_ar_aging", "customer_name");
   const ap = useAging("v_ap_aging", "vendor_name");
+  const [tab, setTab] = useState<"ar" | "ap">("ar");
+
+  const activeRows = tab === "ar" ? ar.rows : ap.rows;
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">帳齡分析</h1>
-      <Tabs defaultValue="ar">
-        <TabsList>
+    <div className="space-y-4 print-area">
+      <ReportPrintHeader title="帳齡分析" />
+      <div className="flex items-start justify-between gap-4 no-print">
+        <h1 className="text-2xl font-semibold">帳齡分析</h1>
+        <div className="flex gap-2">
+          <ExportExcelButton
+            rows={activeRows as unknown as Record<string, unknown>[]}
+            filename={tab === "ar" ? "應收帳齡分析" : "應付帳齡分析"}
+            columns={[
+              { key: "party_name", label: tab === "ar" ? "客戶" : "廠商" },
+              { key: "doc_no", label: "單號" },
+              { key: "due_date", label: "到期日" },
+              { key: "balance", label: "餘額", type: "number" },
+              { key: "overdue_days", label: "逾期天數", type: "number" },
+              { key: "aging_bucket", label: "帳齡" },
+            ]}
+          />
+          <PrintReportButton />
+        </div>
+      </div>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "ar" | "ap")}>
+        <TabsList className="no-print">
           <TabsTrigger value="ar">應收帳齡</TabsTrigger>
           <TabsTrigger value="ap">應付帳齡</TabsTrigger>
         </TabsList>

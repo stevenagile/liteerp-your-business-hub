@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
 
 export const Route = createFileRoute("/_app/reports/salesperson")({
   component: SalespersonReport,
@@ -89,6 +90,18 @@ function SalespersonReport() {
         <Button onClick={run} disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}查詢
         </Button>
+        <ExportExcelButton
+          rows={sorted as unknown as Record<string, unknown>[]}
+          filename="業務績效"
+          columns={[
+            { key: "sales_person_name", label: "業務員" },
+            { key: "month", label: "月份", value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7) },
+            { key: "invoice_count", label: "張數", type: "number" },
+            { key: "total_sales", label: "總銷售額", type: "number" },
+            { key: "gross_profit", label: "總毛利", type: "number" },
+            { key: "margin_pct", label: "毛利率(%)", type: "number" },
+          ]}
+        />
       </div>
 
       <div className="rounded-md border bg-card">

@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
 
 export const Route = createFileRoute("/_app/receivables")({
   component: ReceivablesPage,
@@ -84,11 +85,28 @@ function ReceivablesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">應收帳款</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          追蹤客戶未收款項與逾期狀況。
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">應收帳款</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            追蹤客戶未收款項與逾期狀況。
+          </p>
+        </div>
+        <ExportExcelButton
+          rows={list as unknown as Record<string, unknown>[]}
+          filename="應收帳款"
+          columns={[
+            { key: "customer_name", label: "客戶" },
+            { key: "doc_no", label: "單號" },
+            { key: "doc_date", label: "日期" },
+            { key: "due_date", label: "到期日" },
+            { key: "total_amount", label: "總額", type: "number" },
+            { key: "paid_amount", label: "已收", type: "number" },
+            { key: "balance", label: "餘額", type: "number" },
+            { key: "payment_status", label: "狀態", value: (r: Record<string, unknown>) => ({ unpaid: "未收款", partial: "部分收款", paid: "已收款" }[(r.payment_status as string) ?? ""] ?? "—") },
+            { key: "overdue_days", label: "逾期天數", type: "number" },
+          ]}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

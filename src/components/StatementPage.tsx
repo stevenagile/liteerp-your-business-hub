@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
 
 export type StatementKind = "customer" | "vendor";
 
@@ -192,10 +193,24 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
             產生對帳單
           </Button>
           {generated && (
-            <Button variant="outline" onClick={() => window.print()}>
-              <Printer className="mr-2 h-4 w-4" />
-              列印 / 存 PDF
-            </Button>
+            <>
+              <ExportExcelButton
+                rows={running as unknown as Record<string, unknown>[]}
+                filename={title}
+                columns={[
+                  { key: "txn_date", label: "日期" },
+                  { key: "txn_type", label: "摘要", value: (r: Record<string, unknown>) => txnLabel(r.txn_type as string | null) },
+                  { key: "doc_no", label: "單號" },
+                  { key: "debit", label: "借方", type: "number" },
+                  { key: "credit", label: "貸方", type: "number" },
+                  { key: "balance", label: "餘額", type: "number" },
+                ]}
+              />
+              <Button variant="outline" onClick={() => window.print()}>
+                <Printer className="mr-2 h-4 w-4" />
+                列印 / 存 PDF
+              </Button>
+            </>
           )}
         </div>
       </div>

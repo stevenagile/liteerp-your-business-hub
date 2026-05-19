@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+import { PrintReportButton } from "@/components/PrintReportButton";
+import { ReportPrintHeader } from "@/components/ReportPrintHeader";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -60,10 +63,32 @@ function PnlReport() {
   ];
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">月損益表</h1>
-        <p className="mt-1 text-sm text-muted-foreground">每月營收、成本、費用與淨利</p>
+    <div className="space-y-4 print-area">
+      <ReportPrintHeader title="月損益表" />
+      <div className="flex items-start justify-between gap-4 no-print">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">月損益表</h1>
+          <p className="mt-1 text-sm text-muted-foreground">每月營收、成本、費用與淨利</p>
+        </div>
+        <div className="flex gap-2">
+          <ExportExcelButton
+            rows={rows as unknown as Record<string, unknown>[]}
+            filename="月損益表"
+            columns={[
+              { key: "month", label: "月份", value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7) },
+              { key: "revenue", label: "營收", type: "number" },
+              { key: "cogs", label: "銷貨成本", type: "number" },
+              { key: "gross_profit", label: "毛利", type: "number" },
+              { key: "gross_margin_pct", label: "毛利率(%)", type: "number" },
+              { key: "fixed_expenses", label: "固定費用", type: "number" },
+              { key: "variable_expenses", label: "變動費用", type: "number" },
+              { key: "total_expenses", label: "費用合計", type: "number" },
+              { key: "net_profit", label: "淨利", type: "number" },
+              { key: "net_margin_pct", label: "淨利率(%)", type: "number" },
+            ]}
+          />
+          <PrintReportButton />
+        </div>
       </div>
       <div className="rounded-lg border bg-card shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
