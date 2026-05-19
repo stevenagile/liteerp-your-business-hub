@@ -93,6 +93,11 @@ const groups: Group[] = [
   },
 ];
 
+const adminItems: Item[] = [
+  { label: "使用者管理", to: "/settings/users", icon: Users },
+  { label: "權限設定", to: "/settings/permissions", icon: ShieldCheck },
+];
+
 export function Sidebar({ open }: { open: boolean }) {
   const pathname = useRouterState({
     select: (s) => s.location.pathname,
