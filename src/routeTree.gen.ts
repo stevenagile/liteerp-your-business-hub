@@ -18,7 +18,6 @@ import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
 import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
 import { Route as AppDocsQuotationRouteImport } from './routes/_app.docs.quotation'
-import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -64,11 +63,6 @@ const AppDocsQuotationRoute = AppDocsQuotationRouteImport.update({
   path: '/docs/quotation',
   getParentRoute: () => AppRoute,
 } as any)
-const AppDocsSalesOrderRoute = AppDocsSalesOrderRouteImport.update({
-  id: '/docs/sales-order',
-  path: '/docs/sales-order',
-  getParentRoute: () => AppRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -78,8 +72,6 @@ export interface FileRoutesByFullPath {
   '/products': typeof AppProductsRoute
   '/settings': typeof AppSettingsRoute
   '/docs/quotation': typeof AppDocsQuotationRoute
-  '/docs/sales-order': typeof AppDocsSalesOrderRoute
-  '/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/docs/sales-order': typeof AppDocsSalesOrderRoute
 }
 export interface FileRoutesByTo {
@@ -103,7 +95,6 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/docs/quotation': typeof AppDocsQuotationRoute
   '/_app/docs/sales-order': typeof AppDocsSalesOrderRoute
-  '/_app/docs/sales-order': typeof AppDocsSalesOrderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -115,8 +106,6 @@ export interface FileRouteTypes {
     | '/products'
     | '/settings'
     | '/docs/quotation'
-    | '/docs/sales-order'
-    | '/docs/sales-order'
     | '/docs/sales-order'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -138,7 +127,6 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/'
     | '/_app/docs/quotation'
-    | '/_app/docs/sales-order'
     | '/_app/docs/sales-order'
   fileRoutesById: FileRoutesById
 }
@@ -212,13 +200,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDocsQuotationRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/docs/sales-order': {
-      id: '/_app/docs/sales-order'
-      path: '/docs/sales-order'
-      fullPath: '/docs/sales-order'
-      preLoaderRoute: typeof AppDocsSalesOrderRouteImport
-      parentRoute: typeof AppRoute
-    }
   }
 }
 
@@ -229,7 +210,6 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDocsQuotationRoute: typeof AppDocsQuotationRoute
-  AppDocsSalesOrderRoute: typeof AppDocsSalesOrderRoute
   AppDocsSalesOrderRoute: typeof AppDocsSalesOrderRoute
 }
 
