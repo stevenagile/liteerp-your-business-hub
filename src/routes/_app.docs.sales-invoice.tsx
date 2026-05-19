@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, Wallet } from "lucide-react";
+import { Loader2, Plus, Pencil, Wallet, Undo2 } from "lucide-react";
 import { PaymentDialog } from "@/components/PaymentDialog";
+import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePermission } from "@/hooks/usePermission";
@@ -87,6 +88,7 @@ function SalesInvoiceListPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [payTarget, setPayTarget] = useState<DocRow | null>(null);
+  const [returnTarget, setReturnTarget] = useState<DocRow | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -272,6 +274,21 @@ function SalesInvoiceListPage() {
                             收款
                           </Button>
                         )}
+                      {canWrite &&
+                        (d.status === "confirmed" ||
+                          d.status === "completed") && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setReturnTarget(d);
+                            }}
+                          >
+                            <Undo2 className="mr-1 h-3.5 w-3.5" />
+                            退貨
+                          </Button>
+                        )}
                       <Button
                         size="sm"
                         variant="ghost"
@@ -320,6 +337,19 @@ function SalesInvoiceListPage() {
         paidAmount={Number(payTarget?.paid_amount ?? 0)}
         onRecorded={() => {
           setPayTarget(null);
+          load();
+        }}
+      />
+
+      <TransferToOrderDialog
+        open={Boolean(returnTarget)}
+        onOpenChange={(v) => !v && setReturnTarget(null)}
+        sourceDocId={returnTarget?.id ?? null}
+        sourceDocNo={returnTarget?.doc_no ?? null}
+        targetDocType="sales_return"
+        targetLabel="銷退單"
+        onTransferred={() => {
+          setReturnTarget(null);
           load();
         }}
       />

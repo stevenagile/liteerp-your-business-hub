@@ -41,11 +41,14 @@ export type DocType =
   | "quotation"
   | "sales_order"
   | "sales_invoice"
+  | "sales_return"
   | "purchase_order"
-  | "purchase_receipt";
+  | "purchase_receipt"
+  | "inventory_adjust";
 
 const PURCHASE_TYPES: DocType[] = ["purchase_order", "purchase_receipt"];
 const isPurchaseType = (t: DocType) => PURCHASE_TYPES.includes(t);
+const isAdjustType = (t: DocType) => t === "inventory_adjust";
 
 export type DocLine = {
   id?: string;
@@ -139,7 +142,8 @@ type Props = {
 export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: Props) {
   const { profile, user } = useAuth();
   const isPurchase = isPurchaseType(docType);
-  const permModule = isPurchase ? "purchase" : "sales";
+  const isAdjust = isAdjustType(docType);
+  const permModule = isAdjust ? "inventory" : isPurchase ? "purchase" : "sales";
   const partyLabel = isPurchase ? "廠商" : "客戶";
   const canWrite = usePermission(permModule, "write");
   const canConfirm = usePermission(permModule, "confirm");
@@ -294,7 +298,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
 
   // ---- 儲存 ----
   const handleSave = async () => {
-    if (!header.contact_id) {
+    if (!isAdjust && !header.contact_id) {
       toast.error(`請選擇${partyLabel}`);
       return;
     }
@@ -302,9 +306,17 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       toast.error("請選擇倉庫");
       return;
     }
+    if (isAdjust && !(header.notes ?? "").trim()) {
+      toast.error("請填寫調整原因 (備註)");
+      return;
+    }
     const validLines = lines.filter((l) => l.product_id);
     if (validLines.length === 0) {
       toast.error("請至少新增一筆有效明細");
+      return;
+    }
+    if (isAdjust && validLines.some((l) => Number(l.quantity) === 0)) {
+      toast.error("調整數量不可為 0");
       return;
     }
 
@@ -490,21 +502,27 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </div>
           </Field>
 
-          <Field label={partyLabel} required className="md:col-span-2">
-            <SearchSelect
-              disabled={readOnly}
-              value={header.contact_id}
-              onChange={(v) => handleContactChange(v)}
-              options={contacts.map<SearchOption>((c) => ({
-                value: c.id,
-                label: c.name,
-                hint: c.code,
-              }))}
-              placeholder={`搜尋${partyLabel}名稱或編號`}
-            />
-          </Field>
+          {!isAdjust && (
+            <Field label={partyLabel} required className="md:col-span-2">
+              <SearchSelect
+                disabled={readOnly}
+                value={header.contact_id}
+                onChange={(v) => handleContactChange(v)}
+                options={contacts.map<SearchOption>((c) => ({
+                  value: c.id,
+                  label: c.name,
+                  hint: c.code,
+                }))}
+                placeholder={`搜尋${partyLabel}名稱或編號`}
+              />
+            </Field>
+          )}
 
-          <Field label="倉庫" required>
+          <Field
+            label="倉庫"
+            required
+            className={isAdjust ? "md:col-span-2" : undefined}
+          >
             <Select
               value={header.warehouse_id ?? ""}
               onValueChange={(v) =>
@@ -525,13 +543,18 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </Select>
           </Field>
 
-          <Field label="備註" className="md:col-span-3">
+          <Field
+            label={isAdjust ? "調整原因 (備註)" : "備註"}
+            required={isAdjust}
+            className="md:col-span-3"
+          >
             <Input
               value={header.notes ?? ""}
               onChange={(e) =>
                 setHeader((h) => ({ ...h, notes: e.target.value }))
               }
               disabled={readOnly}
+              placeholder={isAdjust ? "盤點差異 / 報廢 / 樣品出庫 ..." : ""}
             />
           </Field>
         </div>
@@ -603,10 +626,14 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                   <TableCell>
                     <Input
                       type="number"
-                      min={0}
+                      {...(isAdjust ? {} : { min: 0 })}
                       step="0.01"
                       disabled={readOnly}
-                      className="h-8 text-right"
+                      className={cn(
+                        "h-8 text-right",
+                        isAdjust && Number(l.quantity) < 0 && "text-destructive",
+                        isAdjust && Number(l.quantity) > 0 && "text-success",
+                      )}
                       value={l.quantity}
                       onChange={(e) =>
                         updateLine(idx, {
