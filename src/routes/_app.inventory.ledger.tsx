@@ -409,8 +409,16 @@ function InventoryLedgerPage() {
 function MovementTypeBadge({ type }: { type: string }) {
   const t = MOVEMENT_TYPES.find((m) => m.key === type);
   if (!t) return <span className="text-xs text-muted-foreground">{type}</span>;
+
+  const colorClass =
+    t.color === "success"
+      ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800"
+      : t.color === "destructive"
+        ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"
+        : "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
+
   return (
-    <Badge variant={t.color as any} className="text-[11px]">
+    <Badge variant="outline" className={cn("text-[11px]", colorClass)}>
       {t.label}
     </Badge>
   );
