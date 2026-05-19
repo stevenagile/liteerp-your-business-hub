@@ -1,4 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+
+const DOC_STATUS_LABEL: Record<string, string> = {
+  draft: "草稿",
+  confirmed: "已確認",
+  completed: "已完成",
+  voided: "已作廢",
+};
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil, ArrowRightLeft, Printer } from "lucide-react";
 import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
