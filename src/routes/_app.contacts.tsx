@@ -32,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ImportDialog, type ImportField } from "@/components/ImportDialog";
 
 export const Route = createFileRoute("/_app/contacts")({
   component: ContactsPage,
