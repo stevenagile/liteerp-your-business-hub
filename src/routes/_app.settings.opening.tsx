@@ -420,6 +420,7 @@ function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
           <Label>金額 <span className="text-destructive">*</span></Label>
           <Input
             type="number"
+            step="1"
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
