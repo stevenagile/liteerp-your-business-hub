@@ -217,6 +217,7 @@ function OpeningInventory() {
                 <TableCell>
                   <Input
                     type="number"
+                    step="1"
                     inputMode="decimal"
                     className="text-right"
                     value={r.quantity}
@@ -226,6 +227,7 @@ function OpeningInventory() {
                 <TableCell>
                   <Input
                     type="number"
+                    step="1"
                     inputMode="decimal"
                     className="text-right"
                     value={r.unit_cost}
@@ -418,6 +420,7 @@ function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
           <Label>金額 <span className="text-destructive">*</span></Label>
           <Input
             type="number"
+            step="1"
             inputMode="decimal"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}

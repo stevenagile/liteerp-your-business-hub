@@ -218,7 +218,7 @@ function CompanyForm() {
             type="number"
             min={0}
             max={100}
-            step="0.01"
+            step="1"
             value={form.tax_rate ?? 0}
             onChange={(e) =>
               setForm((f) => ({

@@ -222,7 +222,7 @@ export function TransferToOrderDialog({
                         type="number"
                         min={0}
                         max={r.remaining}
-                        step="0.01"
+                        step="1"
                         disabled={r.fullyDone || !r.checked}
                         className="h-8 text-right"
                         value={r.qty}

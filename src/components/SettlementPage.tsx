@@ -206,7 +206,7 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
           <Input
             type="number"
             min={0}
-            step="0.01"
+            step="1"
             value={totalAmount}
             onChange={(e) => setTotalAmount(e.target.value)}
           />
@@ -324,7 +324,7 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
                         type="number"
                         min={0}
                         max={bal}
-                        step="0.01"
+                        step="1"
                         value={allocs[d.id] ?? ""}
                         onChange={(e) => updateAlloc(d, e.target.value)}
                         className="ml-auto h-8 w-36 text-right"
