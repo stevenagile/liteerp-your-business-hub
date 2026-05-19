@@ -143,6 +143,30 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
   const [taxRate, setTaxRate] = useState<number>(5);
 
   // ---- 載入基礎資料 + 既有單據 ----
+  const loadDoc = async (id: string) => {
+    const { data: h, error: he } = await supabase
+      .from("doc_headers")
+      .select(
+        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id",
+      )
+      .eq("id", id)
+      .maybeSingle();
+    if (he) {
+      toast.error("讀取單據失敗:" + he.message);
+      return;
+    }
+    if (h) setHeader(h as DocHeader);
+
+    const { data: ls } = await supabase
+      .from("doc_lines")
+      .select(
+        "id, line_no, product_id, product_code, product_name, unit, quantity, unit_price, discount_pct, unit_cost, gross_profit, margin_pct",
+      )
+      .eq("header_id", id)
+      .order("line_no");
+    setLines(ls && ls.length > 0 ? (ls as DocLine[]) : [emptyLine()]);
+  };
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -176,28 +200,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
       if (typeof tr === "number") setTaxRate(tr);
 
       if (docId) {
-        const { data: h, error: he } = await supabase
-          .from("doc_headers")
-          .select(
-            "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id",
-          )
-          .eq("id", docId)
-          .maybeSingle();
-        if (he) toast.error("讀取單據失敗:" + he.message);
-        if (h) setHeader(h as DocHeader);
-
-        const { data: ls } = await supabase
-          .from("doc_lines")
-          .select(
-            "id, line_no, product_id, product_code, product_name, unit, quantity, unit_price, discount_pct, unit_cost, gross_profit, margin_pct",
-          )
-          .eq("header_id", docId)
-          .order("line_no");
-        setLines(
-          ls && ls.length > 0
-            ? (ls as DocLine[])
-            : [emptyLine()],
-        );
+        await loadDoc(docId);
       } else {
         // 新建:預設預設倉
         const def = (w ?? []).find((x) => x.is_default) ?? (w ?? [])[0];
@@ -210,7 +213,9 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docId]);
+
 
   // ---- 試算 ----
   const totals = useMemo(() => {
@@ -380,18 +385,25 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
       toast.error("請先儲存草稿");
       return;
     }
+    console.log("[confirm_document] calling RPC with id:", header.id);
     setConfirming(true);
-    const { error } = await supabase.rpc("confirm_document", {
+    const { data, error } = await supabase.rpc("confirm_document", {
       p_doc_id: header.id,
     });
-    setConfirming(false);
+    console.log("[confirm_document] result", { data, error });
     if (error) {
-      toast.error("確認失敗:" + error.message);
+      setConfirming(false);
+      toast.error(
+        "確認失敗:" + (error.message || error.details || JSON.stringify(error)),
+      );
       return;
     }
-    toast.success("已確認");
-    onSaved?.();
+    toast.success("已確認,庫存與成本已更新");
+    // 重新讀取單據,顯示確認後的成本/毛利快照
+    await loadDoc(header.id);
+    setConfirming(false);
   };
+
 
   if (loading) {
     return (
@@ -700,7 +712,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
             disabled={confirming}
           >
             {confirming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            確認單據
+            {confirming ? "處理中..." : "確認單據"}
           </Button>
         )}
       </div>
