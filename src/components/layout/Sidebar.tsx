@@ -66,6 +66,7 @@ const groups: Group[] = [
     title: "帳務",
     items: [
       { label: "應收帳款", to: "/receivables", icon: Wallet },
+      { label: "應付帳款", to: "/payables", icon: Wallet },
       { label: "費用管理", to: "/expenses", icon: CircleDollarSign },
     ],
   },
