@@ -716,7 +716,7 @@ function Field({
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     draft: { label: "草稿", cls: "bg-muted text-muted-foreground" },
-    confirmed: { label: "已確認", cls: "bg-info/15 text-info" },
+    confirmed: { label: "已確認", cls: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" },
     completed: { label: "已完成", cls: "bg-success/15 text-success" },
     voided: { label: "已作廢", cls: "bg-destructive/15 text-destructive" },
   };
