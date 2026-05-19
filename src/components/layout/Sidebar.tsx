@@ -99,6 +99,7 @@ const adminItems: Item[] = [
   { label: "使用者管理", to: "/settings/users", icon: Users },
   { label: "權限設定", to: "/settings/permissions", icon: ShieldCheck },
   { label: "系統開帳", to: "/settings/opening", icon: ClipboardList },
+  { label: "進階參數", to: "/settings/advanced", icon: Settings },
 ];
 
 export function Sidebar({ open }: { open: boolean }) {

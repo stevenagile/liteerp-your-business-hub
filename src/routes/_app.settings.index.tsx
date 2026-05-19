@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdvancedSettingsPanel } from "@/components/AdvancedSettingsPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,12 +75,16 @@ function SettingsPage() {
         <TabsList>
           <TabsTrigger value="company">公司資料</TabsTrigger>
           <TabsTrigger value="warehouses">倉庫管理</TabsTrigger>
+          <TabsTrigger value="advanced">進階參數</TabsTrigger>
         </TabsList>
         <TabsContent value="company" className="mt-4">
           <CompanyForm />
         </TabsContent>
         <TabsContent value="warehouses" className="mt-4">
           <WarehousesPanel />
+        </TabsContent>
+        <TabsContent value="advanced" className="mt-4">
+          <AdvancedSettingsPanel />
         </TabsContent>
       </Tabs>
     </div>

@@ -21,6 +21,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          settings: Json | null
           tax_id: string | null
           updated_at: string
         }
@@ -30,6 +31,7 @@ export type Database = {
           id?: string
           name: string
           phone?: string | null
+          settings?: Json | null
           tax_id?: string | null
           updated_at?: string
         }
@@ -39,6 +41,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          settings?: Json | null
           tax_id?: string | null
           updated_at?: string
         }
