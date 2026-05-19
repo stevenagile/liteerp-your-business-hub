@@ -49,6 +49,10 @@ export type DocLine = {
   quantity: number;
   unit_price: number;
   discount_pct: number;
+  // 銷貨單確認後由後端寫入的成本快照
+  unit_cost?: number | null;
+  gross_profit?: number | null;
+  margin_pct?: number | null;
 };
 
 export type DocHeader = {
