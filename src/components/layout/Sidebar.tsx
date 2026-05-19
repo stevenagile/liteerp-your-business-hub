@@ -44,20 +44,21 @@ const groups: Group[] = [
       { label: "報價單", to: "/docs/quotation", icon: FileText },
       { label: "訂單", to: "/docs/sales-order", icon: ShoppingCart },
       { label: "銷貨單", to: "/docs/sales-invoice", icon: Receipt },
+      { label: "銷退單", to: "/docs/sales-return", icon: PackageOpen },
     ],
   },
   {
     title: "採購",
     items: [
-      { label: "採購單", to: "/purchases", icon: Truck },
-      { label: "進貨單", to: "/receipts", icon: PackageOpen },
+      { label: "採購單", to: "/docs/purchase-order", icon: Truck },
+      { label: "進貨單", to: "/docs/purchase-receipt", icon: PackageOpen },
     ],
   },
   {
     title: "庫存",
     items: [
       { label: "庫存總覽", to: "/inventory", icon: Boxes },
-      { label: "庫存調整", to: "/inventory-adjust", icon: ClipboardList },
+      { label: "庫存調整", to: "/docs/inventory-adjust", icon: ClipboardList },
     ],
   },
   {
