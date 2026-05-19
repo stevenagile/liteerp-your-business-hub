@@ -217,6 +217,7 @@ function OpeningInventory() {
                 <TableCell>
                   <Input
                     type="number"
+                    step="1"
                     inputMode="decimal"
                     className="text-right"
                     value={r.quantity}
@@ -226,6 +227,7 @@ function OpeningInventory() {
                 <TableCell>
                   <Input
                     type="number"
+                    step="1"
                     inputMode="decimal"
                     className="text-right"
                     value={r.unit_cost}
