@@ -264,7 +264,7 @@ function SalesReturnListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? "編輯銷退單" : "新增銷退單"}</DialogTitle>
+            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯銷退單" : "檢視銷退單") : "新增銷退單"}</DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm
