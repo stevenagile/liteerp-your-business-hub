@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DocumentForm, StatusBadge } from "@/components/DocumentForm";
+import { VoidDocumentButton } from "@/components/VoidDocumentButton";
 
 export const Route = createFileRoute("/_app/docs/purchase-receipt")({
   component: PurchaseReceiptListPage,
