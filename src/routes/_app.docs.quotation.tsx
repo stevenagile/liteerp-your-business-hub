@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil } from "lucide-react";
+import { Loader2, Plus, Pencil, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
 import { usePermission } from "@/hooks/usePermission";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,8 @@ function QuotationListPage() {
   const [dateTo, setDateTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [transferTarget, setTransferTarget] = useState<DocRow | null>(null);
+  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
@@ -173,7 +176,7 @@ function QuotationListPage() {
               <TableHead>客戶</TableHead>
               <TableHead className="w-32 text-right">總金額</TableHead>
               <TableHead className="w-24">狀態</TableHead>
-              <TableHead className="w-20 text-right">操作</TableHead>
+              <TableHead className="w-36 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -207,13 +210,25 @@ function QuotationListPage() {
                     <StatusBadge status={d.status} />
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => openEdit(d.id)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      {canWrite && d.status === "confirmed" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setTransferTarget(d)}
+                        >
+                          <ArrowRightLeft className="mr-1 h-3.5 w-3.5" />
+                          轉訂單
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => openEdit(d.id)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
