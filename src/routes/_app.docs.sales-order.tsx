@@ -260,6 +260,7 @@ function SalesOrderListPage() {
                 setDialogOpen(false);
                 load();
               }}
+              onChanged={load}
             />
           )}
         </DialogContent>
