@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Loader2, Plus, Pencil, Search } from "lucide-react";
+import { Loader2, Plus, Pencil, Search, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -32,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ImportDialog, type ImportField } from "@/components/ImportDialog";
 
 export const Route = createFileRoute("/_app/contacts")({
   component: ContactsPage,
@@ -89,6 +90,8 @@ function ContactsPage() {
   const [keyword, setKeyword] = useState("");
   const [editing, setEditing] = useState<Contact | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const { profile } = useAuth();
 
   const load = async () => {
     setLoading(true);
@@ -137,15 +140,21 @@ function ContactsPage() {
           </p>
         </div>
         {canWrite && (
-          <Button
-            onClick={() => {
-              setEditing(emptyContact());
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            新增
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="mr-1.5 h-4 w-4" />
+              匯入
+            </Button>
+            <Button
+              onClick={() => {
+                setEditing(emptyContact());
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              新增
+            </Button>
+          </div>
         )}
       </div>
 
@@ -249,9 +258,79 @@ function ContactsPage() {
           load();
         }}
       />
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        title="匯入客戶廠商"
+        templateFileName="contacts_template.csv"
+        fields={CONTACT_IMPORT_FIELDS}
+        validateRows={async (parsedRows) => {
+          const codes = parsedRows
+            .map((r) => String(r.data.code ?? "").trim())
+            .filter(Boolean);
+          const seen = new Map<string, number>();
+          const dupInFile = new Set<string>();
+          codes.forEach((c) => {
+            const n = (seen.get(c) ?? 0) + 1;
+            seen.set(c, n);
+            if (n > 1) dupInFile.add(c);
+          });
+          let existing = new Set<string>();
+          if (codes.length > 0) {
+            const { data } = await supabase
+              .from("contacts")
+              .select("code")
+              .in("code", codes);
+            existing = new Set((data ?? []).map((d: { code: string }) => d.code));
+          }
+          return parsedRows.map((r) => {
+            const code = String(r.data.code ?? "").trim();
+            const errs = [...r.errors];
+            if (code && dupInFile.has(code)) errs.push("檔案內 code 重複");
+            if (code && existing.has(code)) errs.push("code 已存在");
+            return { ...r, errors: errs };
+          });
+        }}
+        onImport={async (validRows) => {
+          const payload = validRows.map((r) => ({
+            ...r.data,
+            company_id: profile?.company_id ?? null,
+          }));
+          const { error } = await supabase.from("contacts").insert(payload);
+          if (error) return { success: 0, failed: validRows.length, errors: [error.message] };
+          return { success: validRows.length, failed: 0 };
+        }}
+        onImported={load}
+      />
     </div>
   );
 }
+
+const CONTACT_IMPORT_FIELDS: ImportField[] = [
+  { key: "code", label: "代碼", required: true, example: "C0001" },
+  { key: "name", label: "名稱", required: true, example: "範例公司" },
+  {
+    key: "type",
+    label: "類別",
+    required: true,
+    type: "enum",
+    enumValues: ["customer", "vendor", "both"],
+    example: "customer",
+  },
+  { key: "short_name", label: "簡稱" },
+  { key: "tax_id", label: "統編" },
+  { key: "contact_person", label: "聯絡人" },
+  { key: "phone", label: "電話" },
+  { key: "email", label: "Email" },
+  { key: "address", label: "地址" },
+  { key: "shipping_address", label: "送貨地址" },
+  { key: "payment_terms", label: "帳期天數", type: "number", default: 30, example: 30 },
+  { key: "price_level", label: "售價等級", type: "number", default: 1, example: 1 },
+  { key: "credit_limit", label: "信用額度", type: "number", default: 0, example: 0 },
+  { key: "notes", label: "備註" },
+];
+
 
 function ContactDialog({
   open,

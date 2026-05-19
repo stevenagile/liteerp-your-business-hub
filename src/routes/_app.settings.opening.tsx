@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Loader2, Plus, Trash2, ShieldAlert, Info } from "lucide-react";
+import { Loader2, Plus, Trash2, ShieldAlert, Info, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ImportDialog, type ImportField } from "@/components/ImportDialog";
 
 export const Route = createFileRoute("/_app/settings/opening")({
   component: OpeningPage,
@@ -114,6 +115,7 @@ function OpeningInventory() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [rows, setRows] = useState<InvRow[]>([newInvRow()]);
   const [submitting, setSubmitting] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -249,17 +251,66 @@ function OpeningInventory() {
       </div>
 
       <div className="flex justify-between">
-        <Button variant="outline" onClick={() => setRows((rs) => [...rs, newInvRow()])}>
-          <Plus className="mr-1.5 h-4 w-4" /> 新增一列
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setRows((rs) => [...rs, newInvRow()])}>
+            <Plus className="mr-1.5 h-4 w-4" /> 新增一列
+          </Button>
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Upload className="mr-1.5 h-4 w-4" /> 匯入
+          </Button>
+        </div>
         <Button onClick={submit} disabled={submitting}>
           {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           套用期初庫存
         </Button>
       </div>
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        title="匯入期初庫存"
+        templateFileName="opening_inventory_template.csv"
+        fields={OPENING_INV_FIELDS}
+        validateRows={(parsedRows) => {
+          const prodMap = new Map(products.map((p) => [p.code, p.id]));
+          const whMap = new Map(warehouses.map((w) => [w.code, w.id]));
+          return parsedRows.map((r) => {
+            const errs = [...r.errors];
+            const pCode = String(r.data.product_code ?? "").trim();
+            const wCode = String(r.data.warehouse_code ?? "").trim();
+            const pid = prodMap.get(pCode);
+            const wid = whMap.get(wCode);
+            if (pCode && !pid) errs.push(`產品編號 ${pCode} 不存在`);
+            if (wCode && !wid) errs.push(`倉庫代碼 ${wCode} 不存在`);
+            return {
+              ...r,
+              errors: errs,
+              data: { ...r.data, product_id: pid, warehouse_id: wid },
+            };
+          });
+        }}
+        onImport={async (validRows) => {
+          const items = validRows.map((r) => ({
+            product_id: r.data.product_id as string,
+            warehouse_id: r.data.warehouse_id as string,
+            quantity: Number(r.data.quantity ?? 0),
+            unit_cost: Number(r.data.unit_cost ?? 0),
+          }));
+          const { error } = await supabase.rpc("load_opening_inventory", { p_items: items });
+          if (error) return { success: 0, failed: items.length, errors: [error.message] };
+          return { success: items.length, failed: 0 };
+        }}
+      />
     </div>
   );
 }
+
+const OPENING_INV_FIELDS: ImportField[] = [
+  { key: "product_code", label: "產品編號", required: true, example: "P0001" },
+  { key: "warehouse_code", label: "倉庫代碼", required: true, example: "WH01" },
+  { key: "quantity", label: "期初數量", required: true, type: "number", example: 100 },
+  { key: "unit_cost", label: "期初單位成本", required: true, type: "number", example: 50 },
+];
 
 /* ----------------------- 期初應收/應付 ----------------------- */
 

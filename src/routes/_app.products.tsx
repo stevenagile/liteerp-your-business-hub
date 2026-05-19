@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Loader2, Plus, Pencil, Search } from "lucide-react";
+import { Loader2, Plus, Pencil, Search, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ImportDialog, type ImportField } from "@/components/ImportDialog";
 
 export const Route = createFileRoute("/_app/products")({
   component: ProductsPage,
@@ -65,12 +66,14 @@ function emptyProduct(): Product {
 }
 
 function ProductsPage() {
+  const { profile } = useAuth();
   const canWrite = usePermission("inventory", "write");
   const [list, setList] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState("");
   const [editing, setEditing] = useState<Product | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -112,15 +115,21 @@ function ProductsPage() {
           </p>
         </div>
         {canWrite && (
-          <Button
-            onClick={() => {
-              setEditing(emptyProduct());
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            新增
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="mr-1.5 h-4 w-4" />
+              匯入
+            </Button>
+            <Button
+              onClick={() => {
+                setEditing(emptyProduct());
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              新增
+            </Button>
+          </div>
         )}
       </div>
 
@@ -221,9 +230,70 @@ function ProductsPage() {
           load();
         }}
       />
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        title="匯入產品"
+        templateFileName="products_template.csv"
+        fields={PRODUCT_IMPORT_FIELDS}
+        validateRows={async (parsedRows) => {
+          const codes = parsedRows
+            .map((r) => String(r.data.code ?? "").trim())
+            .filter(Boolean);
+          const seen = new Map<string, number>();
+          const dupInFile = new Set<string>();
+          codes.forEach((c) => {
+            const n = (seen.get(c) ?? 0) + 1;
+            seen.set(c, n);
+            if (n > 1) dupInFile.add(c);
+          });
+          let existing = new Set<string>();
+          if (codes.length > 0) {
+            const { data } = await supabase
+              .from("products")
+              .select("code")
+              .in("code", codes);
+            existing = new Set((data ?? []).map((d: { code: string }) => d.code));
+          }
+          return parsedRows.map((r) => {
+            const code = String(r.data.code ?? "").trim();
+            const errs = [...r.errors];
+            if (code && dupInFile.has(code)) errs.push("檔案內 code 重複");
+            if (code && existing.has(code)) errs.push("code 已存在");
+            return { ...r, errors: errs };
+          });
+        }}
+        onImport={async (validRows) => {
+          const payload = validRows.map((r) => ({
+            ...r.data,
+            company_id: profile?.company_id ?? null,
+          }));
+          const { error } = await supabase.from("products").insert(payload);
+          if (error) return { success: 0, failed: validRows.length, errors: [error.message] };
+          return { success: validRows.length, failed: 0 };
+        }}
+        onImported={load}
+      />
     </div>
   );
 }
+
+const PRODUCT_IMPORT_FIELDS: ImportField[] = [
+  { key: "code", label: "產品編號", required: true, example: "P0001" },
+  { key: "name", label: "品名", required: true, example: "範例產品" },
+  { key: "spec", label: "規格", example: "10x20cm" },
+  { key: "category", label: "分類", example: "一般" },
+  { key: "unit", label: "單位", default: "個", example: "個" },
+  { key: "barcode", label: "條碼" },
+  { key: "price1", label: "售價1", type: "number", default: 0, example: 100 },
+  { key: "price2", label: "售價2", type: "number", default: 0, example: 90 },
+  { key: "price3", label: "售價3", type: "number", default: 0, example: 80 },
+  { key: "cost_price", label: "成本價", type: "number", default: 0, example: 60 },
+  { key: "safety_stock", label: "安全庫存", type: "number", default: 0, example: 10 },
+  { key: "notes", label: "備註" },
+];
+
 
 function ProductDialog({
   open,
