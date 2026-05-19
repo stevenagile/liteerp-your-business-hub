@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Loader2, Plus, Trash2, ShieldAlert, Info } from "lucide-react";
+import { Loader2, Plus, Trash2, ShieldAlert, Info, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ImportDialog, type ImportField } from "@/components/ImportDialog";
 
 export const Route = createFileRoute("/_app/settings/opening")({
   component: OpeningPage,
