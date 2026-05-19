@@ -212,7 +212,7 @@ function SalesInvoiceListPage() {
               <TableHead className="w-24">狀態</TableHead>
               <TableHead className="w-28">收款</TableHead>
               <TableHead className="w-36">來源訂單</TableHead>
-              <TableHead className="w-20 text-right">操作</TableHead>
+              <TableHead className="w-32 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -256,16 +256,33 @@ function SalesInvoiceListPage() {
                     {d.source_doc_no ?? "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openEdit(d.id);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      {canPay &&
+                        d.status === "confirmed" &&
+                        d.payment_status !== "paid" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setPayTarget(d);
+                            }}
+                          >
+                            <Wallet className="mr-1 h-3.5 w-3.5" />
+                            收款
+                          </Button>
+                        )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openEdit(d.id);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
