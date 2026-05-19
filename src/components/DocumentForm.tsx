@@ -469,8 +469,14 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
 
   return (
     <div className="space-y-6">
+      {isEdit && !isDraft && header.status !== "voided" && (
+        <div className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
+          🔒 此單據已{header.status === "completed" ? "完成" : "確認"}，內容已鎖定不可修改。流程操作（收付款、轉單、作廢等）仍可使用。
+        </div>
+      )}
       {/* ============ 表頭 ============ */}
       <section className="rounded-lg border bg-card p-4 shadow-sm">
+
         <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
           表頭資訊
         </h3>
