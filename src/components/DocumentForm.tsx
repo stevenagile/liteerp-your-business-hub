@@ -176,7 +176,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     const { data: h, error: he } = await supabase
       .from("doc_headers")
       .select(
-        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id",
+        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, void_reason, voided_at",
       )
       .eq("id", id)
       .maybeSingle();
