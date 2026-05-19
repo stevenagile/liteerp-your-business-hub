@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil } from "lucide-react";
+import { Loader2, Plus, Pencil, Wallet } from "lucide-react";
+import { PaymentDialog } from "@/components/PaymentDialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePermission } from "@/hooks/usePermission";
@@ -41,6 +42,7 @@ type DocRow = {
   doc_date: string;
   contact_name: string | null;
   total_amount: number | null;
+  paid_amount: number | null;
   status: string;
   source_doc_no: string | null;
   payment_status: string | null;
@@ -76,6 +78,7 @@ function PaymentBadge({ status }: { status: string | null }) {
 
 function SalesInvoiceListPage() {
   const canWrite = usePermission("sales", "write");
+  const canPay = usePermission("finance", "write");
   const [list, setList] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string>("all");
@@ -83,13 +86,14 @@ function SalesInvoiceListPage() {
   const [dateTo, setDateTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [payTarget, setPayTarget] = useState<DocRow | null>(null);
 
   const load = async () => {
     setLoading(true);
     let q = supabase
       .from("doc_headers")
       .select(
-        "id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no, payment_status",
+        "id, doc_no, doc_date, contact_name, total_amount, paid_amount, status, source_doc_no, payment_status",
       )
       .eq("doc_type", "sales_invoice")
       .order("doc_date", { ascending: false })
@@ -208,7 +212,7 @@ function SalesInvoiceListPage() {
               <TableHead className="w-24">狀態</TableHead>
               <TableHead className="w-28">收款</TableHead>
               <TableHead className="w-36">來源訂單</TableHead>
-              <TableHead className="w-20 text-right">操作</TableHead>
+              <TableHead className="w-32 text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -252,16 +256,33 @@ function SalesInvoiceListPage() {
                     {d.source_doc_no ?? "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        openEdit(d.id);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      {canPay &&
+                        d.status === "confirmed" &&
+                        d.payment_status !== "paid" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setPayTarget(d);
+                            }}
+                          >
+                            <Wallet className="mr-1 h-3.5 w-3.5" />
+                            收款
+                          </Button>
+                        )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openEdit(d.id);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -288,6 +309,19 @@ function SalesInvoiceListPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <PaymentDialog
+        open={Boolean(payTarget)}
+        onOpenChange={(v) => !v && setPayTarget(null)}
+        docId={payTarget?.id ?? null}
+        docNo={payTarget?.doc_no ?? null}
+        totalAmount={Number(payTarget?.total_amount ?? 0)}
+        paidAmount={Number(payTarget?.paid_amount ?? 0)}
+        onRecorded={() => {
+          setPayTarget(null);
+          load();
+        }}
+      />
     </div>
   );
 }

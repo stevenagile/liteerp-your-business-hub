@@ -12,7 +12,6 @@ import {
   ClipboardList,
   Boxes,
   Wallet,
-  CreditCard,
   CircleDollarSign,
   TrendingUp,
   BarChart3,
@@ -65,7 +64,6 @@ const groups: Group[] = [
     title: "帳務",
     items: [
       { label: "應收帳款", to: "/receivables", icon: Wallet },
-      { label: "收款", to: "/payments", icon: CreditCard },
       { label: "費用管理", to: "/expenses", icon: CircleDollarSign },
     ],
   },
