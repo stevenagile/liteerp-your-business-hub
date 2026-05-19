@@ -36,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SearchSelect, type SearchOption } from "@/components/SearchSelect";
+import { VoidDocumentButton } from "@/components/VoidDocumentButton";
 
 export type DocType =
   | "quotation"
