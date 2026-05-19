@@ -18,6 +18,7 @@ import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
 import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
 import { Route as AppDocsSalesInvoiceRouteImport } from './routes/_app.docs.sales-invoice'
+import { Route as AppDocsSalesInvoiceRouteImport } from './routes/_app.docs.sales-invoice'
 import { Route as AppDocsQuotationRouteImport } from './routes/_app.docs.quotation'
 
 const LoginRoute = LoginRouteImport.update({
