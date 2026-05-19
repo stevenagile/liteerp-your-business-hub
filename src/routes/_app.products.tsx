@@ -230,6 +230,51 @@ function ProductsPage() {
           load();
         }}
       />
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        title="匯入產品"
+        templateFileName="products_template.csv"
+        fields={PRODUCT_IMPORT_FIELDS}
+        validateRows={async (parsedRows) => {
+          const codes = parsedRows
+            .map((r) => String(r.data.code ?? "").trim())
+            .filter(Boolean);
+          const seen = new Map<string, number>();
+          const dupInFile = new Set<string>();
+          codes.forEach((c) => {
+            const n = (seen.get(c) ?? 0) + 1;
+            seen.set(c, n);
+            if (n > 1) dupInFile.add(c);
+          });
+          let existing = new Set<string>();
+          if (codes.length > 0) {
+            const { data } = await supabase
+              .from("products")
+              .select("code")
+              .in("code", codes);
+            existing = new Set((data ?? []).map((d: { code: string }) => d.code));
+          }
+          return parsedRows.map((r) => {
+            const code = String(r.data.code ?? "").trim();
+            const errs = [...r.errors];
+            if (code && dupInFile.has(code)) errs.push("檔案內 code 重複");
+            if (code && existing.has(code)) errs.push("code 已存在");
+            return { ...r, errors: errs };
+          });
+        }}
+        onImport={async (validRows) => {
+          const payload = validRows.map((r) => ({
+            ...r.data,
+            company_id: profile?.company_id ?? null,
+          }));
+          const { error } = await supabase.from("products").insert(payload);
+          if (error) return { success: 0, failed: validRows.length, errors: [error.message] };
+          return { success: validRows.length, failed: 0 };
+        }}
+        onImported={load}
+      />
     </div>
   );
 }
