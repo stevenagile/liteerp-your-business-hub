@@ -81,14 +81,14 @@ function SalesDetailReport() {
       let q = supabase
         .from("v_sales_detail")
         .select(
-          "doc_date,doc_no,customer_name,sales_person_name,product_code,product_name,quantity,unit_price,amount,unit_cost,gross_profit,margin_pct,customer_id,sales_person_id,product_id",
+          "doc_date,doc_no,contact_id,customer_name,sales_person_id,sales_person_name,product_code,product_name,quantity,unit_price,amount,unit_cost,gross_profit,margin_pct",
         )
         .gte("doc_date", start)
         .lte("doc_date", end)
         .order("doc_date", { ascending: false });
-      if (customerId !== "all") q = q.eq("customer_id", customerId);
+      if (customerId !== "all") q = q.eq("contact_id", customerId);
       if (personId !== "all") q = q.eq("sales_person_id", personId);
-      if (productId !== "all") q = q.eq("product_id", productId);
+      if (productId !== "all") q = q.eq("product_code", productId);
       const { data, error } = await q;
       if (error) throw error;
       setRows((data ?? []) as Row[]);
