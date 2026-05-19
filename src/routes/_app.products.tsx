@@ -376,7 +376,7 @@ function ProductDialog({
       <Input
         type="number"
         min={0}
-        step="0.01"
+        step="1"
         value={form[key] ?? 0}
         onChange={(e) =>
           setForm(

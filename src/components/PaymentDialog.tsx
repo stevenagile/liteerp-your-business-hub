@@ -127,7 +127,7 @@ export function PaymentDialog({
               type="number"
               min={0}
               max={balance}
-              step="0.01"
+              step="1"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />

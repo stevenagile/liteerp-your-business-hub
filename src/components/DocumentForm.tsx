@@ -680,7 +680,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                     <Input
                       type="number"
                       {...(isAdjust ? {} : { min: 0 })}
-                      step="0.01"
+                      step="1"
                       disabled={readOnly}
                       className={cn(
                         "h-8 text-right",
@@ -699,7 +699,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                     <Input
                       type="number"
                       min={0}
-                      step="0.01"
+                      step="1"
                       disabled={readOnly}
                       className="h-8 text-right"
                       value={l.unit_price}
@@ -715,7 +715,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                       type="number"
                       min={0}
                       max={100}
-                      step="0.01"
+                      step="1"
                       disabled={readOnly}
                       className="h-8 text-right"
                       value={l.discount_pct}
