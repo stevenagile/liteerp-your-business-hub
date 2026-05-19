@@ -102,6 +102,15 @@ export function Sidebar({ open }: { open: boolean }) {
   const pathname = useRouterState({
     select: (s) => s.location.pathname,
   });
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === "admin";
+  const displayGroups = isAdmin
+    ? groups.map((g) =>
+        g.title === "系統"
+          ? { ...g, items: [...g.items, ...adminItems] }
+          : g,
+      )
+    : groups;
 
   return (
     <aside
