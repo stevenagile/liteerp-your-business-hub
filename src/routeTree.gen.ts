@@ -20,6 +20,8 @@ import { Route as AppNotificationsRouteImport } from './routes/_app.notification
 import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.index'
+import { Route as AppStatementsVendorRouteImport } from './routes/_app.statements.vendor'
+import { Route as AppStatementsCustomerRouteImport } from './routes/_app.statements.customer'
 import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.revenue'
 import { Route as AppReportsProductProfitRouteImport } from './routes/_app.reports.product-profit'
 import { Route as AppReportsPnlRouteImport } from './routes/_app.reports.pnl'
@@ -86,6 +88,16 @@ const AppContactsRoute = AppContactsRouteImport.update({
 const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/inventory/',
   path: '/inventory/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStatementsVendorRoute = AppStatementsVendorRouteImport.update({
+  id: '/statements/vendor',
+  path: '/statements/vendor',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStatementsCustomerRoute = AppStatementsCustomerRouteImport.update({
+  id: '/statements/customer',
+  path: '/statements/customer',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReportsRevenueRoute = AppReportsRevenueRouteImport.update({
@@ -177,6 +189,8 @@ export interface FileRoutesByFullPath {
   '/reports/pnl': typeof AppReportsPnlRoute
   '/reports/product-profit': typeof AppReportsProductProfitRoute
   '/reports/revenue': typeof AppReportsRevenueRoute
+  '/statements/customer': typeof AppStatementsCustomerRoute
+  '/statements/vendor': typeof AppStatementsVendorRoute
   '/inventory/': typeof AppInventoryIndexRoute
   '/print/$docType/$id': typeof AppPrintDocTypeIdRoute
 }
@@ -202,6 +216,8 @@ export interface FileRoutesByTo {
   '/reports/pnl': typeof AppReportsPnlRoute
   '/reports/product-profit': typeof AppReportsProductProfitRoute
   '/reports/revenue': typeof AppReportsRevenueRoute
+  '/statements/customer': typeof AppStatementsCustomerRoute
+  '/statements/vendor': typeof AppStatementsVendorRoute
   '/inventory': typeof AppInventoryIndexRoute
   '/print/$docType/$id': typeof AppPrintDocTypeIdRoute
 }
@@ -229,6 +245,8 @@ export interface FileRoutesById {
   '/_app/reports/pnl': typeof AppReportsPnlRoute
   '/_app/reports/product-profit': typeof AppReportsProductProfitRoute
   '/_app/reports/revenue': typeof AppReportsRevenueRoute
+  '/_app/statements/customer': typeof AppStatementsCustomerRoute
+  '/_app/statements/vendor': typeof AppStatementsVendorRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
   '/_app/print/$docType/$id': typeof AppPrintDocTypeIdRoute
 }
@@ -256,6 +274,8 @@ export interface FileRouteTypes {
     | '/reports/pnl'
     | '/reports/product-profit'
     | '/reports/revenue'
+    | '/statements/customer'
+    | '/statements/vendor'
     | '/inventory/'
     | '/print/$docType/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -281,6 +301,8 @@ export interface FileRouteTypes {
     | '/reports/pnl'
     | '/reports/product-profit'
     | '/reports/revenue'
+    | '/statements/customer'
+    | '/statements/vendor'
     | '/inventory'
     | '/print/$docType/$id'
   id:
@@ -307,6 +329,8 @@ export interface FileRouteTypes {
     | '/_app/reports/pnl'
     | '/_app/reports/product-profit'
     | '/_app/reports/revenue'
+    | '/_app/statements/customer'
+    | '/_app/statements/vendor'
     | '/_app/inventory/'
     | '/_app/print/$docType/$id'
   fileRoutesById: FileRoutesById
@@ -393,6 +417,20 @@ declare module '@tanstack/react-router' {
       path: '/inventory'
       fullPath: '/inventory/'
       preLoaderRoute: typeof AppInventoryIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/statements/vendor': {
+      id: '/_app/statements/vendor'
+      path: '/statements/vendor'
+      fullPath: '/statements/vendor'
+      preLoaderRoute: typeof AppStatementsVendorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/statements/customer': {
+      id: '/_app/statements/customer'
+      path: '/statements/customer'
+      fullPath: '/statements/customer'
+      preLoaderRoute: typeof AppStatementsCustomerRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/reports/revenue': {
@@ -510,6 +548,8 @@ interface AppRouteChildren {
   AppReportsPnlRoute: typeof AppReportsPnlRoute
   AppReportsProductProfitRoute: typeof AppReportsProductProfitRoute
   AppReportsRevenueRoute: typeof AppReportsRevenueRoute
+  AppStatementsCustomerRoute: typeof AppStatementsCustomerRoute
+  AppStatementsVendorRoute: typeof AppStatementsVendorRoute
   AppInventoryIndexRoute: typeof AppInventoryIndexRoute
   AppPrintDocTypeIdRoute: typeof AppPrintDocTypeIdRoute
 }
@@ -535,6 +575,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppReportsPnlRoute: AppReportsPnlRoute,
   AppReportsProductProfitRoute: AppReportsProductProfitRoute,
   AppReportsRevenueRoute: AppReportsRevenueRoute,
+  AppStatementsCustomerRoute: AppStatementsCustomerRoute,
+  AppStatementsVendorRoute: AppStatementsVendorRoute,
   AppInventoryIndexRoute: AppInventoryIndexRoute,
   AppPrintDocTypeIdRoute: AppPrintDocTypeIdRoute,
 }
@@ -548,3 +590,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
