@@ -18,9 +18,11 @@ import {
   UserCheck,
   Settings,
   History,
+  ShieldCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 type Item = { label: string; to: string; icon: LucideIcon };
 type Group = { title: string; items: Item[] };
@@ -91,10 +93,24 @@ const groups: Group[] = [
   },
 ];
 
+const adminItems: Item[] = [
+  { label: "使用者管理", to: "/settings/users", icon: Users },
+  { label: "權限設定", to: "/settings/permissions", icon: ShieldCheck },
+];
+
 export function Sidebar({ open }: { open: boolean }) {
   const pathname = useRouterState({
     select: (s) => s.location.pathname,
   });
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === "admin";
+  const displayGroups = isAdmin
+    ? groups.map((g) =>
+        g.title === "系統"
+          ? { ...g, items: [...g.items, ...adminItems] }
+          : g,
+      )
+    : groups;
 
   return (
     <aside
@@ -118,7 +134,7 @@ export function Sidebar({ open }: { open: boolean }) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 py-3">
-        {groups.map((g) => (
+        {displayGroups.map((g) => (
           <div key={g.title} className="mb-4">
             <div className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/50">
               {g.title}
