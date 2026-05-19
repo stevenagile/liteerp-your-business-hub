@@ -44,6 +44,8 @@ type Props = {
   onOpenChange: (v: boolean) => void;
   sourceDocId: string | null;
   sourceDocNo: string | null;
+  targetDocType?: "sales_order" | "sales_invoice";
+  targetLabel?: string; // e.g. "訂單" / "銷貨單"
   onTransferred?: (newDocId: string, newDocNo: string | null) => void;
 };
 
@@ -52,6 +54,8 @@ export function TransferToOrderDialog({
   onOpenChange,
   sourceDocId,
   sourceDocNo,
+  targetDocType = "sales_order",
+  targetLabel = "訂單",
   onTransferred,
 }: Props) {
   const [loading, setLoading] = useState(true);
