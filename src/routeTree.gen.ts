@@ -19,6 +19,7 @@ import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
 import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
 import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.revenue'
+import { Route as AppReportsProductProfitRouteImport } from './routes/_app.reports.product-profit'
 import { Route as AppReportsPnlRouteImport } from './routes/_app.reports.pnl'
 import { Route as AppDocsSalesReturnRouteImport } from './routes/_app.docs.sales-return'
 import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
@@ -75,6 +76,11 @@ const AppContactsRoute = AppContactsRouteImport.update({
 const AppReportsRevenueRoute = AppReportsRevenueRouteImport.update({
   id: '/reports/revenue',
   path: '/reports/revenue',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsProductProfitRoute = AppReportsProductProfitRouteImport.update({
+  id: '/reports/product-profit',
+  path: '/reports/product-profit',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReportsPnlRoute = AppReportsPnlRouteImport.update({
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/docs/sales-return': typeof AppDocsSalesReturnRoute
   '/reports/pnl': typeof AppReportsPnlRoute
+  '/reports/product-profit': typeof AppReportsProductProfitRoute
   '/reports/revenue': typeof AppReportsRevenueRoute
 }
 export interface FileRoutesByTo {
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/docs/sales-return': typeof AppDocsSalesReturnRoute
   '/reports/pnl': typeof AppReportsPnlRoute
+  '/reports/product-profit': typeof AppReportsProductProfitRoute
   '/reports/revenue': typeof AppReportsRevenueRoute
 }
 export interface FileRoutesById {
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/_app/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/_app/docs/sales-return': typeof AppDocsSalesReturnRoute
   '/_app/reports/pnl': typeof AppReportsPnlRoute
+  '/_app/reports/product-profit': typeof AppReportsProductProfitRoute
   '/_app/reports/revenue': typeof AppReportsRevenueRoute
 }
 export interface FileRouteTypes {
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/docs/sales-order'
     | '/docs/sales-return'
     | '/reports/pnl'
+    | '/reports/product-profit'
     | '/reports/revenue'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/docs/sales-order'
     | '/docs/sales-return'
     | '/reports/pnl'
+    | '/reports/product-profit'
     | '/reports/revenue'
   id:
     | '__root__'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/_app/docs/sales-order'
     | '/_app/docs/sales-return'
     | '/_app/reports/pnl'
+    | '/_app/reports/product-profit'
     | '/_app/reports/revenue'
   fileRoutesById: FileRoutesById
 }
@@ -315,6 +327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsRevenueRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/reports/product-profit': {
+      id: '/_app/reports/product-profit'
+      path: '/reports/product-profit'
+      fullPath: '/reports/product-profit'
+      preLoaderRoute: typeof AppReportsProductProfitRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/reports/pnl': {
       id: '/_app/reports/pnl'
       path: '/reports/pnl'
@@ -390,6 +409,7 @@ interface AppRouteChildren {
   AppDocsSalesOrderRoute: typeof AppDocsSalesOrderRoute
   AppDocsSalesReturnRoute: typeof AppDocsSalesReturnRoute
   AppReportsPnlRoute: typeof AppReportsPnlRoute
+  AppReportsProductProfitRoute: typeof AppReportsProductProfitRoute
   AppReportsRevenueRoute: typeof AppReportsRevenueRoute
 }
 
@@ -409,6 +429,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDocsSalesOrderRoute: AppDocsSalesOrderRoute,
   AppDocsSalesReturnRoute: AppDocsSalesReturnRoute,
   AppReportsPnlRoute: AppReportsPnlRoute,
+  AppReportsProductProfitRoute: AppReportsProductProfitRoute,
   AppReportsRevenueRoute: AppReportsRevenueRoute,
 }
 
