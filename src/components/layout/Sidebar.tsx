@@ -70,6 +70,7 @@ const groups: Group[] = [
   {
     title: "報表",
     items: [
+      { label: "月營收", to: "/reports/revenue", icon: BarChart3 },
       { label: "月損益", to: "/reports/pnl", icon: TrendingUp },
       { label: "產品利潤", to: "/reports/product-profit", icon: BarChart3 },
       { label: "客戶利潤", to: "/reports/customer-profit", icon: UserCheck },
