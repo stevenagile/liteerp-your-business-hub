@@ -18,8 +18,6 @@ import { Route as AppProductsRouteImport } from './routes/_app.products'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
 import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
-import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
-import { Route as AppReceivablesRouteImport } from './routes/_app.receivables'
 import { Route as AppDocsSalesReturnRouteImport } from './routes/_app.docs.sales-return'
 import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
 import { Route as AppDocsSalesInvoiceRouteImport } from './routes/_app.docs.sales-invoice'
@@ -72,16 +70,6 @@ const AppContactsRoute = AppContactsRouteImport.update({
   path: '/contacts',
   getParentRoute: () => AppRoute,
 } as any)
-const AppExpensesRoute = AppExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReceivablesRoute = AppReceivablesRouteImport.update({
-  id: '/receivables',
-  path: '/receivables',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppDocsSalesReturnRoute = AppDocsSalesReturnRouteImport.update({
   id: '/docs/sales-return',
   path: '/docs/sales-return',
@@ -124,8 +112,6 @@ export interface FileRoutesByFullPath {
   '/contacts': typeof AppContactsRoute
   '/expenses': typeof AppExpensesRoute
   '/inventory': typeof AppInventoryRoute
-  '/expenses': typeof AppExpensesRoute
-  '/receivables': typeof AppReceivablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
   '/settings': typeof AppSettingsRoute
@@ -161,8 +147,6 @@ export interface FileRoutesById {
   '/_app/contacts': typeof AppContactsRoute
   '/_app/expenses': typeof AppExpensesRoute
   '/_app/inventory': typeof AppInventoryRoute
-  '/_app/expenses': typeof AppExpensesRoute
-  '/_app/receivables': typeof AppReceivablesRoute
   '/_app/products': typeof AppProductsRoute
   '/_app/receivables': typeof AppReceivablesRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -183,10 +167,6 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/expenses'
     | '/inventory'
-    | '/expenses'
-    | '/receivables'
-    | '/expenses'
-    | '/receivables'
     | '/products'
     | '/receivables'
     | '/settings'
@@ -221,8 +201,6 @@ export interface FileRouteTypes {
     | '/_app/contacts'
     | '/_app/expenses'
     | '/_app/inventory'
-    | '/_app/expenses'
-    | '/_app/receivables'
     | '/_app/products'
     | '/_app/receivables'
     | '/_app/settings'
@@ -304,20 +282,6 @@ declare module '@tanstack/react-router' {
       path: '/contacts'
       fullPath: '/contacts'
       preLoaderRoute: typeof AppContactsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/expenses': {
-      id: '/_app/expenses'
-      path: '/expenses'
-      fullPath: '/expenses'
-      preLoaderRoute: typeof AppExpensesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/receivables': {
-      id: '/_app/receivables'
-      path: '/receivables'
-      fullPath: '/receivables'
-      preLoaderRoute: typeof AppReceivablesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/docs/sales-return': {
