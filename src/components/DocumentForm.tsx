@@ -712,7 +712,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
             disabled={confirming}
           >
             {confirming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            確認單據
+            {confirming ? "處理中..." : "確認單據"}
           </Button>
         )}
       </div>
