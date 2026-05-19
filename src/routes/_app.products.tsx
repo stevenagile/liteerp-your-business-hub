@@ -279,6 +279,22 @@ function ProductsPage() {
   );
 }
 
+const PRODUCT_IMPORT_FIELDS: ImportField[] = [
+  { key: "code", label: "產品編號", required: true, example: "P0001" },
+  { key: "name", label: "品名", required: true, example: "範例產品" },
+  { key: "spec", label: "規格", example: "10x20cm" },
+  { key: "category", label: "分類", example: "一般" },
+  { key: "unit", label: "單位", default: "個", example: "個" },
+  { key: "barcode", label: "條碼" },
+  { key: "price1", label: "售價1", type: "number", default: 0, example: 100 },
+  { key: "price2", label: "售價2", type: "number", default: 0, example: 90 },
+  { key: "price3", label: "售價3", type: "number", default: 0, example: 80 },
+  { key: "cost_price", label: "成本價", type: "number", default: 0, example: 60 },
+  { key: "safety_stock", label: "安全庫存", type: "number", default: 0, example: 10 },
+  { key: "notes", label: "備註" },
+];
+
+
 function ProductDialog({
   open,
   onOpenChange,
