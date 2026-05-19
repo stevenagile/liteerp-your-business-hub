@@ -79,6 +79,10 @@ const groups: Group[] = [
       { label: "月損益", to: "/reports/pnl", icon: TrendingUp },
       { label: "產品利潤", to: "/reports/product-profit", icon: BarChart3 },
       { label: "客戶利潤", to: "/reports/customer-profit", icon: UserCheck },
+      { label: "銷貨明細", to: "/reports/sales-detail", icon: BarChart3 },
+      { label: "進貨明細", to: "/reports/purchase-detail", icon: BarChart3 },
+      { label: "帳齡分析", to: "/reports/aging", icon: BarChart3 },
+      { label: "業務績效", to: "/reports/salesperson", icon: UserCheck },
     ],
   },
   {
