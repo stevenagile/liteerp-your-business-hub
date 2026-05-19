@@ -224,8 +224,8 @@ function SalesInvoiceListPage() {
               { key: "contact_name", label: "客戶" },
               { key: "total_amount", label: "總金額", type: "number" },
               { key: "paid_amount", label: "已收", type: "number" },
-              { key: "status", label: "狀態", value: (r) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
-              { key: "payment_status", label: "收款狀態", value: (r) => PAY_STATUS_LABEL[(r as { payment_status: string | null }).payment_status ?? ""] ?? "—" },
+              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              { key: "payment_status", label: "收款狀態", value: (r: Record<string, unknown>) => PAY_STATUS_LABEL[(r as { payment_status: string | null }).payment_status ?? ""] ?? "—" },
               { key: "source_doc_no", label: "來源訂單" },
             ]}
           />

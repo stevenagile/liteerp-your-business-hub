@@ -185,7 +185,7 @@ function PurchaseOrderListPage() {
               { key: "doc_date", label: "日期" },
               { key: "contact_name", label: "廠商" },
               { key: "total_amount", label: "總金額", type: "number" },
-              { key: "status", label: "狀態", value: (r) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
               { key: "source_doc_no", label: "來源" },
             ]}
           />

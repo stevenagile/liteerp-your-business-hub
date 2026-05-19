@@ -182,8 +182,8 @@ function InventoryAdjustListPage() {
             columns={[
               { key: "doc_no", label: "單號" },
               { key: "doc_date", label: "日期" },
-              { key: "warehouse_id", label: "倉庫", value: (r) => warehouseMap[(r as { warehouse_id: string | null }).warehouse_id ?? ""] ?? "—" },
-              { key: "status", label: "狀態", value: (r) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              { key: "warehouse_id", label: "倉庫", value: (r: Record<string, unknown>) => warehouseMap[(r as { warehouse_id: string | null }).warehouse_id ?? ""] ?? "—" },
+              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
               { key: "notes", label: "備註" },
             ]}
           />
