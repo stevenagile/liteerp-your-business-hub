@@ -13,6 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+import { PrintReportButton } from "@/components/PrintReportButton";
+import { ReportPrintHeader } from "@/components/ReportPrintHeader";
 
 export const Route = createFileRoute("/_app/inventory/")({
   component: InventoryPage,
@@ -73,15 +76,37 @@ function InventoryPage() {
   }, [list]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">庫存總覽</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          各倉庫即時庫存數量、平均成本與庫存價值。
-        </p>
+    <div className="space-y-6 print-area">
+      <ReportPrintHeader title="庫存總覽" period={`列印日：${new Date().toISOString().slice(0,10)}`} />
+      <div className="flex items-start justify-between gap-4 no-print">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">庫存總覽</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            各倉庫即時庫存數量、平均成本與庫存價值。
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <ExportExcelButton
+            rows={list as unknown as Record<string, unknown>[]}
+            filename="庫存總覽"
+            columns={[
+              { key: "product_code", label: "產品編號" },
+              { key: "product_name", label: "產品名稱" },
+              { key: "warehouse_name", label: "倉庫" },
+              { key: "quantity", label: "數量", type: "number" },
+              { key: "avg_cost", label: "平均成本", type: "number" },
+              { key: "stock_value", label: "庫存金額", type: "number" },
+              { key: "selling_price", label: "售價", type: "number" },
+              { key: "expected_margin_pct", label: "預估毛利%", type: "number" },
+              { key: "safety_stock", label: "安全存量", type: "number" },
+              { key: "is_low", label: "狀態", value: (r: Record<string, unknown>) => (r.is_low ? "低庫存" : "") },
+            ]}
+          />
+          <PrintReportButton />
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 no-print">
         <StatCard
           icon={<Boxes className="h-5 w-5" />}
           label="總庫存品項數"
