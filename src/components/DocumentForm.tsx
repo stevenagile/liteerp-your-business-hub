@@ -802,6 +802,19 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
         </section>
       )}
 
+      {/* ============ 收/付款明細 ============ */}
+      {isEdit &&
+        (docType === "sales_invoice" || docType === "purchase_receipt") && (
+          <PaymentHistoryList
+            docId={header.id!}
+            mode={docType === "purchase_receipt" ? "pay" : "receive"}
+            onChanged={() => {
+              loadDoc(header.id!);
+              onChanged?.();
+            }}
+          />
+        )}
+
       {/* ============ 操作 ============ */}
       <div className="flex items-center justify-end gap-2">
         {onCancel && (
