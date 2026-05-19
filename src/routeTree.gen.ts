@@ -18,6 +18,7 @@ import { Route as AppProductsRouteImport } from './routes/_app.products'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
 import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
+import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.revenue'
 import { Route as AppDocsSalesReturnRouteImport } from './routes/_app.docs.sales-return'
 import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
 import { Route as AppDocsSalesInvoiceRouteImport } from './routes/_app.docs.sales-invoice'
@@ -68,6 +69,11 @@ const AppExpensesRoute = AppExpensesRouteImport.update({
 const AppContactsRoute = AppContactsRouteImport.update({
   id: '/contacts',
   path: '/contacts',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsRevenueRoute = AppReportsRevenueRouteImport.update({
+  id: '/reports/revenue',
+  path: '/reports/revenue',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDocsSalesReturnRoute = AppDocsSalesReturnRouteImport.update({
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/docs/sales-invoice': typeof AppDocsSalesInvoiceRoute
   '/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/docs/sales-return': typeof AppDocsSalesReturnRoute
+  '/reports/revenue': typeof AppReportsRevenueRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/docs/sales-invoice': typeof AppDocsSalesInvoiceRoute
   '/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/docs/sales-return': typeof AppDocsSalesReturnRoute
+  '/reports/revenue': typeof AppReportsRevenueRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/_app/docs/sales-invoice': typeof AppDocsSalesInvoiceRoute
   '/_app/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/_app/docs/sales-return': typeof AppDocsSalesReturnRoute
+  '/_app/reports/revenue': typeof AppReportsRevenueRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/docs/sales-invoice'
     | '/docs/sales-order'
     | '/docs/sales-return'
+    | '/reports/revenue'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/docs/sales-invoice'
     | '/docs/sales-order'
     | '/docs/sales-return'
+    | '/reports/revenue'
   id:
     | '__root__'
     | '/_app'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/_app/docs/sales-invoice'
     | '/_app/docs/sales-order'
     | '/_app/docs/sales-return'
+    | '/_app/reports/revenue'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -284,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppContactsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/reports/revenue': {
+      id: '/_app/reports/revenue'
+      path: '/reports/revenue'
+      fullPath: '/reports/revenue'
+      preLoaderRoute: typeof AppReportsRevenueRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/docs/sales-return': {
       id: '/_app/docs/sales-return'
       path: '/docs/sales-return'
@@ -351,6 +370,7 @@ interface AppRouteChildren {
   AppDocsSalesInvoiceRoute: typeof AppDocsSalesInvoiceRoute
   AppDocsSalesOrderRoute: typeof AppDocsSalesOrderRoute
   AppDocsSalesReturnRoute: typeof AppDocsSalesReturnRoute
+  AppReportsRevenueRoute: typeof AppReportsRevenueRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -368,6 +388,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDocsSalesInvoiceRoute: AppDocsSalesInvoiceRoute,
   AppDocsSalesOrderRoute: AppDocsSalesOrderRoute,
   AppDocsSalesReturnRoute: AppDocsSalesReturnRoute,
+  AppReportsRevenueRoute: AppReportsRevenueRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
