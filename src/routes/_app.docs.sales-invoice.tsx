@@ -309,6 +309,19 @@ function SalesInvoiceListPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <PaymentDialog
+        open={Boolean(payTarget)}
+        onOpenChange={(v) => !v && setPayTarget(null)}
+        docId={payTarget?.id ?? null}
+        docNo={payTarget?.doc_no ?? null}
+        totalAmount={Number(payTarget?.total_amount ?? 0)}
+        paidAmount={Number(payTarget?.paid_amount ?? 0)}
+        onRecorded={() => {
+          setPayTarget(null);
+          load();
+        }}
+      />
     </div>
   );
 }
