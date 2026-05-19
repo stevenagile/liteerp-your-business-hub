@@ -115,15 +115,21 @@ function ProductsPage() {
           </p>
         </div>
         {canWrite && (
-          <Button
-            onClick={() => {
-              setEditing(emptyProduct());
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            新增
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="mr-1.5 h-4 w-4" />
+              匯入
+            </Button>
+            <Button
+              onClick={() => {
+                setEditing(emptyProduct());
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              新增
+            </Button>
+          </div>
         )}
       </div>
 
