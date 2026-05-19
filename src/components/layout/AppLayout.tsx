@@ -57,13 +57,7 @@ export function AppLayout() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label="通知"
-            >
-              <Bell className="h-5 w-5" />
-            </button>
+            <NotificationBell />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
