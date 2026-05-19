@@ -16,6 +16,7 @@ import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppProductsRouteImport } from './routes/_app.products'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
+import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
 import { Route as AppDocsQuotationRouteImport } from './routes/_app.docs.quotation'
 
 const LoginRoute = LoginRouteImport.update({
@@ -52,6 +53,11 @@ const AppContactsRoute = AppContactsRouteImport.update({
   path: '/contacts',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDocsSalesOrderRoute = AppDocsSalesOrderRouteImport.update({
+  id: '/docs/sales-order',
+  path: '/docs/sales-order',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDocsQuotationRoute = AppDocsQuotationRouteImport.update({
   id: '/docs/quotation',
   path: '/docs/quotation',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof AppProductsRoute
   '/settings': typeof AppSettingsRoute
   '/docs/quotation': typeof AppDocsQuotationRoute
+  '/docs/sales-order': typeof AppDocsSalesOrderRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/': typeof AppIndexRoute
   '/docs/quotation': typeof AppDocsQuotationRoute
+  '/docs/sales-order': typeof AppDocsSalesOrderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/': typeof AppIndexRoute
   '/_app/docs/quotation': typeof AppDocsQuotationRoute
+  '/_app/docs/sales-order': typeof AppDocsSalesOrderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/settings'
     | '/docs/quotation'
+    | '/docs/sales-order'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/'
     | '/docs/quotation'
+    | '/docs/sales-order'
   id:
     | '__root__'
     | '/_app'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/'
     | '/_app/docs/quotation'
+    | '/_app/docs/sales-order'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -174,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppContactsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/docs/sales-order': {
+      id: '/_app/docs/sales-order'
+      path: '/docs/sales-order'
+      fullPath: '/docs/sales-order'
+      preLoaderRoute: typeof AppDocsSalesOrderRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/docs/quotation': {
       id: '/_app/docs/quotation'
       path: '/docs/quotation'
@@ -191,6 +210,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDocsQuotationRoute: typeof AppDocsQuotationRoute
+  AppDocsSalesOrderRoute: typeof AppDocsSalesOrderRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -200,6 +220,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
   AppDocsQuotationRoute: AppDocsQuotationRoute,
+  AppDocsSalesOrderRoute: AppDocsSalesOrderRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
