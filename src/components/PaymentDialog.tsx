@@ -96,25 +96,25 @@ export function PaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>收款 {docNo ? `· ${docNo}` : ""}</DialogTitle>
+          <DialogTitle>{titleVerb} {docNo ? `· ${docNo}` : ""}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-2 rounded-lg border bg-muted/30 p-3 text-sm">
             <div>
-              <div className="text-xs text-muted-foreground">應收</div>
+              <div className="text-xs text-muted-foreground">{dueLabel}</div>
               <div className="font-semibold tabular-nums">
                 {Number(totalAmount).toLocaleString()}
               </div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">已收</div>
+              <div className="text-xs text-muted-foreground">{paidLabel}</div>
               <div className="font-semibold tabular-nums">
                 {Number(paidAmount).toLocaleString()}
               </div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">未收</div>
+              <div className="text-xs text-muted-foreground">{balLabel}</div>
               <div className="font-semibold tabular-nums text-destructive">
                 {balance.toLocaleString()}
               </div>
@@ -122,7 +122,7 @@ export function PaymentDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label>本次收款金額</Label>
+            <Label>本次{titleVerb}金額</Label>
             <Input
               type="number"
               min={0}
@@ -134,7 +134,7 @@ export function PaymentDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label>收款方式</Label>
+            <Label>{titleVerb}方式</Label>
             <Select value={method} onValueChange={setMethod}>
               <SelectTrigger>
                 <SelectValue />
@@ -177,7 +177,7 @@ export function PaymentDialog({
             取消
           </Button>
           <Button onClick={submit} disabled={saving || balance <= 0}>
-            {saving ? "處理中..." : "確認收款"}
+            {saving ? "處理中..." : `確認${titleVerb}`}
           </Button>
         </DialogFooter>
       </DialogContent>
