@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppWarehousesRouteImport } from './routes/_app.warehouses'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReceivablesRouteImport } from './routes/_app.receivables'
 import { Route as AppProductsRouteImport } from './routes/_app.products'
@@ -59,6 +60,11 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWarehousesRoute = AppWarehousesRouteImport.update({
+  id: '/warehouses',
+  path: '/warehouses',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
   '/settings': typeof AppSettingsRouteWithChildren
+  '/warehouses': typeof AppWarehousesRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
   '/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
   '/docs/purchase-receipt': typeof AppDocsPurchaseReceiptRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByTo {
   '/payables': typeof AppPayablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
+  '/warehouses': typeof AppWarehousesRoute
   '/': typeof AppIndexRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
   '/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/_app/products': typeof AppProductsRoute
   '/_app/receivables': typeof AppReceivablesRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
+  '/_app/warehouses': typeof AppWarehousesRoute
   '/_app/': typeof AppIndexRoute
   '/_app/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
   '/_app/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/receivables'
     | '/settings'
+    | '/warehouses'
     | '/docs/inventory-adjust'
     | '/docs/purchase-order'
     | '/docs/purchase-receipt'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/payables'
     | '/products'
     | '/receivables'
+    | '/warehouses'
     | '/'
     | '/docs/inventory-adjust'
     | '/docs/purchase-order'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/_app/products'
     | '/_app/receivables'
     | '/_app/settings'
+    | '/_app/warehouses'
     | '/_app/'
     | '/_app/docs/inventory-adjust'
     | '/_app/docs/purchase-order'
@@ -492,6 +504,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/warehouses': {
+      id: '/_app/warehouses'
+      path: '/warehouses'
+      fullPath: '/warehouses'
+      preLoaderRoute: typeof AppWarehousesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/settings': {
@@ -763,6 +782,7 @@ interface AppRouteChildren {
   AppProductsRoute: typeof AppProductsRoute
   AppReceivablesRoute: typeof AppReceivablesRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
+  AppWarehousesRoute: typeof AppWarehousesRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDocsInventoryAdjustRoute: typeof AppDocsInventoryAdjustRoute
   AppDocsPurchaseOrderRoute: typeof AppDocsPurchaseOrderRoute
@@ -796,6 +816,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProductsRoute: AppProductsRoute,
   AppReceivablesRoute: AppReceivablesRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
+  AppWarehousesRoute: AppWarehousesRoute,
   AppIndexRoute: AppIndexRoute,
   AppDocsInventoryAdjustRoute: AppDocsInventoryAdjustRoute,
   AppDocsPurchaseOrderRoute: AppDocsPurchaseOrderRoute,
