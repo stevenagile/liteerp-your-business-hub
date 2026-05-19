@@ -305,6 +305,7 @@ function SalesInvoiceListPage() {
                 setDialogOpen(false);
                 load();
               }}
+              onChanged={load}
             />
           )}
         </DialogContent>

@@ -252,6 +252,7 @@ function QuotationListPage() {
                 setDialogOpen(false);
                 load();
               }}
+              onChanged={load}
             />
           )}
         </DialogContent>
