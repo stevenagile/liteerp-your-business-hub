@@ -122,7 +122,7 @@ type Props = {
 };
 
 export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const canWrite = usePermission("sales", "write");
   const canConfirm = usePermission("sales", "confirm");
 
@@ -187,7 +187,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
           .select(
             "id, line_no, product_id, product_code, product_name, unit, quantity, unit_price, discount_pct",
           )
-          .eq("doc_id", docId)
+          .eq("header_id", docId)
           .order("line_no");
         setLines(
           ls && ls.length > 0
@@ -309,7 +309,12 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
       warehouse_id: header.warehouse_id,
       notes: header.notes || null,
       status: "draft",
-      ...(isEdit ? {} : { company_id: profile?.company_id ?? null }),
+      ...(isEdit
+        ? {}
+        : {
+            company_id: profile?.company_id ?? null,
+            created_by: user?.id ?? null,
+          }),
     };
 
     if (isEdit) {
@@ -338,10 +343,10 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
 
     // 重寫 lines:刪掉舊的再 insert
     if (isEdit) {
-      await supabase.from("doc_lines").delete().eq("doc_id", headerId);
+      await supabase.from("doc_lines").delete().eq("header_id", headerId);
     }
     const linesPayload = validLines.map((l, i) => ({
-      doc_id: headerId,
+      header_id: headerId,
       line_no: i + 1,
       product_id: l.product_id,
       product_code: l.product_code,
