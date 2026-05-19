@@ -16,6 +16,7 @@ import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReceivablesRouteImport } from './routes/_app.receivables'
 import { Route as AppProductsRouteImport } from './routes/_app.products'
 import { Route as AppPayablesRouteImport } from './routes/_app.payables'
+import { Route as AppNotificationsRouteImport } from './routes/_app.notifications'
 import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.index'
@@ -65,6 +66,11 @@ const AppProductsRoute = AppProductsRouteImport.update({
 const AppPayablesRoute = AppPayablesRouteImport.update({
   id: '/payables',
   path: '/payables',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => AppRoute,
 } as any)
 const AppExpensesRoute = AppExpensesRouteImport.update({
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/contacts': typeof AppContactsRoute
   '/expenses': typeof AppExpensesRoute
+  '/notifications': typeof AppNotificationsRoute
   '/payables': typeof AppPayablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/contacts': typeof AppContactsRoute
   '/expenses': typeof AppExpensesRoute
+  '/notifications': typeof AppNotificationsRoute
   '/payables': typeof AppPayablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/contacts': typeof AppContactsRoute
   '/_app/expenses': typeof AppExpensesRoute
+  '/_app/notifications': typeof AppNotificationsRoute
   '/_app/payables': typeof AppPayablesRoute
   '/_app/products': typeof AppProductsRoute
   '/_app/receivables': typeof AppReceivablesRoute
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/contacts'
     | '/expenses'
+    | '/notifications'
     | '/payables'
     | '/products'
     | '/receivables'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/contacts'
     | '/expenses'
+    | '/notifications'
     | '/payables'
     | '/products'
     | '/receivables'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/_app/contacts'
     | '/_app/expenses'
+    | '/_app/notifications'
     | '/_app/payables'
     | '/_app/products'
     | '/_app/receivables'
@@ -353,6 +365,13 @@ declare module '@tanstack/react-router' {
       path: '/payables'
       fullPath: '/payables'
       preLoaderRoute: typeof AppPayablesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/notifications': {
+      id: '/_app/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/expenses': {
@@ -473,6 +492,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppContactsRoute: typeof AppContactsRoute
   AppExpensesRoute: typeof AppExpensesRoute
+  AppNotificationsRoute: typeof AppNotificationsRoute
   AppPayablesRoute: typeof AppPayablesRoute
   AppProductsRoute: typeof AppProductsRoute
   AppReceivablesRoute: typeof AppReceivablesRoute
@@ -497,6 +517,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppContactsRoute: AppContactsRoute,
   AppExpensesRoute: AppExpensesRoute,
+  AppNotificationsRoute: AppNotificationsRoute,
   AppPayablesRoute: AppPayablesRoute,
   AppProductsRoute: AppProductsRoute,
   AppReceivablesRoute: AppReceivablesRoute,

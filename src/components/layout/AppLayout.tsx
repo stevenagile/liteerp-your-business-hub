@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Outlet, useNavigate } from "@tanstack/react-router";
-import { Menu, Bell, UserCircle2, LogOut } from "lucide-react";
+import { Menu, UserCircle2, LogOut } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/context/AuthContext";
 import {
   DropdownMenu,
