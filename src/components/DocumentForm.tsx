@@ -197,7 +197,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [{ data: c }, { data: p }, { data: w }, { data: comp }] =
+      const [{ data: c }, { data: p }, { data: w }, { data: comp }, { data: sp }] =
         await Promise.all([
           supabase
             .from("contacts")
@@ -217,22 +217,32 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             .select("tax_rate")
             .limit(1)
             .maybeSingle(),
+          showSalesPerson
+            ? supabase
+                .from("profiles")
+                .select("id, display_name, role")
+                .in("role", ["sales", "admin", "manager"])
+                .order("display_name")
+            : Promise.resolve({ data: [] as { id: string; display_name: string | null }[] }),
         ]);
       if (cancelled) return;
       setContacts((c ?? []) as Contact[]);
       setProducts((p ?? []) as Product[]);
       setWarehouses((w ?? []) as Warehouse[]);
+      setSalesPeople((sp ?? []) as { id: string; display_name: string | null }[]);
       const tr = (comp as { tax_rate?: number } | null)?.tax_rate;
       if (typeof tr === "number") setTaxRate(tr);
 
       if (docId) {
         await loadDoc(docId);
       } else {
-        // 新建:預設預設倉
+        // 新建:預設預設倉 + 預設業務員為目前登入者
         const def = (w ?? []).find((x) => x.is_default) ?? (w ?? [])[0];
-        if (def) {
-          setHeader((prev) => ({ ...prev, warehouse_id: def.id }));
-        }
+        setHeader((prev) => ({
+          ...prev,
+          warehouse_id: def ? def.id : prev.warehouse_id,
+          sales_person_id: showSalesPerson ? (profile?.id ?? null) : null,
+        }));
       }
       setLoading(false);
     })();
@@ -356,6 +366,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       warehouse_id: header.warehouse_id,
       notes: header.notes || null,
       status: "draft",
+      ...(showSalesPerson ? { sales_person_id: header.sales_person_id } : {}),
       ...(isEdit
         ? {}
         : {
