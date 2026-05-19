@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil } from "lucide-react";
+import { Loader2, Plus, Pencil, Wallet } from "lucide-react";
+import { PaymentDialog } from "@/components/PaymentDialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePermission } from "@/hooks/usePermission";
@@ -41,6 +42,7 @@ type DocRow = {
   doc_date: string;
   contact_name: string | null;
   total_amount: number | null;
+  paid_amount: number | null;
   status: string;
   source_doc_no: string | null;
   payment_status: string | null;
@@ -76,6 +78,7 @@ function PaymentBadge({ status }: { status: string | null }) {
 
 function SalesInvoiceListPage() {
   const canWrite = usePermission("sales", "write");
+  const canPay = usePermission("finance", "write");
   const [list, setList] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string>("all");
@@ -83,13 +86,14 @@ function SalesInvoiceListPage() {
   const [dateTo, setDateTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [payTarget, setPayTarget] = useState<DocRow | null>(null);
 
   const load = async () => {
     setLoading(true);
     let q = supabase
       .from("doc_headers")
       .select(
-        "id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no, payment_status",
+        "id, doc_no, doc_date, contact_name, total_amount, paid_amount, status, source_doc_no, payment_status",
       )
       .eq("doc_type", "sales_invoice")
       .order("doc_date", { ascending: false })
