@@ -79,6 +79,8 @@ export type DocHeader = {
   notes: string | null;
   company_id: string | null;
   sales_person_id: string | null;
+  void_reason?: string | null;
+  voided_at?: string | null;
 };
 
 export function emptyHeader(doc_type: DocType): DocHeader {
