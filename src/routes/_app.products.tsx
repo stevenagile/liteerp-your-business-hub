@@ -66,12 +66,14 @@ function emptyProduct(): Product {
 }
 
 function ProductsPage() {
+  const { profile } = useAuth();
   const canWrite = usePermission("inventory", "write");
   const [list, setList] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState("");
   const [editing, setEditing] = useState<Product | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
