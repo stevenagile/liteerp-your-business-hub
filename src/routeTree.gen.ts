@@ -12,13 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
-import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReceivablesRouteImport } from './routes/_app.receivables'
 import { Route as AppProductsRouteImport } from './routes/_app.products'
 import { Route as AppPayablesRouteImport } from './routes/_app.payables'
 import { Route as AppNotificationsRouteImport } from './routes/_app.notifications'
 import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
+import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.index'
 import { Route as AppStatementsVendorRouteImport } from './routes/_app.statements.vendor'
 import { Route as AppStatementsCustomerRouteImport } from './routes/_app.statements.customer'
@@ -56,11 +56,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppReceivablesRoute = AppReceivablesRouteImport.update({
   id: '/receivables',
   path: '/receivables',
@@ -91,6 +86,11 @@ const AppContactsRoute = AppContactsRouteImport.update({
   path: '/contacts',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/inventory/',
   path: '/inventory/',
@@ -107,14 +107,14 @@ const AppStatementsCustomerRoute = AppStatementsCustomerRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsUsersRoute = AppSettingsUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings/users',
+  path: '/settings/users',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsPermissionsRoute = AppSettingsPermissionsRouteImport.update({
-  id: '/permissions',
-  path: '/permissions',
-  getParentRoute: () => AppSettingsRoute,
+  id: '/settings/permissions',
+  path: '/settings/permissions',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppReportsSalespersonRoute = AppReportsSalespersonRouteImport.update({
   id: '/reports/salesperson',
@@ -213,7 +213,6 @@ export interface FileRoutesByFullPath {
   '/payables': typeof AppPayablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
-  '/settings': typeof AppSettingsRouteWithChildren
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
   '/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
   '/docs/purchase-receipt': typeof AppDocsPurchaseReceiptRoute
@@ -235,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
   '/inventory/': typeof AppInventoryIndexRoute
+  '/settings/': typeof AppSettingsIndexRoute
   '/print/$docType/$id': typeof AppPrintDocTypeIdRoute
 }
 export interface FileRoutesByTo {
@@ -245,7 +245,6 @@ export interface FileRoutesByTo {
   '/payables': typeof AppPayablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
-  '/settings': typeof AppSettingsRouteWithChildren
   '/': typeof AppIndexRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
   '/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
@@ -268,6 +267,7 @@ export interface FileRoutesByTo {
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
   '/inventory': typeof AppInventoryIndexRoute
+  '/settings': typeof AppSettingsIndexRoute
   '/print/$docType/$id': typeof AppPrintDocTypeIdRoute
 }
 export interface FileRoutesById {
@@ -280,7 +280,6 @@ export interface FileRoutesById {
   '/_app/payables': typeof AppPayablesRoute
   '/_app/products': typeof AppProductsRoute
   '/_app/receivables': typeof AppReceivablesRoute
-  '/_app/settings': typeof AppSettingsRouteWithChildren
   '/_app/': typeof AppIndexRoute
   '/_app/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
   '/_app/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
@@ -303,6 +302,7 @@ export interface FileRoutesById {
   '/_app/statements/customer': typeof AppStatementsCustomerRoute
   '/_app/statements/vendor': typeof AppStatementsVendorRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
+  '/_app/settings/': typeof AppSettingsIndexRoute
   '/_app/print/$docType/$id': typeof AppPrintDocTypeIdRoute
 }
 export interface FileRouteTypes {
@@ -316,7 +316,6 @@ export interface FileRouteTypes {
     | '/payables'
     | '/products'
     | '/receivables'
-    | '/settings'
     | '/docs/inventory-adjust'
     | '/docs/purchase-order'
     | '/docs/purchase-receipt'
@@ -338,6 +337,7 @@ export interface FileRouteTypes {
     | '/statements/customer'
     | '/statements/vendor'
     | '/inventory/'
+    | '/settings/'
     | '/print/$docType/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -348,7 +348,6 @@ export interface FileRouteTypes {
     | '/payables'
     | '/products'
     | '/receivables'
-    | '/settings'
     | '/'
     | '/docs/inventory-adjust'
     | '/docs/purchase-order'
@@ -371,6 +370,7 @@ export interface FileRouteTypes {
     | '/statements/customer'
     | '/statements/vendor'
     | '/inventory'
+    | '/settings'
     | '/print/$docType/$id'
   id:
     | '__root__'
@@ -382,7 +382,6 @@ export interface FileRouteTypes {
     | '/_app/payables'
     | '/_app/products'
     | '/_app/receivables'
-    | '/_app/settings'
     | '/_app/'
     | '/_app/docs/inventory-adjust'
     | '/_app/docs/purchase-order'
@@ -405,6 +404,7 @@ export interface FileRouteTypes {
     | '/_app/statements/customer'
     | '/_app/statements/vendor'
     | '/_app/inventory/'
+    | '/_app/settings/'
     | '/_app/print/$docType/$id'
   fileRoutesById: FileRoutesById
 }
@@ -434,13 +434,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/receivables': {
@@ -485,6 +478,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppContactsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings/': {
+      id: '/_app/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/inventory/': {
       id: '/_app/inventory/'
       path: '/inventory'
@@ -508,17 +508,17 @@ declare module '@tanstack/react-router' {
     }
     '/_app/settings/users': {
       id: '/_app/settings/users'
-      path: '/users'
+      path: '/settings/users'
       fullPath: '/settings/users'
       preLoaderRoute: typeof AppSettingsUsersRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/settings/permissions': {
       id: '/_app/settings/permissions'
-      path: '/permissions'
+      path: '/settings/permissions'
       fullPath: '/settings/permissions'
       preLoaderRoute: typeof AppSettingsPermissionsRouteImport
-      parentRoute: typeof AppSettingsRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/reports/salesperson': {
       id: '/_app/reports/salesperson'
@@ -642,20 +642,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AppSettingsRouteChildren {
-  AppSettingsPermissionsRoute: typeof AppSettingsPermissionsRoute
-  AppSettingsUsersRoute: typeof AppSettingsUsersRoute
-}
-
-const AppSettingsRouteChildren: AppSettingsRouteChildren = {
-  AppSettingsPermissionsRoute: AppSettingsPermissionsRoute,
-  AppSettingsUsersRoute: AppSettingsUsersRoute,
-}
-
-const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
-  AppSettingsRouteChildren,
-)
-
 interface AppRouteChildren {
   AppContactsRoute: typeof AppContactsRoute
   AppExpensesRoute: typeof AppExpensesRoute
@@ -663,7 +649,6 @@ interface AppRouteChildren {
   AppPayablesRoute: typeof AppPayablesRoute
   AppProductsRoute: typeof AppProductsRoute
   AppReceivablesRoute: typeof AppReceivablesRoute
-  AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
   AppDocsInventoryAdjustRoute: typeof AppDocsInventoryAdjustRoute
   AppDocsPurchaseOrderRoute: typeof AppDocsPurchaseOrderRoute
@@ -681,9 +666,12 @@ interface AppRouteChildren {
   AppReportsRevenueRoute: typeof AppReportsRevenueRoute
   AppReportsSalesDetailRoute: typeof AppReportsSalesDetailRoute
   AppReportsSalespersonRoute: typeof AppReportsSalespersonRoute
+  AppSettingsPermissionsRoute: typeof AppSettingsPermissionsRoute
+  AppSettingsUsersRoute: typeof AppSettingsUsersRoute
   AppStatementsCustomerRoute: typeof AppStatementsCustomerRoute
   AppStatementsVendorRoute: typeof AppStatementsVendorRoute
   AppInventoryIndexRoute: typeof AppInventoryIndexRoute
+  AppSettingsIndexRoute: typeof AppSettingsIndexRoute
   AppPrintDocTypeIdRoute: typeof AppPrintDocTypeIdRoute
 }
 
@@ -694,7 +682,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppPayablesRoute: AppPayablesRoute,
   AppProductsRoute: AppProductsRoute,
   AppReceivablesRoute: AppReceivablesRoute,
-  AppSettingsRoute: AppSettingsRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
   AppDocsInventoryAdjustRoute: AppDocsInventoryAdjustRoute,
   AppDocsPurchaseOrderRoute: AppDocsPurchaseOrderRoute,
@@ -712,9 +699,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppReportsRevenueRoute: AppReportsRevenueRoute,
   AppReportsSalesDetailRoute: AppReportsSalesDetailRoute,
   AppReportsSalespersonRoute: AppReportsSalespersonRoute,
+  AppSettingsPermissionsRoute: AppSettingsPermissionsRoute,
+  AppSettingsUsersRoute: AppSettingsUsersRoute,
   AppStatementsCustomerRoute: AppStatementsCustomerRoute,
   AppStatementsVendorRoute: AppStatementsVendorRoute,
   AppInventoryIndexRoute: AppInventoryIndexRoute,
+  AppSettingsIndexRoute: AppSettingsIndexRoute,
   AppPrintDocTypeIdRoute: AppPrintDocTypeIdRoute,
 }
 
@@ -727,3 +717,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
