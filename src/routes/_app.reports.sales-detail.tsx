@@ -147,7 +147,7 @@ function SalesDetailReport() {
             <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部產品</SelectItem>
-              {products.map((p) => <SelectItem key={p.id} value={p.id}>{p.code} {p.name}</SelectItem>)}
+              {products.map((p) => <SelectItem key={p.id} value={p.code}>{p.code} {p.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
