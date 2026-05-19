@@ -221,6 +221,15 @@ function QuotationListPage() {
                           轉訂單
                         </Button>
                       )}
+                      <Button size="sm" variant="ghost" asChild title="列印">
+                        <a
+                          href={`/print/quotation/${d.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <Printer className="h-4 w-4" />
+                        </a>
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
