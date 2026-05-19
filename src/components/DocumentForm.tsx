@@ -41,11 +41,14 @@ export type DocType =
   | "quotation"
   | "sales_order"
   | "sales_invoice"
+  | "sales_return"
   | "purchase_order"
-  | "purchase_receipt";
+  | "purchase_receipt"
+  | "inventory_adjust";
 
 const PURCHASE_TYPES: DocType[] = ["purchase_order", "purchase_receipt"];
 const isPurchaseType = (t: DocType) => PURCHASE_TYPES.includes(t);
+const isAdjustType = (t: DocType) => t === "inventory_adjust";
 
 export type DocLine = {
   id?: string;
@@ -139,7 +142,8 @@ type Props = {
 export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: Props) {
   const { profile, user } = useAuth();
   const isPurchase = isPurchaseType(docType);
-  const permModule = isPurchase ? "purchase" : "sales";
+  const isAdjust = isAdjustType(docType);
+  const permModule = isAdjust ? "inventory" : isPurchase ? "purchase" : "sales";
   const partyLabel = isPurchase ? "廠商" : "客戶";
   const canWrite = usePermission(permModule, "write");
   const canConfirm = usePermission(permModule, "confirm");
@@ -294,7 +298,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
 
   // ---- 儲存 ----
   const handleSave = async () => {
-    if (!header.contact_id) {
+    if (!isAdjust && !header.contact_id) {
       toast.error(`請選擇${partyLabel}`);
       return;
     }
@@ -302,9 +306,17 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       toast.error("請選擇倉庫");
       return;
     }
+    if (isAdjust && !(header.notes ?? "").trim()) {
+      toast.error("請填寫調整原因 (備註)");
+      return;
+    }
     const validLines = lines.filter((l) => l.product_id);
     if (validLines.length === 0) {
       toast.error("請至少新增一筆有效明細");
+      return;
+    }
+    if (isAdjust && validLines.some((l) => Number(l.quantity) === 0)) {
+      toast.error("調整數量不可為 0");
       return;
     }
 
