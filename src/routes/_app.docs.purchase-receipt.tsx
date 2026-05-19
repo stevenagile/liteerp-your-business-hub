@@ -1,4 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+
+const DOC_STATUS_LABEL: Record<string, string> = {
+  draft: "草稿",
+  confirmed: "已確認",
+  completed: "已完成",
+  voided: "已作廢",
+};
+const PAY_STATUS_LABEL: Record<string, string> = {
+  unpaid: "未付款",
+  partial: "部分付款",
+  paid: "已付款",
+};
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil, Wallet, Printer } from "lucide-react";
 import { toast } from "sonner";
@@ -198,6 +211,22 @@ function PurchaseReceiptListPage() {
             清除篩選
           </Button>
         )}
+        <div className="ml-auto">
+          <ExportExcelButton
+            rows={list as unknown as Record<string, unknown>[]}
+            filename="進貨單"
+            columns={[
+              { key: "doc_no", label: "單號" },
+              { key: "doc_date", label: "日期" },
+              { key: "contact_name", label: "廠商" },
+              { key: "total_amount", label: "總金額", type: "number" },
+              { key: "paid_amount", label: "已付", type: "number" },
+              { key: "status", label: "狀態", value: (r) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              { key: "payment_status", label: "付款狀態", value: (r) => PAY_STATUS_LABEL[(r as { payment_status: string | null }).payment_status ?? ""] ?? "—" },
+              { key: "source_doc_no", label: "來源採購單" },
+            ]}
+          />
+        </div>
       </div>
 
       <div className="rounded-lg border bg-card shadow-sm">

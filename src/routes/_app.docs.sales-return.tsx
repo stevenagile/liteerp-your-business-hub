@@ -1,4 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+
+const DOC_STATUS_LABEL: Record<string, string> = {
+  draft: "草稿",
+  confirmed: "已確認",
+  completed: "已完成",
+  voided: "已作廢",
+};
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -158,6 +166,20 @@ function SalesReturnListPage() {
             清除篩選
           </Button>
         )}
+        <div className="ml-auto">
+          <ExportExcelButton
+            rows={list as unknown as Record<string, unknown>[]}
+            filename="銷退單"
+            columns={[
+              { key: "doc_no", label: "單號" },
+              { key: "doc_date", label: "日期" },
+              { key: "contact_name", label: "客戶" },
+              { key: "total_amount", label: "總金額", type: "number" },
+              { key: "status", label: "狀態", value: (r) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              { key: "source_doc_no", label: "來源銷貨單" },
+            ]}
+          />
+        </div>
       </div>
 
       <div className="rounded-lg border bg-card shadow-sm">

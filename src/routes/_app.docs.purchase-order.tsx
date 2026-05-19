@@ -168,6 +168,20 @@ function PurchaseOrderListPage() {
             清除篩選
           </Button>
         )}
+        <div className="ml-auto">
+          <ExportExcelButton
+            rows={list as unknown as Record<string, unknown>[]}
+            filename="採購單"
+            columns={[
+              { key: "doc_no", label: "單號" },
+              { key: "doc_date", label: "日期" },
+              { key: "contact_name", label: "廠商" },
+              { key: "total_amount", label: "總金額", type: "number" },
+              { key: "status", label: "狀態", value: (r) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              { key: "source_doc_no", label: "來源" },
+            ]}
+          />
+        </div>
       </div>
 
       <div className="rounded-lg border bg-card shadow-sm">
