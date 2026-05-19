@@ -256,6 +256,19 @@ function QuotationListPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* 轉訂單 Dialog */}
+      <TransferToOrderDialog
+        open={Boolean(transferTarget)}
+        onOpenChange={(v) => !v && setTransferTarget(null)}
+        sourceDocId={transferTarget?.id ?? null}
+        sourceDocNo={transferTarget?.doc_no ?? null}
+        onTransferred={() => {
+          setTransferTarget(null);
+          load();
+          navigate({ to: "/docs/sales-order" });
+        }}
+      />
     </div>
   );
 }
