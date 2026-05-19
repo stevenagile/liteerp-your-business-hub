@@ -531,6 +531,13 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
               <TableHead className="w-28 text-right">單價</TableHead>
               <TableHead className="w-24 text-right">折扣%</TableHead>
               <TableHead className="w-32 text-right">金額</TableHead>
+              {showCostCols && (
+                <>
+                  <TableHead className="w-24 text-right">單位成本</TableHead>
+                  <TableHead className="w-28 text-right">毛利</TableHead>
+                  <TableHead className="w-20 text-right">毛利率%</TableHead>
+                </>
+              )}
               {!readOnly && <TableHead className="w-12" />}
             </TableRow>
           </TableHeader>
@@ -612,6 +619,29 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
                       maximumFractionDigits: 2,
                     })}
                   </TableCell>
+                  {showCostCols && (
+                    <>
+                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                        {l.unit_cost != null
+                          ? Number(l.unit_cost).toLocaleString(undefined, {
+                              maximumFractionDigits: 2,
+                            })
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {l.gross_profit != null
+                          ? Number(l.gross_profit).toLocaleString(undefined, {
+                              maximumFractionDigits: 2,
+                            })
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {l.margin_pct != null
+                          ? `${Number(l.margin_pct).toFixed(1)}%`
+                          : "—"}
+                      </TableCell>
+                    </>
+                  )}
                   {!readOnly && (
                     <TableCell className="text-right">
                       <Button
