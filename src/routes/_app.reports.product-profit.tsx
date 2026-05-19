@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { ArrowDownAZ } from "lucide-react";
@@ -52,11 +53,28 @@ function ProductProfitReport() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">產品利潤排行</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          點擊欄位標頭切換排序依據
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">產品利潤排行</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            點擊欄位標頭切換排序依據
+          </p>
+        </div>
+        <ExportExcelButton
+          rows={sorted as unknown as Record<string, unknown>[]}
+          filename="產品利潤"
+          columns={[
+            { key: "product_code", label: "產品編號" },
+            { key: "product_name", label: "產品名稱" },
+            { key: "total_qty_sold", label: "銷售數量", type: "number" },
+            { key: "total_revenue", label: "營收", type: "number" },
+            { key: "total_cost", label: "成本", type: "number" },
+            { key: "total_profit", label: "毛利", type: "number" },
+            { key: "avg_margin_pct", label: "平均毛利率(%)", type: "number" },
+            { key: "avg_selling_price", label: "平均售價", type: "number" },
+            { key: "avg_unit_cost", label: "平均成本", type: "number" },
+          ]}
+        />
       </div>
       <div className="rounded-lg border bg-card shadow-sm overflow-x-auto">
         <table className="w-full text-sm">

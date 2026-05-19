@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -46,11 +47,27 @@ function RevenueReport() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">月營收報表</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          每月銷售額、成本與收款狀況
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">月營收報表</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            每月銷售額、成本與收款狀況
+          </p>
+        </div>
+        <ExportExcelButton
+          rows={rows as unknown as Record<string, unknown>[]}
+          filename="月營收"
+          columns={[
+            { key: "month", label: "月份", value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7) },
+            { key: "invoice_count", label: "單數", type: "number" },
+            { key: "revenue", label: "營收", type: "number" },
+            { key: "cogs", label: "銷貨成本", type: "number" },
+            { key: "gross_profit", label: "毛利", type: "number" },
+            { key: "gross_margin_pct", label: "毛利率(%)", type: "number" },
+            { key: "collected", label: "已收", type: "number" },
+            { key: "outstanding", label: "未收", type: "number" },
+          ]}
+        />
       </div>
       <div className="rounded-lg border bg-card shadow-sm overflow-x-auto">
         <table className="w-full text-sm">

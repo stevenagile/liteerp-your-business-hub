@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
 
 export const Route = createFileRoute("/_app/reports/purchase-detail")({
   component: PurchaseDetailReport,
@@ -123,6 +124,20 @@ function PurchaseDetailReport() {
         <Button onClick={run} disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}查詢
         </Button>
+        <ExportExcelButton
+          rows={rows as unknown as Record<string, unknown>[]}
+          filename="進貨明細"
+          columns={[
+            { key: "doc_date", label: "日期" },
+            { key: "doc_no", label: "單號" },
+            { key: "vendor_name", label: "廠商" },
+            { key: "product_code", label: "產品編號" },
+            { key: "product_name", label: "品名" },
+            { key: "quantity", label: "數量", type: "number" },
+            { key: "unit_price", label: "單價", type: "number" },
+            { key: "amount", label: "金額", type: "number" },
+          ]}
+        />
       </div>
 
       <div className="rounded-md border bg-card p-4">
