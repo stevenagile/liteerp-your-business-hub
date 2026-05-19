@@ -37,7 +37,15 @@ import {
 } from "@/components/ui/table";
 import { SearchSelect, type SearchOption } from "@/components/SearchSelect";
 
-export type DocType = "quotation" | "sales_order" | "sales_invoice";
+export type DocType =
+  | "quotation"
+  | "sales_order"
+  | "sales_invoice"
+  | "purchase_order"
+  | "purchase_receipt";
+
+const PURCHASE_TYPES: DocType[] = ["purchase_order", "purchase_receipt"];
+const isPurchaseType = (t: DocType) => PURCHASE_TYPES.includes(t);
 
 export type DocLine = {
   id?: string;
@@ -110,6 +118,7 @@ type Product = {
   price1: number | null;
   price2: number | null;
   price3: number | null;
+  cost_price: number | null;
 };
 type Warehouse = {
   id: string;
