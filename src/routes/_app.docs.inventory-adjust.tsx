@@ -269,7 +269,7 @@ function InventoryAdjustListPage() {
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingId ? "編輯調整單" : "新增調整單"}
+              {editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯調整單" : "檢視調整單") : "新增調整單"}
             </DialogTitle>
           </DialogHeader>
           {dialogOpen && (
