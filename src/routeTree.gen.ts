@@ -22,10 +22,14 @@ import { Route as AppContactsRouteImport } from './routes/_app.contacts'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.index'
 import { Route as AppStatementsVendorRouteImport } from './routes/_app.statements.vendor'
 import { Route as AppStatementsCustomerRouteImport } from './routes/_app.statements.customer'
+import { Route as AppReportsSalespersonRouteImport } from './routes/_app.reports.salesperson'
+import { Route as AppReportsSalesDetailRouteImport } from './routes/_app.reports.sales-detail'
 import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.revenue'
+import { Route as AppReportsPurchaseDetailRouteImport } from './routes/_app.reports.purchase-detail'
 import { Route as AppReportsProductProfitRouteImport } from './routes/_app.reports.product-profit'
 import { Route as AppReportsPnlRouteImport } from './routes/_app.reports.pnl'
 import { Route as AppReportsCustomerProfitRouteImport } from './routes/_app.reports.customer-profit'
+import { Route as AppReportsAgingRouteImport } from './routes/_app.reports.aging'
 import { Route as AppInventoryLedgerRouteImport } from './routes/_app.inventory.ledger'
 import { Route as AppDocsSalesReturnRouteImport } from './routes/_app.docs.sales-return'
 import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
@@ -100,11 +104,27 @@ const AppStatementsCustomerRoute = AppStatementsCustomerRouteImport.update({
   path: '/statements/customer',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReportsSalespersonRoute = AppReportsSalespersonRouteImport.update({
+  id: '/reports/salesperson',
+  path: '/reports/salesperson',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsSalesDetailRoute = AppReportsSalesDetailRouteImport.update({
+  id: '/reports/sales-detail',
+  path: '/reports/sales-detail',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppReportsRevenueRoute = AppReportsRevenueRouteImport.update({
   id: '/reports/revenue',
   path: '/reports/revenue',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReportsPurchaseDetailRoute =
+  AppReportsPurchaseDetailRouteImport.update({
+    id: '/reports/purchase-detail',
+    path: '/reports/purchase-detail',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppReportsProductProfitRoute = AppReportsProductProfitRouteImport.update({
   id: '/reports/product-profit',
   path: '/reports/product-profit',
@@ -121,6 +141,11 @@ const AppReportsCustomerProfitRoute =
     path: '/reports/customer-profit',
     getParentRoute: () => AppRoute,
   } as any)
+const AppReportsAgingRoute = AppReportsAgingRouteImport.update({
+  id: '/reports/aging',
+  path: '/reports/aging',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInventoryLedgerRoute = AppInventoryLedgerRouteImport.update({
   id: '/inventory/ledger',
   path: '/inventory/ledger',
@@ -185,10 +210,14 @@ export interface FileRoutesByFullPath {
   '/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/docs/sales-return': typeof AppDocsSalesReturnRoute
   '/inventory/ledger': typeof AppInventoryLedgerRoute
+  '/reports/aging': typeof AppReportsAgingRoute
   '/reports/customer-profit': typeof AppReportsCustomerProfitRoute
   '/reports/pnl': typeof AppReportsPnlRoute
   '/reports/product-profit': typeof AppReportsProductProfitRoute
+  '/reports/purchase-detail': typeof AppReportsPurchaseDetailRoute
   '/reports/revenue': typeof AppReportsRevenueRoute
+  '/reports/sales-detail': typeof AppReportsSalesDetailRoute
+  '/reports/salesperson': typeof AppReportsSalespersonRoute
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
   '/inventory/': typeof AppInventoryIndexRoute
@@ -212,10 +241,14 @@ export interface FileRoutesByTo {
   '/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/docs/sales-return': typeof AppDocsSalesReturnRoute
   '/inventory/ledger': typeof AppInventoryLedgerRoute
+  '/reports/aging': typeof AppReportsAgingRoute
   '/reports/customer-profit': typeof AppReportsCustomerProfitRoute
   '/reports/pnl': typeof AppReportsPnlRoute
   '/reports/product-profit': typeof AppReportsProductProfitRoute
+  '/reports/purchase-detail': typeof AppReportsPurchaseDetailRoute
   '/reports/revenue': typeof AppReportsRevenueRoute
+  '/reports/sales-detail': typeof AppReportsSalesDetailRoute
+  '/reports/salesperson': typeof AppReportsSalespersonRoute
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
   '/inventory': typeof AppInventoryIndexRoute
@@ -241,10 +274,14 @@ export interface FileRoutesById {
   '/_app/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/_app/docs/sales-return': typeof AppDocsSalesReturnRoute
   '/_app/inventory/ledger': typeof AppInventoryLedgerRoute
+  '/_app/reports/aging': typeof AppReportsAgingRoute
   '/_app/reports/customer-profit': typeof AppReportsCustomerProfitRoute
   '/_app/reports/pnl': typeof AppReportsPnlRoute
   '/_app/reports/product-profit': typeof AppReportsProductProfitRoute
+  '/_app/reports/purchase-detail': typeof AppReportsPurchaseDetailRoute
   '/_app/reports/revenue': typeof AppReportsRevenueRoute
+  '/_app/reports/sales-detail': typeof AppReportsSalesDetailRoute
+  '/_app/reports/salesperson': typeof AppReportsSalespersonRoute
   '/_app/statements/customer': typeof AppStatementsCustomerRoute
   '/_app/statements/vendor': typeof AppStatementsVendorRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
@@ -270,10 +307,14 @@ export interface FileRouteTypes {
     | '/docs/sales-order'
     | '/docs/sales-return'
     | '/inventory/ledger'
+    | '/reports/aging'
     | '/reports/customer-profit'
     | '/reports/pnl'
     | '/reports/product-profit'
+    | '/reports/purchase-detail'
     | '/reports/revenue'
+    | '/reports/sales-detail'
+    | '/reports/salesperson'
     | '/statements/customer'
     | '/statements/vendor'
     | '/inventory/'
@@ -297,10 +338,14 @@ export interface FileRouteTypes {
     | '/docs/sales-order'
     | '/docs/sales-return'
     | '/inventory/ledger'
+    | '/reports/aging'
     | '/reports/customer-profit'
     | '/reports/pnl'
     | '/reports/product-profit'
+    | '/reports/purchase-detail'
     | '/reports/revenue'
+    | '/reports/sales-detail'
+    | '/reports/salesperson'
     | '/statements/customer'
     | '/statements/vendor'
     | '/inventory'
@@ -325,10 +370,14 @@ export interface FileRouteTypes {
     | '/_app/docs/sales-order'
     | '/_app/docs/sales-return'
     | '/_app/inventory/ledger'
+    | '/_app/reports/aging'
     | '/_app/reports/customer-profit'
     | '/_app/reports/pnl'
     | '/_app/reports/product-profit'
+    | '/_app/reports/purchase-detail'
     | '/_app/reports/revenue'
+    | '/_app/reports/sales-detail'
+    | '/_app/reports/salesperson'
     | '/_app/statements/customer'
     | '/_app/statements/vendor'
     | '/_app/inventory/'
@@ -433,11 +482,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStatementsCustomerRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/reports/salesperson': {
+      id: '/_app/reports/salesperson'
+      path: '/reports/salesperson'
+      fullPath: '/reports/salesperson'
+      preLoaderRoute: typeof AppReportsSalespersonRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/sales-detail': {
+      id: '/_app/reports/sales-detail'
+      path: '/reports/sales-detail'
+      fullPath: '/reports/sales-detail'
+      preLoaderRoute: typeof AppReportsSalesDetailRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/reports/revenue': {
       id: '/_app/reports/revenue'
       path: '/reports/revenue'
       fullPath: '/reports/revenue'
       preLoaderRoute: typeof AppReportsRevenueRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/purchase-detail': {
+      id: '/_app/reports/purchase-detail'
+      path: '/reports/purchase-detail'
+      fullPath: '/reports/purchase-detail'
+      preLoaderRoute: typeof AppReportsPurchaseDetailRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/reports/product-profit': {
@@ -459,6 +529,13 @@ declare module '@tanstack/react-router' {
       path: '/reports/customer-profit'
       fullPath: '/reports/customer-profit'
       preLoaderRoute: typeof AppReportsCustomerProfitRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/aging': {
+      id: '/_app/reports/aging'
+      path: '/reports/aging'
+      fullPath: '/reports/aging'
+      preLoaderRoute: typeof AppReportsAgingRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/inventory/ledger': {
@@ -544,10 +621,14 @@ interface AppRouteChildren {
   AppDocsSalesOrderRoute: typeof AppDocsSalesOrderRoute
   AppDocsSalesReturnRoute: typeof AppDocsSalesReturnRoute
   AppInventoryLedgerRoute: typeof AppInventoryLedgerRoute
+  AppReportsAgingRoute: typeof AppReportsAgingRoute
   AppReportsCustomerProfitRoute: typeof AppReportsCustomerProfitRoute
   AppReportsPnlRoute: typeof AppReportsPnlRoute
   AppReportsProductProfitRoute: typeof AppReportsProductProfitRoute
+  AppReportsPurchaseDetailRoute: typeof AppReportsPurchaseDetailRoute
   AppReportsRevenueRoute: typeof AppReportsRevenueRoute
+  AppReportsSalesDetailRoute: typeof AppReportsSalesDetailRoute
+  AppReportsSalespersonRoute: typeof AppReportsSalespersonRoute
   AppStatementsCustomerRoute: typeof AppStatementsCustomerRoute
   AppStatementsVendorRoute: typeof AppStatementsVendorRoute
   AppInventoryIndexRoute: typeof AppInventoryIndexRoute
@@ -571,10 +652,14 @@ const AppRouteChildren: AppRouteChildren = {
   AppDocsSalesOrderRoute: AppDocsSalesOrderRoute,
   AppDocsSalesReturnRoute: AppDocsSalesReturnRoute,
   AppInventoryLedgerRoute: AppInventoryLedgerRoute,
+  AppReportsAgingRoute: AppReportsAgingRoute,
   AppReportsCustomerProfitRoute: AppReportsCustomerProfitRoute,
   AppReportsPnlRoute: AppReportsPnlRoute,
   AppReportsProductProfitRoute: AppReportsProductProfitRoute,
+  AppReportsPurchaseDetailRoute: AppReportsPurchaseDetailRoute,
   AppReportsRevenueRoute: AppReportsRevenueRoute,
+  AppReportsSalesDetailRoute: AppReportsSalesDetailRoute,
+  AppReportsSalespersonRoute: AppReportsSalespersonRoute,
   AppStatementsCustomerRoute: AppStatementsCustomerRoute,
   AppStatementsVendorRoute: AppStatementsVendorRoute,
   AppInventoryIndexRoute: AppInventoryIndexRoute,

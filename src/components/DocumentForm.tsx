@@ -77,6 +77,7 @@ export type DocHeader = {
   status: string;
   notes: string | null;
   company_id: string | null;
+  sales_person_id: string | null;
 };
 
 export function emptyHeader(doc_type: DocType): DocHeader {
@@ -91,6 +92,7 @@ export function emptyHeader(doc_type: DocType): DocHeader {
     status: "draft",
     notes: "",
     company_id: null,
+    sales_person_id: null,
   };
 }
 
@@ -158,14 +160,20 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [salesPeople, setSalesPeople] = useState<{ id: string; display_name: string | null }[]>([]);
   const [taxRate, setTaxRate] = useState<number>(5);
+
+  const showSalesPerson =
+    docType === "sales_invoice" ||
+    docType === "sales_order" ||
+    docType === "quotation";
 
   // ---- 載入基礎資料 + 既有單據 ----
   const loadDoc = async (id: string) => {
     const { data: h, error: he } = await supabase
       .from("doc_headers")
       .select(
-        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id",
+        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id",
       )
       .eq("id", id)
       .maybeSingle();
@@ -189,7 +197,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [{ data: c }, { data: p }, { data: w }, { data: comp }] =
+      const [{ data: c }, { data: p }, { data: w }, { data: comp }, { data: sp }] =
         await Promise.all([
           supabase
             .from("contacts")
@@ -209,22 +217,32 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             .select("tax_rate")
             .limit(1)
             .maybeSingle(),
+          showSalesPerson
+            ? supabase
+                .from("profiles")
+                .select("id, display_name, role")
+                .in("role", ["sales", "admin", "manager"])
+                .order("display_name")
+            : Promise.resolve({ data: [] as { id: string; display_name: string | null }[] }),
         ]);
       if (cancelled) return;
       setContacts((c ?? []) as Contact[]);
       setProducts((p ?? []) as Product[]);
       setWarehouses((w ?? []) as Warehouse[]);
+      setSalesPeople((sp ?? []) as { id: string; display_name: string | null }[]);
       const tr = (comp as { tax_rate?: number } | null)?.tax_rate;
       if (typeof tr === "number") setTaxRate(tr);
 
       if (docId) {
         await loadDoc(docId);
       } else {
-        // 新建:預設預設倉
+        // 新建:預設預設倉 + 預設業務員為目前登入者
         const def = (w ?? []).find((x) => x.is_default) ?? (w ?? [])[0];
-        if (def) {
-          setHeader((prev) => ({ ...prev, warehouse_id: def.id }));
-        }
+        setHeader((prev) => ({
+          ...prev,
+          warehouse_id: def ? def.id : prev.warehouse_id,
+          sales_person_id: showSalesPerson ? (profile?.id ?? null) : null,
+        }));
       }
       setLoading(false);
     })();
@@ -348,6 +366,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       warehouse_id: header.warehouse_id,
       notes: header.notes || null,
       status: "draft",
+      ...(showSalesPerson ? { sales_person_id: header.sales_person_id } : {}),
       ...(isEdit
         ? {}
         : {
@@ -542,6 +561,29 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
               </SelectContent>
             </Select>
           </Field>
+
+          {showSalesPerson && (
+            <Field label="業務員">
+              <Select
+                value={header.sales_person_id ?? ""}
+                onValueChange={(v) =>
+                  setHeader((h) => ({ ...h, sales_person_id: v || null }))
+                }
+                disabled={readOnly}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="選擇業務員" />
+                </SelectTrigger>
+                <SelectContent>
+                  {salesPeople.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.display_name ?? u.id.slice(0, 8)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
 
           <Field
             label={isAdjust ? "調整原因 (備註)" : "備註"}
