@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/table";
 import { SearchSelect, type SearchOption } from "@/components/SearchSelect";
 
-export type DocType = "quotation" | "sales_order" | "sales";
+export type DocType = "quotation" | "sales_order" | "sales_invoice";
 
 export type DocLine = {
   id?: string;
