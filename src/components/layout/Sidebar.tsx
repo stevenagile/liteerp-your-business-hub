@@ -18,9 +18,11 @@ import {
   UserCheck,
   Settings,
   History,
+  ShieldCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 type Item = { label: string; to: string; icon: LucideIcon };
 type Group = { title: string; items: Item[] };

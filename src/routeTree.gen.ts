@@ -23,6 +23,7 @@ import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.i
 import { Route as AppStatementsVendorRouteImport } from './routes/_app.statements.vendor'
 import { Route as AppStatementsCustomerRouteImport } from './routes/_app.statements.customer'
 import { Route as AppSettingsUsersRouteImport } from './routes/_app.settings.users'
+import { Route as AppSettingsPermissionsRouteImport } from './routes/_app.settings.permissions'
 import { Route as AppReportsSalespersonRouteImport } from './routes/_app.reports.salesperson'
 import { Route as AppReportsSalesDetailRouteImport } from './routes/_app.reports.sales-detail'
 import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.revenue'
@@ -108,6 +109,11 @@ const AppStatementsCustomerRoute = AppStatementsCustomerRouteImport.update({
 const AppSettingsUsersRoute = AppSettingsUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsPermissionsRoute = AppSettingsPermissionsRouteImport.update({
+  id: '/permissions',
+  path: '/permissions',
   getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppReportsSalespersonRoute = AppReportsSalespersonRouteImport.update({
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/reports/revenue': typeof AppReportsRevenueRoute
   '/reports/sales-detail': typeof AppReportsSalesDetailRoute
   '/reports/salesperson': typeof AppReportsSalespersonRoute
+  '/settings/permissions': typeof AppSettingsPermissionsRoute
   '/settings/users': typeof AppSettingsUsersRoute
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/reports/revenue': typeof AppReportsRevenueRoute
   '/reports/sales-detail': typeof AppReportsSalesDetailRoute
   '/reports/salesperson': typeof AppReportsSalespersonRoute
+  '/settings/permissions': typeof AppSettingsPermissionsRoute
   '/settings/users': typeof AppSettingsUsersRoute
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
@@ -290,6 +298,7 @@ export interface FileRoutesById {
   '/_app/reports/revenue': typeof AppReportsRevenueRoute
   '/_app/reports/sales-detail': typeof AppReportsSalesDetailRoute
   '/_app/reports/salesperson': typeof AppReportsSalespersonRoute
+  '/_app/settings/permissions': typeof AppSettingsPermissionsRoute
   '/_app/settings/users': typeof AppSettingsUsersRoute
   '/_app/statements/customer': typeof AppStatementsCustomerRoute
   '/_app/statements/vendor': typeof AppStatementsVendorRoute
@@ -324,6 +333,7 @@ export interface FileRouteTypes {
     | '/reports/revenue'
     | '/reports/sales-detail'
     | '/reports/salesperson'
+    | '/settings/permissions'
     | '/settings/users'
     | '/statements/customer'
     | '/statements/vendor'
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/reports/revenue'
     | '/reports/sales-detail'
     | '/reports/salesperson'
+    | '/settings/permissions'
     | '/settings/users'
     | '/statements/customer'
     | '/statements/vendor'
@@ -389,6 +400,7 @@ export interface FileRouteTypes {
     | '/_app/reports/revenue'
     | '/_app/reports/sales-detail'
     | '/_app/reports/salesperson'
+    | '/_app/settings/permissions'
     | '/_app/settings/users'
     | '/_app/statements/customer'
     | '/_app/statements/vendor'
@@ -499,6 +511,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/settings/users'
       preLoaderRoute: typeof AppSettingsUsersRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/permissions': {
+      id: '/_app/settings/permissions'
+      path: '/permissions'
+      fullPath: '/settings/permissions'
+      preLoaderRoute: typeof AppSettingsPermissionsRouteImport
       parentRoute: typeof AppSettingsRoute
     }
     '/_app/reports/salesperson': {
@@ -624,10 +643,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppSettingsRouteChildren {
+  AppSettingsPermissionsRoute: typeof AppSettingsPermissionsRoute
   AppSettingsUsersRoute: typeof AppSettingsUsersRoute
 }
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
+  AppSettingsPermissionsRoute: AppSettingsPermissionsRoute,
   AppSettingsUsersRoute: AppSettingsUsersRoute,
 }
 
