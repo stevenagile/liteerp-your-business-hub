@@ -742,6 +742,27 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             取消
           </Button>
         )}
+        {isEdit &&
+          (
+            [
+              "quotation",
+              "sales_order",
+              "sales_invoice",
+              "purchase_order",
+              "purchase_receipt",
+            ] as DocType[]
+          ).includes(docType) && (
+            <Button type="button" variant="outline" asChild>
+              <a
+                href={`/print/${docType}/${header.id}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Printer className="mr-1 h-4 w-4" />
+                列印
+              </a>
+            </Button>
+          )}
         {isDraft && canWrite && (
           <Button type="button" onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
