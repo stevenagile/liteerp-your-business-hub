@@ -134,7 +134,7 @@ export function Sidebar({ open }: { open: boolean }) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 py-3">
-        {groups.map((g) => (
+        {displayGroups.map((g) => (
           <div key={g.title} className="mb-4">
             <div className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/50">
               {g.title}
