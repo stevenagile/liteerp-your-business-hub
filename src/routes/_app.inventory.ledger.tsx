@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
