@@ -90,6 +90,8 @@ function ContactsPage() {
   const [keyword, setKeyword] = useState("");
   const [editing, setEditing] = useState<Contact | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const { profile } = useAuth();
 
   const load = async () => {
     setLoading(true);
