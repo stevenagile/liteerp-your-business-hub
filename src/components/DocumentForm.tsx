@@ -562,6 +562,29 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </Select>
           </Field>
 
+          {showSalesPerson && (
+            <Field label="業務員">
+              <Select
+                value={header.sales_person_id ?? ""}
+                onValueChange={(v) =>
+                  setHeader((h) => ({ ...h, sales_person_id: v || null }))
+                }
+                disabled={readOnly}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="選擇業務員" />
+                </SelectTrigger>
+                <SelectContent>
+                  {salesPeople.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.display_name ?? u.id.slice(0, 8)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
+
           <Field
             label={isAdjust ? "調整原因 (備註)" : "備註"}
             required={isAdjust}
