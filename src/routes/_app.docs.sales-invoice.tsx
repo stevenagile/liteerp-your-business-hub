@@ -340,6 +340,19 @@ function SalesInvoiceListPage() {
           load();
         }}
       />
+
+      <TransferToOrderDialog
+        open={Boolean(returnTarget)}
+        onOpenChange={(v) => !v && setReturnTarget(null)}
+        sourceDocId={returnTarget?.id ?? null}
+        sourceDocNo={returnTarget?.doc_no ?? null}
+        targetDocType="sales_return"
+        targetLabel="銷退單"
+        onTransferred={() => {
+          setReturnTarget(null);
+          load();
+        }}
+      />
     </div>
   );
 }
