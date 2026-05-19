@@ -127,7 +127,7 @@ type Props = {
   onChanged?: () => void;
 };
 
-export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
+export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: Props) {
   const { profile, user } = useAuth();
   const canWrite = usePermission("sales", "write");
   const canConfirm = usePermission("sales", "confirm");
@@ -404,6 +404,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
     // 重新讀取單據,顯示確認後的成本/毛利快照
     await loadDoc(header.id);
     setConfirming(false);
+    // 通知父層列表 refetch,讓 status / payment_status 立即更新
+    onChanged?.();
   };
 
 
