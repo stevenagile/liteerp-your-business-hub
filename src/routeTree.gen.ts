@@ -29,6 +29,10 @@ import { Route as AppDocsQuotationRouteImport } from './routes/_app.docs.quotati
 import { Route as AppDocsPurchaseReceiptRouteImport } from './routes/_app.docs.purchase-receipt'
 import { Route as AppDocsPurchaseOrderRouteImport } from './routes/_app.docs.purchase-order'
 import { Route as AppDocsInventoryAdjustRouteImport } from './routes/_app.docs.inventory-adjust'
+import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.revenue'
+import { Route as AppReportsPnlRouteImport } from './routes/_app.reports.pnl'
+import { Route as AppReportsProductProfitRouteImport } from './routes/_app.reports.product-profit'
+import { Route as AppReportsCustomerProfitRouteImport } from './routes/_app.reports.customer-profit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
