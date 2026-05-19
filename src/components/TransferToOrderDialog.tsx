@@ -44,7 +44,7 @@ type Props = {
   onOpenChange: (v: boolean) => void;
   sourceDocId: string | null;
   sourceDocNo: string | null;
-  targetDocType?: "sales_order" | "sales_invoice" | "purchase_receipt";
+  targetDocType?: "sales_order" | "sales_invoice" | "sales_return" | "purchase_receipt";
   targetLabel?: string; // e.g. "訂單" / "銷貨單" / "進貨單"
   onTransferred?: (newDocId: string, newDocNo: string | null) => void;
 };
