@@ -23,6 +23,7 @@ import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.ind
 import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.index'
 import { Route as AppStatementsVendorRouteImport } from './routes/_app.statements.vendor'
 import { Route as AppStatementsCustomerRouteImport } from './routes/_app.statements.customer'
+import { Route as AppSettlementVendorRouteImport } from './routes/_app.settlement.vendor'
 import { Route as AppSettlementCustomerRouteImport } from './routes/_app.settlement.customer'
 import { Route as AppSettingsUsersRouteImport } from './routes/_app.settings.users'
 import { Route as AppSettingsPermissionsRouteImport } from './routes/_app.settings.permissions'
@@ -111,6 +112,11 @@ const AppStatementsVendorRoute = AppStatementsVendorRouteImport.update({
 const AppStatementsCustomerRoute = AppStatementsCustomerRouteImport.update({
   id: '/statements/customer',
   path: '/statements/customer',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettlementVendorRoute = AppSettlementVendorRouteImport.update({
+  id: '/settlement/vendor',
+  path: '/settlement/vendor',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettlementCustomerRoute = AppSettlementCustomerRouteImport.update({
@@ -245,6 +251,7 @@ export interface FileRoutesByFullPath {
   '/settings/permissions': typeof AppSettingsPermissionsRoute
   '/settings/users': typeof AppSettingsUsersRoute
   '/settlement/customer': typeof AppSettlementCustomerRoute
+  '/settlement/vendor': typeof AppSettlementVendorRoute
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
   '/inventory/': typeof AppInventoryIndexRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/settings/permissions': typeof AppSettingsPermissionsRoute
   '/settings/users': typeof AppSettingsUsersRoute
   '/settlement/customer': typeof AppSettlementCustomerRoute
+  '/settlement/vendor': typeof AppSettlementVendorRoute
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
   '/inventory': typeof AppInventoryIndexRoute
@@ -316,6 +324,7 @@ export interface FileRoutesById {
   '/_app/settings/permissions': typeof AppSettingsPermissionsRoute
   '/_app/settings/users': typeof AppSettingsUsersRoute
   '/_app/settlement/customer': typeof AppSettlementCustomerRoute
+  '/_app/settlement/vendor': typeof AppSettlementVendorRoute
   '/_app/statements/customer': typeof AppStatementsCustomerRoute
   '/_app/statements/vendor': typeof AppStatementsVendorRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
@@ -353,6 +362,7 @@ export interface FileRouteTypes {
     | '/settings/permissions'
     | '/settings/users'
     | '/settlement/customer'
+    | '/settlement/vendor'
     | '/statements/customer'
     | '/statements/vendor'
     | '/inventory/'
@@ -387,6 +397,7 @@ export interface FileRouteTypes {
     | '/settings/permissions'
     | '/settings/users'
     | '/settlement/customer'
+    | '/settlement/vendor'
     | '/statements/customer'
     | '/statements/vendor'
     | '/inventory'
@@ -423,6 +434,7 @@ export interface FileRouteTypes {
     | '/_app/settings/permissions'
     | '/_app/settings/users'
     | '/_app/settlement/customer'
+    | '/_app/settlement/vendor'
     | '/_app/statements/customer'
     | '/_app/statements/vendor'
     | '/_app/inventory/'
@@ -533,6 +545,13 @@ declare module '@tanstack/react-router' {
       path: '/statements/customer'
       fullPath: '/statements/customer'
       preLoaderRoute: typeof AppStatementsCustomerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settlement/vendor': {
+      id: '/_app/settlement/vendor'
+      path: '/settlement/vendor'
+      fullPath: '/settlement/vendor'
+      preLoaderRoute: typeof AppSettlementVendorRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/settlement/customer': {
@@ -720,6 +739,7 @@ interface AppRouteChildren {
   AppReportsSalesDetailRoute: typeof AppReportsSalesDetailRoute
   AppReportsSalespersonRoute: typeof AppReportsSalespersonRoute
   AppSettlementCustomerRoute: typeof AppSettlementCustomerRoute
+  AppSettlementVendorRoute: typeof AppSettlementVendorRoute
   AppStatementsCustomerRoute: typeof AppStatementsCustomerRoute
   AppStatementsVendorRoute: typeof AppStatementsVendorRoute
   AppInventoryIndexRoute: typeof AppInventoryIndexRoute
@@ -752,6 +772,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppReportsSalesDetailRoute: AppReportsSalesDetailRoute,
   AppReportsSalespersonRoute: AppReportsSalespersonRoute,
   AppSettlementCustomerRoute: AppSettlementCustomerRoute,
+  AppSettlementVendorRoute: AppSettlementVendorRoute,
   AppStatementsCustomerRoute: AppStatementsCustomerRoute,
   AppStatementsVendorRoute: AppStatementsVendorRoute,
   AppInventoryIndexRoute: AppInventoryIndexRoute,
