@@ -289,7 +289,7 @@ function SalesOrderListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? "編輯訂單" : "新增訂單"}</DialogTitle>
+            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯訂單" : "檢視訂單") : "新增訂單"}</DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm

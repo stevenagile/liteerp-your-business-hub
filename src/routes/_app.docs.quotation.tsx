@@ -280,7 +280,7 @@ function QuotationListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? "編輯報價單" : "新增報價單"}</DialogTitle>
+            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯報價單" : "檢視報價單") : "新增報價單"}</DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm

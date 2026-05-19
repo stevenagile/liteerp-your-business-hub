@@ -340,7 +340,7 @@ function PurchaseReceiptListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? "編輯進貨單" : "新增進貨單"}</DialogTitle>
+            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯進貨單" : "檢視進貨單") : "新增進貨單"}</DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm
