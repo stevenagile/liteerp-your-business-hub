@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, Wallet, Undo2 } from "lucide-react";
+import { Loader2, Plus, Pencil, Wallet, Undo2, Printer } from "lucide-react";
 import { PaymentDialog } from "@/components/PaymentDialog";
 import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
 import { toast } from "sonner";
@@ -289,6 +289,16 @@ function SalesInvoiceListPage() {
                             退貨
                           </Button>
                         )}
+                      <Button size="sm" variant="ghost" asChild title="列印">
+                        <a
+                          href={`/print/sales_invoice/${d.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Printer className="h-4 w-4" />
+                        </a>
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, Wallet } from "lucide-react";
+import { Loader2, Plus, Pencil, Wallet, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePermission } from "@/hooks/usePermission";
@@ -270,6 +270,16 @@ function PurchaseReceiptListPage() {
                             付款
                           </Button>
                         )}
+                      <Button size="sm" variant="ghost" asChild title="列印">
+                        <a
+                          href={`/print/purchase_receipt/${d.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Printer className="h-4 w-4" />
+                        </a>
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"

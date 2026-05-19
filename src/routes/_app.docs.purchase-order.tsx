@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, ArrowRightLeft } from "lucide-react";
+import { Loader2, Plus, Pencil, ArrowRightLeft, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
@@ -234,6 +234,16 @@ function PurchaseOrderListPage() {
                           轉進貨
                         </Button>
                       )}
+                      <Button size="sm" variant="ghost" asChild title="列印">
+                        <a
+                          href={`/print/purchase_order/${d.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Printer className="h-4 w-4" />
+                        </a>
+                      </Button>
                       <Button
                         size="sm"
                         variant="ghost"
