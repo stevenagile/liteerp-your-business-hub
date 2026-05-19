@@ -218,13 +218,25 @@ function SalesOrderListPage() {
                     {d.source_doc_no ?? "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => openEdit(d.id)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      {canConfirm && d.status === "confirmed" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setTransferTarget(d)}
+                        >
+                          <ArrowRightLeft className="mr-1 h-3.5 w-3.5" />
+                          轉銷貨
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => openEdit(d.id)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -252,6 +264,20 @@ function SalesOrderListPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <TransferToOrderDialog
+        open={Boolean(transferTarget)}
+        onOpenChange={(v) => !v && setTransferTarget(null)}
+        sourceDocId={transferTarget?.id ?? null}
+        sourceDocNo={transferTarget?.doc_no ?? null}
+        targetDocType="sales_invoice"
+        targetLabel="銷貨單"
+        onTransferred={() => {
+          setTransferTarget(null);
+          load();
+          navigate({ to: "/docs/sales-invoice" });
+        }}
+      />
     </div>
   );
 }
