@@ -71,12 +71,12 @@ function PurchaseDetailReport() {
     try {
       let q = supabase
         .from("v_purchase_detail")
-        .select("doc_date,doc_no,vendor_name,product_code,product_name,quantity,unit_price,amount,vendor_id,product_id")
+        .select("doc_date,doc_no,contact_id,vendor_name,product_code,product_name,quantity,unit_price,amount")
         .gte("doc_date", start)
         .lte("doc_date", end)
         .order("doc_date", { ascending: false });
-      if (vendorId !== "all") q = q.eq("vendor_id", vendorId);
-      if (productId !== "all") q = q.eq("product_id", productId);
+      if (vendorId !== "all") q = q.eq("contact_id", vendorId);
+      if (productId !== "all") q = q.eq("product_code", productId);
       const { data, error } = await q;
       if (error) throw error;
       setRows((data ?? []) as Row[]);
@@ -116,7 +116,7 @@ function PurchaseDetailReport() {
             <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部產品</SelectItem>
-              {products.map((p) => <SelectItem key={p.id} value={p.id}>{p.code} {p.name}</SelectItem>)}
+              {products.map((p) => <SelectItem key={p.id} value={p.code}>{p.code} {p.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
