@@ -55,9 +55,21 @@ export function AdvancedSettingsPanel() {
   const handleSave = async () => {
     if (!companyId) return;
     setSaving(true);
+
+    const { data: current } = await supabase
+      .from("company")
+      .select("settings")
+      .eq("id", companyId)
+      .single();
+
+    const merged = {
+      ...((current?.settings as Record<string, unknown> | null) ?? {}),
+      ...settings,
+    };
+
     const { error } = await supabase
       .from("company")
-      .update({ settings })
+      .update({ settings: merged })
       .eq("id", companyId);
     setSaving(false);
     if (error) {
