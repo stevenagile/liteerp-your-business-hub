@@ -13,8 +13,10 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppReceivablesRouteImport } from './routes/_app.receivables'
 import { Route as AppProductsRouteImport } from './routes/_app.products'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
+import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
 import { Route as AppDocsSalesReturnRouteImport } from './routes/_app.docs.sales-return'
 import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
@@ -43,6 +45,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReceivablesRoute = AppReceivablesRouteImport.update({
+  id: '/receivables',
+  path: '/receivables',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppProductsRoute = AppProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -51,6 +58,11 @@ const AppProductsRoute = AppProductsRouteImport.update({
 const AppInventoryRoute = AppInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExpensesRoute = AppExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
   getParentRoute: () => AppRoute,
 } as any)
 const AppContactsRoute = AppContactsRouteImport.update({
@@ -98,8 +110,10 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/contacts': typeof AppContactsRoute
+  '/expenses': typeof AppExpensesRoute
   '/inventory': typeof AppInventoryRoute
   '/products': typeof AppProductsRoute
+  '/receivables': typeof AppReceivablesRoute
   '/settings': typeof AppSettingsRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
   '/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
@@ -112,8 +126,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/contacts': typeof AppContactsRoute
+  '/expenses': typeof AppExpensesRoute
   '/inventory': typeof AppInventoryRoute
   '/products': typeof AppProductsRoute
+  '/receivables': typeof AppReceivablesRoute
   '/settings': typeof AppSettingsRoute
   '/': typeof AppIndexRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
@@ -129,8 +145,10 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/contacts': typeof AppContactsRoute
+  '/_app/expenses': typeof AppExpensesRoute
   '/_app/inventory': typeof AppInventoryRoute
   '/_app/products': typeof AppProductsRoute
+  '/_app/receivables': typeof AppReceivablesRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/': typeof AppIndexRoute
   '/_app/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
@@ -147,8 +165,10 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/contacts'
+    | '/expenses'
     | '/inventory'
     | '/products'
+    | '/receivables'
     | '/settings'
     | '/docs/inventory-adjust'
     | '/docs/purchase-order'
@@ -161,8 +181,10 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/contacts'
+    | '/expenses'
     | '/inventory'
     | '/products'
+    | '/receivables'
     | '/settings'
     | '/'
     | '/docs/inventory-adjust'
@@ -177,8 +199,10 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/_app/contacts'
+    | '/_app/expenses'
     | '/_app/inventory'
     | '/_app/products'
+    | '/_app/receivables'
     | '/_app/settings'
     | '/_app/'
     | '/_app/docs/inventory-adjust'
@@ -225,6 +249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/receivables': {
+      id: '/_app/receivables'
+      path: '/receivables'
+      fullPath: '/receivables'
+      preLoaderRoute: typeof AppReceivablesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/products': {
       id: '/_app/products'
       path: '/products'
@@ -237,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/inventory'
       fullPath: '/inventory'
       preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/expenses': {
+      id: '/_app/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof AppExpensesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/contacts': {
@@ -300,8 +338,10 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppContactsRoute: typeof AppContactsRoute
+  AppExpensesRoute: typeof AppExpensesRoute
   AppInventoryRoute: typeof AppInventoryRoute
   AppProductsRoute: typeof AppProductsRoute
+  AppReceivablesRoute: typeof AppReceivablesRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDocsInventoryAdjustRoute: typeof AppDocsInventoryAdjustRoute
@@ -315,8 +355,10 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppContactsRoute: AppContactsRoute,
+  AppExpensesRoute: AppExpensesRoute,
   AppInventoryRoute: AppInventoryRoute,
   AppProductsRoute: AppProductsRoute,
+  AppReceivablesRoute: AppReceivablesRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
   AppDocsInventoryAdjustRoute: AppDocsInventoryAdjustRoute,
@@ -337,3 +379,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
