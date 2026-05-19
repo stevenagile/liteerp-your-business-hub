@@ -189,7 +189,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
         const { data: ls } = await supabase
           .from("doc_lines")
           .select(
-            "id, line_no, product_id, product_code, product_name, unit, quantity, unit_price, discount_pct",
+            "id, line_no, product_id, product_code, product_name, unit, quantity, unit_price, discount_pct, unit_cost, gross_profit, margin_pct",
           )
           .eq("header_id", docId)
           .order("line_no");
