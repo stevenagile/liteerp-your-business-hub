@@ -626,10 +626,14 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                   <TableCell>
                     <Input
                       type="number"
-                      min={0}
+                      {...(isAdjust ? {} : { min: 0 })}
                       step="0.01"
                       disabled={readOnly}
-                      className="h-8 text-right"
+                      className={cn(
+                        "h-8 text-right",
+                        isAdjust && Number(l.quantity) < 0 && "text-destructive",
+                        isAdjust && Number(l.quantity) > 0 && "text-success",
+                      )}
                       value={l.quantity}
                       onChange={(e) =>
                         updateLine(idx, {
