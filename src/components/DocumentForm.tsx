@@ -543,13 +543,18 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </Select>
           </Field>
 
-          <Field label="備註" className="md:col-span-3">
+          <Field
+            label={isAdjust ? "調整原因 (備註)" : "備註"}
+            required={isAdjust}
+            className="md:col-span-3"
+          >
             <Input
               value={header.notes ?? ""}
               onChange={(e) =>
                 setHeader((h) => ({ ...h, notes: e.target.value }))
               }
               disabled={readOnly}
+              placeholder={isAdjust ? "盤點差異 / 報廢 / 樣品出庫 ..." : ""}
             />
           </Field>
         </div>
