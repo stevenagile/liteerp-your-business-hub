@@ -77,6 +77,7 @@ export type DocHeader = {
   status: string;
   notes: string | null;
   company_id: string | null;
+  sales_person_id: string | null;
 };
 
 export function emptyHeader(doc_type: DocType): DocHeader {
@@ -91,6 +92,7 @@ export function emptyHeader(doc_type: DocType): DocHeader {
     status: "draft",
     notes: "",
     company_id: null,
+    sales_person_id: null,
   };
 }
 
@@ -158,14 +160,20 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [salesPeople, setSalesPeople] = useState<{ id: string; display_name: string | null }[]>([]);
   const [taxRate, setTaxRate] = useState<number>(5);
+
+  const showSalesPerson =
+    docType === "sales_invoice" ||
+    docType === "sales_order" ||
+    docType === "quotation";
 
   // ---- 載入基礎資料 + 既有單據 ----
   const loadDoc = async (id: string) => {
     const { data: h, error: he } = await supabase
       .from("doc_headers")
       .select(
-        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id",
+        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id",
       )
       .eq("id", id)
       .maybeSingle();
