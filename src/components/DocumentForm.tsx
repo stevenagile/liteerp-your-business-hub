@@ -502,21 +502,27 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </div>
           </Field>
 
-          <Field label={partyLabel} required className="md:col-span-2">
-            <SearchSelect
-              disabled={readOnly}
-              value={header.contact_id}
-              onChange={(v) => handleContactChange(v)}
-              options={contacts.map<SearchOption>((c) => ({
-                value: c.id,
-                label: c.name,
-                hint: c.code,
-              }))}
-              placeholder={`搜尋${partyLabel}名稱或編號`}
-            />
-          </Field>
+          {!isAdjust && (
+            <Field label={partyLabel} required className="md:col-span-2">
+              <SearchSelect
+                disabled={readOnly}
+                value={header.contact_id}
+                onChange={(v) => handleContactChange(v)}
+                options={contacts.map<SearchOption>((c) => ({
+                  value: c.id,
+                  label: c.name,
+                  hint: c.code,
+                }))}
+                placeholder={`搜尋${partyLabel}名稱或編號`}
+              />
+            </Field>
+          )}
 
-          <Field label="倉庫" required>
+          <Field
+            label="倉庫"
+            required
+            className={isAdjust ? "md:col-span-2" : undefined}
+          >
             <Select
               value={header.warehouse_id ?? ""}
               onValueChange={(v) =>
