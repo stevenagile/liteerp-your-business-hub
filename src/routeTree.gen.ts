@@ -22,6 +22,7 @@ import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.rev
 import { Route as AppReportsProductProfitRouteImport } from './routes/_app.reports.product-profit'
 import { Route as AppReportsPnlRouteImport } from './routes/_app.reports.pnl'
 import { Route as AppReportsCustomerProfitRouteImport } from './routes/_app.reports.customer-profit'
+import { Route as AppInventoryLedgerRouteImport } from './routes/_app.inventory.ledger'
 import { Route as AppDocsSalesReturnRouteImport } from './routes/_app.docs.sales-return'
 import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
 import { Route as AppDocsSalesInvoiceRouteImport } from './routes/_app.docs.sales-invoice'
@@ -95,6 +96,11 @@ const AppReportsCustomerProfitRoute =
     path: '/reports/customer-profit',
     getParentRoute: () => AppRoute,
   } as any)
+const AppInventoryLedgerRoute = AppInventoryLedgerRouteImport.update({
+  id: '/ledger',
+  path: '/ledger',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
 const AppDocsSalesReturnRoute = AppDocsSalesReturnRouteImport.update({
   id: '/docs/sales-return',
   path: '/docs/sales-return',
@@ -136,7 +142,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/contacts': typeof AppContactsRoute
   '/expenses': typeof AppExpensesRoute
-  '/inventory': typeof AppInventoryRoute
+  '/inventory': typeof AppInventoryRouteWithChildren
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
   '/settings': typeof AppSettingsRoute
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/docs/sales-invoice': typeof AppDocsSalesInvoiceRoute
   '/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/docs/sales-return': typeof AppDocsSalesReturnRoute
+  '/inventory/ledger': typeof AppInventoryLedgerRoute
   '/reports/customer-profit': typeof AppReportsCustomerProfitRoute
   '/reports/pnl': typeof AppReportsPnlRoute
   '/reports/product-profit': typeof AppReportsProductProfitRoute
@@ -156,7 +163,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/contacts': typeof AppContactsRoute
   '/expenses': typeof AppExpensesRoute
-  '/inventory': typeof AppInventoryRoute
+  '/inventory': typeof AppInventoryRouteWithChildren
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
   '/settings': typeof AppSettingsRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/docs/sales-invoice': typeof AppDocsSalesInvoiceRoute
   '/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/docs/sales-return': typeof AppDocsSalesReturnRoute
+  '/inventory/ledger': typeof AppInventoryLedgerRoute
   '/reports/customer-profit': typeof AppReportsCustomerProfitRoute
   '/reports/pnl': typeof AppReportsPnlRoute
   '/reports/product-profit': typeof AppReportsProductProfitRoute
@@ -179,7 +187,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_app/contacts': typeof AppContactsRoute
   '/_app/expenses': typeof AppExpensesRoute
-  '/_app/inventory': typeof AppInventoryRoute
+  '/_app/inventory': typeof AppInventoryRouteWithChildren
   '/_app/products': typeof AppProductsRoute
   '/_app/receivables': typeof AppReceivablesRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/_app/docs/sales-invoice': typeof AppDocsSalesInvoiceRoute
   '/_app/docs/sales-order': typeof AppDocsSalesOrderRoute
   '/_app/docs/sales-return': typeof AppDocsSalesReturnRoute
+  '/_app/inventory/ledger': typeof AppInventoryLedgerRoute
   '/_app/reports/customer-profit': typeof AppReportsCustomerProfitRoute
   '/_app/reports/pnl': typeof AppReportsPnlRoute
   '/_app/reports/product-profit': typeof AppReportsProductProfitRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/docs/sales-invoice'
     | '/docs/sales-order'
     | '/docs/sales-return'
+    | '/inventory/ledger'
     | '/reports/customer-profit'
     | '/reports/pnl'
     | '/reports/product-profit'
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/docs/sales-invoice'
     | '/docs/sales-order'
     | '/docs/sales-return'
+    | '/inventory/ledger'
     | '/reports/customer-profit'
     | '/reports/pnl'
     | '/reports/product-profit'
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/_app/docs/sales-invoice'
     | '/_app/docs/sales-order'
     | '/_app/docs/sales-return'
+    | '/_app/inventory/ledger'
     | '/_app/reports/customer-profit'
     | '/_app/reports/pnl'
     | '/_app/reports/product-profit'
@@ -361,6 +373,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReportsCustomerProfitRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/inventory/ledger': {
+      id: '/_app/inventory/ledger'
+      path: '/ledger'
+      fullPath: '/inventory/ledger'
+      preLoaderRoute: typeof AppInventoryLedgerRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
     '/_app/docs/sales-return': {
       id: '/_app/docs/sales-return'
       path: '/docs/sales-return'
@@ -413,10 +432,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppInventoryRouteChildren {
+  AppInventoryLedgerRoute: typeof AppInventoryLedgerRoute
+}
+
+const AppInventoryRouteChildren: AppInventoryRouteChildren = {
+  AppInventoryLedgerRoute: AppInventoryLedgerRoute,
+}
+
+const AppInventoryRouteWithChildren = AppInventoryRoute._addFileChildren(
+  AppInventoryRouteChildren,
+)
+
 interface AppRouteChildren {
   AppContactsRoute: typeof AppContactsRoute
   AppExpensesRoute: typeof AppExpensesRoute
-  AppInventoryRoute: typeof AppInventoryRoute
+  AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppProductsRoute: typeof AppProductsRoute
   AppReceivablesRoute: typeof AppReceivablesRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -437,7 +468,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppContactsRoute: AppContactsRoute,
   AppExpensesRoute: AppExpensesRoute,
-  AppInventoryRoute: AppInventoryRoute,
+  AppInventoryRoute: AppInventoryRouteWithChildren,
   AppProductsRoute: AppProductsRoute,
   AppReceivablesRoute: AppReceivablesRoute,
   AppSettingsRoute: AppSettingsRoute,
@@ -464,13 +495,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

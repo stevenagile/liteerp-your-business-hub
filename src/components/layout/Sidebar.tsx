@@ -17,6 +17,7 @@ import {
   BarChart3,
   UserCheck,
   Settings,
+  History,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,7 @@ const groups: Group[] = [
     title: "庫存",
     items: [
       { label: "庫存總覽", to: "/inventory", icon: Boxes },
+      { label: "庫存異動明細", to: "/inventory/ledger", icon: History },
       { label: "庫存調整", to: "/docs/inventory-adjust", icon: ClipboardList },
     ],
   },
