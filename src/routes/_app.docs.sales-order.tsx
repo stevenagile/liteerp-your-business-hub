@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil } from "lucide-react";
+import { Loader2, Plus, Pencil, ArrowRightLeft } from "lucide-react";
+import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePermission } from "@/hooks/usePermission";
@@ -46,6 +47,7 @@ type DocRow = {
 
 function SalesOrderListPage() {
   const canWrite = usePermission("sales", "write");
+  const canConfirm = usePermission("sales", "confirm");
   const [list, setList] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string>("all");
@@ -53,6 +55,8 @@ function SalesOrderListPage() {
   const [dateTo, setDateTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [transferTarget, setTransferTarget] = useState<DocRow | null>(null);
+  const navigate = useNavigate();
 
   const load = async () => {
     setLoading(true);
