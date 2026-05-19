@@ -216,16 +216,26 @@ function InventoryAdjustListPage() {
                     {d.notes ?? "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEdit(d.id);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="flex justify-end gap-1">
+                      <VoidDocumentButton
+                        docId={d.id}
+                        docNo={d.doc_no}
+                        status={d.status}
+                        module="inventory"
+                        variant="ghost"
+                        onVoided={load}
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEdit(d.id);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
