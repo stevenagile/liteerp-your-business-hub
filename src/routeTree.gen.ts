@@ -28,6 +28,7 @@ import { Route as AppSettlementCustomerRouteImport } from './routes/_app.settlem
 import { Route as AppSettingsUsersRouteImport } from './routes/_app.settings.users'
 import { Route as AppSettingsPermissionsRouteImport } from './routes/_app.settings.permissions'
 import { Route as AppSettingsOpeningRouteImport } from './routes/_app.settings.opening'
+import { Route as AppSettingsAdvancedRouteImport } from './routes/_app.settings.advanced'
 import { Route as AppReportsSalespersonRouteImport } from './routes/_app.reports.salesperson'
 import { Route as AppReportsSalesDetailRouteImport } from './routes/_app.reports.sales-detail'
 import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.revenue'
@@ -138,6 +139,11 @@ const AppSettingsPermissionsRoute = AppSettingsPermissionsRouteImport.update({
 const AppSettingsOpeningRoute = AppSettingsOpeningRouteImport.update({
   id: '/opening',
   path: '/opening',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsAdvancedRoute = AppSettingsAdvancedRouteImport.update({
+  id: '/advanced',
+  path: '/advanced',
   getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppReportsSalespersonRoute = AppReportsSalespersonRouteImport.update({
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/reports/revenue': typeof AppReportsRevenueRoute
   '/reports/sales-detail': typeof AppReportsSalesDetailRoute
   '/reports/salesperson': typeof AppReportsSalespersonRoute
+  '/settings/advanced': typeof AppSettingsAdvancedRoute
   '/settings/opening': typeof AppSettingsOpeningRoute
   '/settings/permissions': typeof AppSettingsPermissionsRoute
   '/settings/users': typeof AppSettingsUsersRoute
@@ -290,6 +297,7 @@ export interface FileRoutesByTo {
   '/reports/revenue': typeof AppReportsRevenueRoute
   '/reports/sales-detail': typeof AppReportsSalesDetailRoute
   '/reports/salesperson': typeof AppReportsSalespersonRoute
+  '/settings/advanced': typeof AppSettingsAdvancedRoute
   '/settings/opening': typeof AppSettingsOpeningRoute
   '/settings/permissions': typeof AppSettingsPermissionsRoute
   '/settings/users': typeof AppSettingsUsersRoute
@@ -329,6 +337,7 @@ export interface FileRoutesById {
   '/_app/reports/revenue': typeof AppReportsRevenueRoute
   '/_app/reports/sales-detail': typeof AppReportsSalesDetailRoute
   '/_app/reports/salesperson': typeof AppReportsSalespersonRoute
+  '/_app/settings/advanced': typeof AppSettingsAdvancedRoute
   '/_app/settings/opening': typeof AppSettingsOpeningRoute
   '/_app/settings/permissions': typeof AppSettingsPermissionsRoute
   '/_app/settings/users': typeof AppSettingsUsersRoute
@@ -368,6 +377,7 @@ export interface FileRouteTypes {
     | '/reports/revenue'
     | '/reports/sales-detail'
     | '/reports/salesperson'
+    | '/settings/advanced'
     | '/settings/opening'
     | '/settings/permissions'
     | '/settings/users'
@@ -404,6 +414,7 @@ export interface FileRouteTypes {
     | '/reports/revenue'
     | '/reports/sales-detail'
     | '/reports/salesperson'
+    | '/settings/advanced'
     | '/settings/opening'
     | '/settings/permissions'
     | '/settings/users'
@@ -442,6 +453,7 @@ export interface FileRouteTypes {
     | '/_app/reports/revenue'
     | '/_app/reports/sales-detail'
     | '/_app/reports/salesperson'
+    | '/_app/settings/advanced'
     | '/_app/settings/opening'
     | '/_app/settings/permissions'
     | '/_app/settings/users'
@@ -594,6 +606,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsOpeningRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/_app/settings/advanced': {
+      id: '/_app/settings/advanced'
+      path: '/advanced'
+      fullPath: '/settings/advanced'
+      preLoaderRoute: typeof AppSettingsAdvancedRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/_app/reports/salesperson': {
       id: '/_app/reports/salesperson'
       path: '/reports/salesperson'
@@ -717,6 +736,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppSettingsRouteChildren {
+  AppSettingsAdvancedRoute: typeof AppSettingsAdvancedRoute
   AppSettingsOpeningRoute: typeof AppSettingsOpeningRoute
   AppSettingsPermissionsRoute: typeof AppSettingsPermissionsRoute
   AppSettingsUsersRoute: typeof AppSettingsUsersRoute
@@ -724,6 +744,7 @@ interface AppSettingsRouteChildren {
 }
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
+  AppSettingsAdvancedRoute: AppSettingsAdvancedRoute,
   AppSettingsOpeningRoute: AppSettingsOpeningRoute,
   AppSettingsPermissionsRoute: AppSettingsPermissionsRoute,
   AppSettingsUsersRoute: AppSettingsUsersRoute,
