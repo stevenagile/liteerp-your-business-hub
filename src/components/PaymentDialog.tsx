@@ -27,6 +27,8 @@ type Props = {
   docNo: string | null;
   totalAmount: number;
   paidAmount: number;
+  /** receive = 收款（銷貨）；pay = 付款（進貨）。預設 receive */
+  mode?: "receive" | "pay";
   onRecorded?: () => void;
 };
 
