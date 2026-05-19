@@ -152,6 +152,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const partyLabel = isPurchase ? "廠商" : "客戶";
   const canWrite = usePermission(permModule, "write");
   const canConfirm = usePermission(permModule, "confirm");
+  const voidModule = permModule as "sales" | "purchase" | "inventory";
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
