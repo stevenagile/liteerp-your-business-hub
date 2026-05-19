@@ -130,6 +130,26 @@ const AppDocsInventoryAdjustRoute = AppDocsInventoryAdjustRouteImport.update({
   path: '/docs/inventory-adjust',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReportsRevenueRoute = AppReportsRevenueRouteImport.update({
+  id: '/reports/revenue',
+  path: '/reports/revenue',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsPnlRoute = AppReportsPnlRouteImport.update({
+  id: '/reports/pnl',
+  path: '/reports/pnl',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsProductProfitRoute = AppReportsProductProfitRouteImport.update({
+  id: '/reports/product-profit',
+  path: '/reports/product-profit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsCustomerProfitRoute = AppReportsCustomerProfitRouteImport.update({
+  id: '/reports/customer-profit',
+  path: '/reports/customer-profit',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
