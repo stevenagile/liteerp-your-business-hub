@@ -281,6 +281,14 @@ function PurchaseReceiptListPage() {
                           <Printer className="h-4 w-4" />
                         </a>
                       </Button>
+                      <VoidDocumentButton
+                        docId={d.id}
+                        docNo={d.doc_no}
+                        status={d.status}
+                        module="purchase"
+                        variant="ghost"
+                        onVoided={load}
+                      />
                       <Button
                         size="sm"
                         variant="ghost"
