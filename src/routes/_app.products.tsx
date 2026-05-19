@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ImportDialog, type ImportField } from "@/components/ImportDialog";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
 
 export const Route = createFileRoute("/_app/products")({
   component: ProductsPage,
@@ -114,23 +115,42 @@ function ProductsPage() {
             管理銷售與庫存品項。
           </p>
         </div>
-        {canWrite && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <Upload className="mr-1.5 h-4 w-4" />
-              匯入
-            </Button>
-            <Button
-              onClick={() => {
-                setEditing(emptyProduct());
-                setDialogOpen(true);
-              }}
-            >
-              <Plus className="mr-1.5 h-4 w-4" />
-              新增
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <ExportExcelButton
+            rows={filtered as unknown as Record<string, unknown>[]}
+            filename="產品"
+            columns={[
+              { key: "code", label: "編號" },
+              { key: "name", label: "名稱" },
+              { key: "spec", label: "規格" },
+              { key: "category", label: "分類" },
+              { key: "unit", label: "單位" },
+              { key: "barcode", label: "條碼" },
+              { key: "price1", label: "售價1", type: "number" },
+              { key: "price2", label: "售價2", type: "number" },
+              { key: "price3", label: "售價3", type: "number" },
+              { key: "cost_price", label: "成本", type: "number" },
+              { key: "safety_stock", label: "安全存量", type: "number" },
+            ]}
+          />
+          {canWrite && (
+            <>
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="mr-1.5 h-4 w-4" />
+                匯入
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditing(emptyProduct());
+                  setDialogOpen(true);
+                }}
+              >
+                <Plus className="mr-1.5 h-4 w-4" />
+                新增
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="flex justify-end">
