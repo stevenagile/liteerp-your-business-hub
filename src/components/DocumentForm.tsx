@@ -781,6 +781,27 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
         </div>
       </section>
 
+      {/* ============ 作廢資訊 ============ */}
+      {header.status === "voided" && (
+        <section className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          <div className="font-semibold text-destructive">此單據已作廢</div>
+          <div className="mt-1 text-muted-foreground">
+            <div>
+              作廢原因:
+              <span className="ml-2 text-foreground">{header.void_reason ?? "—"}</span>
+            </div>
+            <div>
+              作廢時間:
+              <span className="ml-2 text-foreground">
+                {header.voided_at
+                  ? new Date(header.voided_at).toLocaleString()
+                  : "—"}
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ============ 操作 ============ */}
       <div className="flex items-center justify-end gap-2">
         {onCancel && (
@@ -809,6 +830,19 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
               </a>
             </Button>
           )}
+        {isEdit && header.status !== "voided" && (
+          <VoidDocumentButton
+            docId={header.id}
+            docNo={header.doc_no}
+            status={header.status}
+            module={voidModule}
+            stopPropagation={false}
+            onVoided={() => {
+              loadDoc(header.id);
+              onChanged?.();
+            }}
+          />
+        )}
         {isDraft && canWrite && (
           <Button type="button" onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
