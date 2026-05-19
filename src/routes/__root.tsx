@@ -72,14 +72,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "LiteERP · 進銷存 ERP 系統" },
+      { name: "description", content: "LiteERP — 為台灣中小企業打造的進銷存 ERP 系統。" },
+      { name: "author", content: "LiteERP" },
+      { property: "og:title", content: "LiteERP · 進銷存 ERP 系統" },
+      { property: "og:description", content: "LiteERP — 為台灣中小企業打造的進銷存 ERP 系統。" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+
     ],
     links: [
       {
