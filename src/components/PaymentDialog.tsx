@@ -39,8 +39,14 @@ export function PaymentDialog({
   docNo,
   totalAmount,
   paidAmount,
+  mode = "receive",
   onRecorded,
 }: Props) {
+  const isPay = mode === "pay";
+  const titleVerb = isPay ? "付款" : "收款";
+  const dueLabel = isPay ? "應付" : "應收";
+  const paidLabel = isPay ? "已付" : "已收";
+  const balLabel = isPay ? "未付" : "未收";
   const balance = Math.max(0, Number(totalAmount) - Number(paidAmount));
   const [amount, setAmount] = useState<string>("");
   const [method, setMethod] = useState<string>("transfer");
@@ -65,7 +71,7 @@ export function PaymentDialog({
       return;
     }
     if (amt > balance) {
-      toast.error("收款金額不可超過未收餘額");
+      toast.error(`${titleVerb}金額不可超過${balLabel}餘額`);
       return;
     }
     setSaving(true);
@@ -78,10 +84,10 @@ export function PaymentDialog({
     });
     setSaving(false);
     if (error) {
-      toast.error("收款失敗:" + error.message);
+      toast.error(`${titleVerb}失敗:` + error.message);
       return;
     }
-    toast.success("已記錄收款");
+    toast.success(`已記錄${titleVerb}`);
     onOpenChange(false);
     onRecorded?.();
   };
