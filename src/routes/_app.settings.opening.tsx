@@ -115,6 +115,7 @@ function OpeningInventory() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [rows, setRows] = useState<InvRow[]>([newInvRow()]);
   const [submitting, setSubmitting] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
