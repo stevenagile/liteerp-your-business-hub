@@ -1,0 +1,734 @@
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { format } from "date-fns";
+import { CalendarIcon, Loader2, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
+import { usePermission } from "@/hooks/usePermission";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { SearchSelect, type SearchOption } from "@/components/SearchSelect";
+
+export type DocType = "quotation" | "order" | "sales";
+
+export type DocLine = {
+  id?: string;
+  line_no?: number;
+  product_id: string | null;
+  product_code: string | null;
+  product_name: string | null;
+  unit: string | null;
+  quantity: number;
+  unit_price: number;
+  discount_pct: number;
+};
+
+export type DocHeader = {
+  id: string;
+  doc_type: DocType;
+  doc_no: string | null;
+  doc_date: string; // yyyy-MM-dd
+  contact_id: string | null;
+  contact_name: string | null;
+  warehouse_id: string | null;
+  status: string;
+  notes: string | null;
+  company_id: string | null;
+};
+
+export function emptyHeader(doc_type: DocType): DocHeader {
+  return {
+    id: "",
+    doc_type,
+    doc_no: null,
+    doc_date: format(new Date(), "yyyy-MM-dd"),
+    contact_id: null,
+    contact_name: null,
+    warehouse_id: null,
+    status: "draft",
+    notes: "",
+    company_id: null,
+  };
+}
+
+export function emptyLine(): DocLine {
+  return {
+    product_id: null,
+    product_code: null,
+    product_name: null,
+    unit: null,
+    quantity: 1,
+    unit_price: 0,
+    discount_pct: 0,
+  };
+}
+
+type Contact = {
+  id: string;
+  code: string;
+  name: string;
+  type: string;
+  price_level: number | null;
+};
+type Product = {
+  id: string;
+  code: string;
+  name: string;
+  unit: string | null;
+  price1: number | null;
+  price2: number | null;
+  price3: number | null;
+};
+type Warehouse = {
+  id: string;
+  code: string;
+  name: string;
+  is_default: boolean | null;
+};
+
+type Props = {
+  docType: DocType;
+  docId?: string | null;
+  onSaved?: () => void;
+  onCancel?: () => void;
+};
+
+export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
+  const { profile } = useAuth();
+  const canWrite = usePermission("sales", "write");
+  const canConfirm = usePermission("sales", "confirm");
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
+  const [header, setHeader] = useState<DocHeader>(emptyHeader(docType));
+  const [lines, setLines] = useState<DocLine[]>([emptyLine()]);
+
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [taxRate, setTaxRate] = useState<number>(5);
+
+  // ---- 載入基礎資料 + 既有單據 ----
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const [{ data: c }, { data: p }, { data: w }, { data: comp }] =
+        await Promise.all([
+          supabase
+            .from("contacts")
+            .select("id, code, name, type, price_level")
+            .in("type", ["customer", "both"])
+            .order("code"),
+          supabase
+            .from("products")
+            .select("id, code, name, unit, price1, price2, price3")
+            .order("code"),
+          supabase
+            .from("warehouses")
+            .select("id, code, name, is_default")
+            .order("code"),
+          supabase
+            .from("company")
+            .select("tax_rate")
+            .limit(1)
+            .maybeSingle(),
+        ]);
+      if (cancelled) return;
+      setContacts((c ?? []) as Contact[]);
+      setProducts((p ?? []) as Product[]);
+      setWarehouses((w ?? []) as Warehouse[]);
+      const tr = (comp as { tax_rate?: number } | null)?.tax_rate;
+      if (typeof tr === "number") setTaxRate(tr);
+
+      if (docId) {
+        const { data: h, error: he } = await supabase
+          .from("doc_headers")
+          .select(
+            "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id",
+          )
+          .eq("id", docId)
+          .maybeSingle();
+        if (he) toast.error("讀取單據失敗:" + he.message);
+        if (h) setHeader(h as DocHeader);
+
+        const { data: ls } = await supabase
+          .from("doc_lines")
+          .select(
+            "id, line_no, product_id, product_code, product_name, unit, quantity, unit_price, discount_pct",
+          )
+          .eq("doc_id", docId)
+          .order("line_no");
+        setLines(
+          ls && ls.length > 0
+            ? (ls as DocLine[])
+            : [emptyLine()],
+        );
+      } else {
+        // 新建:預設預設倉
+        const def = (w ?? []).find((x) => x.is_default) ?? (w ?? [])[0];
+        if (def) {
+          setHeader((prev) => ({ ...prev, warehouse_id: def.id }));
+        }
+      }
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [docId]);
+
+  // ---- 試算 ----
+  const totals = useMemo(() => {
+    const subtotal = lines.reduce((sum, l) => {
+      const amt =
+        (Number(l.quantity) || 0) *
+        (Number(l.unit_price) || 0) *
+        (1 - (Number(l.discount_pct) || 0) / 100);
+      return sum + amt;
+    }, 0);
+    const tax = subtotal * (taxRate / 100);
+    return {
+      subtotal,
+      tax,
+      total: subtotal + tax,
+    };
+  }, [lines, taxRate]);
+
+  const isEdit = Boolean(header.id);
+  const isDraft = header.status === "draft";
+  const readOnly = !isDraft || !canWrite;
+
+  // ---- 客戶選擇 ----
+  const selectedContact = contacts.find((c) => c.id === header.contact_id);
+
+  const handleContactChange = (id: string) => {
+    const c = contacts.find((x) => x.id === id);
+    setHeader((h) => ({
+      ...h,
+      contact_id: id,
+      contact_name: c?.name ?? null,
+    }));
+  };
+
+  // ---- 行操作 ----
+  const updateLine = (idx: number, patch: Partial<DocLine>) => {
+    setLines((arr) => arr.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
+  };
+
+  const handleProductChange = (idx: number, productId: string) => {
+    const p = products.find((x) => x.id === productId);
+    if (!p) return;
+    const level = selectedContact?.price_level ?? 1;
+    const price =
+      level === 2 ? p.price2 : level === 3 ? p.price3 : p.price1;
+    updateLine(idx, {
+      product_id: p.id,
+      product_code: p.code,
+      product_name: p.name,
+      unit: p.unit,
+      unit_price: Number(price ?? 0),
+    });
+  };
+
+  const addLine = () => setLines((arr) => [...arr, emptyLine()]);
+  const removeLine = (idx: number) =>
+    setLines((arr) => (arr.length <= 1 ? arr : arr.filter((_, i) => i !== idx)));
+
+  // ---- 儲存 ----
+  const handleSave = async () => {
+    if (!header.contact_id) {
+      toast.error("請選擇客戶");
+      return;
+    }
+    if (!header.warehouse_id) {
+      toast.error("請選擇倉庫");
+      return;
+    }
+    const validLines = lines.filter((l) => l.product_id);
+    if (validLines.length === 0) {
+      toast.error("請至少新增一筆有效明細");
+      return;
+    }
+
+    setSaving(true);
+
+    let headerId = header.id;
+    let docNo = header.doc_no;
+
+    // 第一次儲存產編號
+    if (!isEdit && !docNo) {
+      const { data: nx, error: ne } = await supabase.rpc("generate_doc_no", {
+        p_company_id: profile?.company_id,
+        p_doc_type: docType,
+      });
+      if (ne) {
+        setSaving(false);
+        toast.error("產生單號失敗:" + ne.message);
+        return;
+      }
+      docNo = nx as string;
+    }
+
+    const headerPayload = {
+      doc_type: docType,
+      doc_no: docNo,
+      doc_date: header.doc_date,
+      contact_id: header.contact_id,
+      contact_name: header.contact_name,
+      warehouse_id: header.warehouse_id,
+      notes: header.notes || null,
+      status: "draft",
+      ...(isEdit ? {} : { company_id: profile?.company_id ?? null }),
+    };
+
+    if (isEdit) {
+      const { error } = await supabase
+        .from("doc_headers")
+        .update(headerPayload)
+        .eq("id", headerId);
+      if (error) {
+        setSaving(false);
+        toast.error("儲存失敗:" + error.message);
+        return;
+      }
+    } else {
+      const { data: ins, error } = await supabase
+        .from("doc_headers")
+        .insert(headerPayload)
+        .select("id")
+        .single();
+      if (error || !ins) {
+        setSaving(false);
+        toast.error("儲存失敗:" + (error?.message ?? "未知錯誤"));
+        return;
+      }
+      headerId = ins.id;
+    }
+
+    // 重寫 lines:刪掉舊的再 insert
+    if (isEdit) {
+      await supabase.from("doc_lines").delete().eq("doc_id", headerId);
+    }
+    const linesPayload = validLines.map((l, i) => ({
+      doc_id: headerId,
+      line_no: i + 1,
+      product_id: l.product_id,
+      product_code: l.product_code,
+      product_name: l.product_name,
+      unit: l.unit,
+      quantity: Number(l.quantity) || 0,
+      unit_price: Number(l.unit_price) || 0,
+      discount_pct: Number(l.discount_pct) || 0,
+    }));
+    const { error: le } = await supabase
+      .from("doc_lines")
+      .insert(linesPayload);
+
+    setSaving(false);
+    if (le) {
+      toast.error("明細儲存失敗:" + le.message);
+      return;
+    }
+    toast.success("已儲存草稿");
+    onSaved?.();
+  };
+
+  const handleConfirm = async () => {
+    if (!header.id) {
+      toast.error("請先儲存草稿");
+      return;
+    }
+    setConfirming(true);
+    const { error } = await supabase.rpc("confirm_document", {
+      p_doc_id: header.id,
+    });
+    setConfirming(false);
+    if (error) {
+      toast.error("確認失敗:" + error.message);
+      return;
+    }
+    toast.success("已確認");
+    onSaved?.();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-48 items-center justify-center">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* ============ 表頭 ============ */}
+      <section className="rounded-lg border bg-card p-4 shadow-sm">
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
+          表頭資訊
+        </h3>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Field label="單據日期" required>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={readOnly}
+                  className={cn(
+                    "w-full justify-start font-normal",
+                    !header.doc_date && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {header.doc_date || "選擇日期"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={
+                    header.doc_date ? new Date(header.doc_date) : undefined
+                  }
+                  onSelect={(d) =>
+                    d &&
+                    setHeader((h) => ({
+                      ...h,
+                      doc_date: format(d, "yyyy-MM-dd"),
+                    }))
+                  }
+                  initialFocus
+                  className="pointer-events-auto p-3"
+                />
+              </PopoverContent>
+            </Popover>
+          </Field>
+
+          <Field label="單據編號">
+            <Input
+              value={header.doc_no ?? ""}
+              placeholder="儲存時自動產生"
+              readOnly
+              className="bg-muted/40 font-mono"
+            />
+          </Field>
+
+          <Field label="狀態">
+            <div className="flex h-9 items-center text-sm">
+              <StatusBadge status={header.status} />
+            </div>
+          </Field>
+
+          <Field label="客戶" required className="md:col-span-2">
+            <SearchSelect
+              disabled={readOnly}
+              value={header.contact_id}
+              onChange={(v) => handleContactChange(v)}
+              options={contacts.map<SearchOption>((c) => ({
+                value: c.id,
+                label: c.name,
+                hint: c.code,
+              }))}
+              placeholder="搜尋客戶名稱或編號"
+            />
+          </Field>
+
+          <Field label="倉庫" required>
+            <Select
+              value={header.warehouse_id ?? ""}
+              onValueChange={(v) =>
+                setHeader((h) => ({ ...h, warehouse_id: v }))
+              }
+              disabled={readOnly}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="選擇倉庫" />
+              </SelectTrigger>
+              <SelectContent>
+                {warehouses.map((w) => (
+                  <SelectItem key={w.id} value={w.id}>
+                    {w.name} ({w.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field label="備註" className="md:col-span-3">
+            <Input
+              value={header.notes ?? ""}
+              onChange={(e) =>
+                setHeader((h) => ({ ...h, notes: e.target.value }))
+              }
+              disabled={readOnly}
+            />
+          </Field>
+        </div>
+      </section>
+
+      {/* ============ 明細 ============ */}
+      <section className="rounded-lg border bg-card p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-muted-foreground">明細</h3>
+          {!readOnly && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={addLine}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              新增一行
+            </Button>
+          )}
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10">#</TableHead>
+              <TableHead className="min-w-[240px]">產品</TableHead>
+              <TableHead className="w-20">單位</TableHead>
+              <TableHead className="w-24 text-right">數量</TableHead>
+              <TableHead className="w-28 text-right">單價</TableHead>
+              <TableHead className="w-24 text-right">折扣%</TableHead>
+              <TableHead className="w-32 text-right">金額</TableHead>
+              {!readOnly && <TableHead className="w-12" />}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {lines.map((l, idx) => {
+              const amount =
+                (Number(l.quantity) || 0) *
+                (Number(l.unit_price) || 0) *
+                (1 - (Number(l.discount_pct) || 0) / 100);
+              return (
+                <TableRow key={idx}>
+                  <TableCell className="text-muted-foreground">
+                    {idx + 1}
+                  </TableCell>
+                  <TableCell>
+                    <SearchSelect
+                      disabled={readOnly}
+                      value={l.product_id}
+                      onChange={(v) => handleProductChange(idx, v)}
+                      options={products.map<SearchOption>((p) => ({
+                        value: p.id,
+                        label: p.name,
+                        hint: p.code,
+                      }))}
+                      placeholder="選擇產品"
+                    />
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {l.unit ?? "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      disabled={readOnly}
+                      className="h-8 text-right"
+                      value={l.quantity}
+                      onChange={(e) =>
+                        updateLine(idx, {
+                          quantity: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      disabled={readOnly}
+                      className="h-8 text-right"
+                      value={l.unit_price}
+                      onChange={(e) =>
+                        updateLine(idx, {
+                          unit_price: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step="0.01"
+                      disabled={readOnly}
+                      className="h-8 text-right"
+                      value={l.discount_pct}
+                      onChange={(e) =>
+                        updateLine(idx, {
+                          discount_pct: Number(e.target.value),
+                        })
+                      }
+                    />
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {amount.toLocaleString(undefined, {
+                      maximumFractionDigits: 2,
+                    })}
+                  </TableCell>
+                  {!readOnly && (
+                    <TableCell className="text-right">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeLine(idx)}
+                        disabled={lines.length <= 1}
+                      >
+                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </section>
+
+      {/* ============ 合計 ============ */}
+      <section className="flex justify-end">
+        <div className="w-full max-w-sm space-y-2 rounded-lg border bg-card p-4 text-sm shadow-sm">
+          <Row label="未稅合計" value={totals.subtotal} />
+          <Row label={`稅金 (${taxRate}%)`} value={totals.tax} />
+          <div className="border-t pt-2">
+            <Row label="總計" value={totals.total} bold />
+          </div>
+          <p className="pt-1 text-[11px] text-muted-foreground">
+            前端試算僅供參考,實際以系統重算為準。
+          </p>
+        </div>
+      </section>
+
+      {/* ============ 操作 ============ */}
+      <div className="flex items-center justify-end gap-2">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            取消
+          </Button>
+        )}
+        {isDraft && canWrite && (
+          <Button type="button" onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            儲存草稿
+          </Button>
+        )}
+        {isDraft && isEdit && canConfirm && (
+          <Button
+            type="button"
+            variant="default"
+            className="bg-success text-success-foreground hover:bg-success/90"
+            onClick={handleConfirm}
+            disabled={confirming}
+          >
+            {confirming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            確認單據
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Row({
+  label,
+  value,
+  bold,
+}: {
+  label: string;
+  value: number;
+  bold?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between tabular-nums",
+        bold && "text-base font-semibold",
+      )}
+    >
+      <span className="text-muted-foreground">{label}</span>
+      <span>
+        {value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+      </span>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  required,
+  className,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <Label>
+        {label}
+        {required && <span className="ml-0.5 text-destructive">*</span>}
+      </Label>
+      {children}
+    </div>
+  );
+}
+
+export function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    draft: { label: "草稿", cls: "bg-muted text-muted-foreground" },
+    confirmed: { label: "已確認", cls: "bg-info/15 text-info" },
+    completed: { label: "已完成", cls: "bg-success/15 text-success" },
+    voided: { label: "已作廢", cls: "bg-destructive/15 text-destructive" },
+  };
+  const s = map[status] ?? { label: status, cls: "bg-muted" };
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium",
+        s.cls,
+      )}
+    >
+      {s.label}
+    </span>
+  );
+}

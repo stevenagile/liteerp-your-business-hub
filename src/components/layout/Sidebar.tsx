@@ -41,7 +41,7 @@ const groups: Group[] = [
   {
     title: "銷售",
     items: [
-      { label: "報價單", to: "/quotes", icon: FileText },
+      { label: "報價單", to: "/docs/quotation", icon: FileText },
       { label: "訂單", to: "/orders", icon: ShoppingCart },
       { label: "銷貨單", to: "/sales", icon: Receipt },
     ],

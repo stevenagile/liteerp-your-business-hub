@@ -16,6 +16,7 @@ import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppProductsRouteImport } from './routes/_app.products'
 import { Route as AppInventoryRouteImport } from './routes/_app.inventory'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
+import { Route as AppDocsQuotationRouteImport } from './routes/_app.docs.quotation'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -51,6 +52,11 @@ const AppContactsRoute = AppContactsRouteImport.update({
   path: '/contacts',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDocsQuotationRoute = AppDocsQuotationRouteImport.update({
+  id: '/docs/quotation',
+  path: '/docs/quotation',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/inventory': typeof AppInventoryRoute
   '/products': typeof AppProductsRoute
   '/settings': typeof AppSettingsRoute
+  '/docs/quotation': typeof AppDocsQuotationRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/products': typeof AppProductsRoute
   '/settings': typeof AppSettingsRoute
   '/': typeof AppIndexRoute
+  '/docs/quotation': typeof AppDocsQuotationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/_app/products': typeof AppProductsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/docs/quotation': typeof AppDocsQuotationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -87,8 +96,16 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/products'
     | '/settings'
+    | '/docs/quotation'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/contacts' | '/inventory' | '/products' | '/settings' | '/'
+  to:
+    | '/login'
+    | '/contacts'
+    | '/inventory'
+    | '/products'
+    | '/settings'
+    | '/'
+    | '/docs/quotation'
   id:
     | '__root__'
     | '/_app'
@@ -98,6 +115,7 @@ export interface FileRouteTypes {
     | '/_app/products'
     | '/_app/settings'
     | '/_app/'
+    | '/_app/docs/quotation'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -156,6 +174,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppContactsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/docs/quotation': {
+      id: '/_app/docs/quotation'
+      path: '/docs/quotation'
+      fullPath: '/docs/quotation'
+      preLoaderRoute: typeof AppDocsQuotationRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -165,6 +190,7 @@ interface AppRouteChildren {
   AppProductsRoute: typeof AppProductsRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppDocsQuotationRoute: typeof AppDocsQuotationRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -173,6 +199,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProductsRoute: AppProductsRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppDocsQuotationRoute: AppDocsQuotationRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -184,3 +211,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
