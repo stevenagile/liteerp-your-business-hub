@@ -37,7 +37,15 @@ import {
 } from "@/components/ui/table";
 import { SearchSelect, type SearchOption } from "@/components/SearchSelect";
 
-export type DocType = "quotation" | "sales_order" | "sales_invoice";
+export type DocType =
+  | "quotation"
+  | "sales_order"
+  | "sales_invoice"
+  | "purchase_order"
+  | "purchase_receipt";
+
+const PURCHASE_TYPES: DocType[] = ["purchase_order", "purchase_receipt"];
+const isPurchaseType = (t: DocType) => PURCHASE_TYPES.includes(t);
 
 export type DocLine = {
   id?: string;
@@ -110,6 +118,7 @@ type Product = {
   price1: number | null;
   price2: number | null;
   price3: number | null;
+  cost_price: number | null;
 };
 type Warehouse = {
   id: string;
@@ -129,8 +138,11 @@ type Props = {
 
 export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: Props) {
   const { profile, user } = useAuth();
-  const canWrite = usePermission("sales", "write");
-  const canConfirm = usePermission("sales", "confirm");
+  const isPurchase = isPurchaseType(docType);
+  const permModule = isPurchase ? "purchase" : "sales";
+  const partyLabel = isPurchase ? "廠商" : "客戶";
+  const canWrite = usePermission(permModule, "write");
+  const canConfirm = usePermission(permModule, "confirm");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -178,11 +190,11 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
           supabase
             .from("contacts")
             .select("id, code, name, type, price_level")
-            .in("type", ["customer", "both"])
+            .in("type", isPurchase ? ["vendor", "both"] : ["customer", "both"])
             .order("code"),
           supabase
             .from("products")
-            .select("id, code, name, unit, price1, price2, price3")
+            .select("id, code, name, unit, price1, price2, price3, cost_price")
             .order("code"),
           supabase
             .from("warehouses")
@@ -240,7 +252,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const isDraft = header.status === "draft";
   const readOnly = !isDraft || !canWrite;
   const showCostCols =
-    docType === "sales_invoice" && header.status !== "draft";
+    (docType === "sales_invoice" || docType === "purchase_receipt") &&
+    header.status !== "draft";
 
   // ---- 客戶選擇 ----
   const selectedContact = contacts.find((c) => c.id === header.contact_id);
@@ -263,8 +276,9 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     const p = products.find((x) => x.id === productId);
     if (!p) return;
     const level = selectedContact?.price_level ?? 1;
-    const price =
+    const salesPrice =
       level === 2 ? p.price2 : level === 3 ? p.price3 : p.price1;
+    const price = isPurchase ? p.cost_price : salesPrice;
     updateLine(idx, {
       product_id: p.id,
       product_code: p.code,
@@ -281,7 +295,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   // ---- 儲存 ----
   const handleSave = async () => {
     if (!header.contact_id) {
-      toast.error("請選擇客戶");
+      toast.error(`請選擇${partyLabel}`);
       return;
     }
     if (!header.warehouse_id) {
@@ -476,7 +490,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </div>
           </Field>
 
-          <Field label="客戶" required className="md:col-span-2">
+          <Field label={partyLabel} required className="md:col-span-2">
             <SearchSelect
               disabled={readOnly}
               value={header.contact_id}
@@ -486,7 +500,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                 label: c.name,
                 hint: c.code,
               }))}
-              placeholder="搜尋客戶名稱或編號"
+              placeholder={`搜尋${partyLabel}名稱或編號`}
             />
           </Field>
 
