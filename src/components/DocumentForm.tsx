@@ -123,6 +123,8 @@ type Props = {
   docId?: string | null;
   onSaved?: () => void;
   onCancel?: () => void;
+  /** 單據在 Dialog 內被異動（如確認）但 Dialog 保持開啟時呼叫，讓父層列表重新查詢 */
+  onChanged?: () => void;
 };
 
 export function DocumentForm({ docType, docId, onSaved, onCancel }: Props) {
