@@ -359,7 +359,7 @@ function SalesInvoiceListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? "編輯銷貨單" : "新增銷貨單"}</DialogTitle>
+            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯銷貨單" : "檢視銷貨單") : "新增銷貨單"}</DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm
