@@ -252,7 +252,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const isDraft = header.status === "draft";
   const readOnly = !isDraft || !canWrite;
   const showCostCols =
-    docType === "sales_invoice" && header.status !== "draft";
+    (docType === "sales_invoice" || docType === "purchase_receipt") &&
+    header.status !== "draft";
 
   // ---- 客戶選擇 ----
   const selectedContact = contacts.find((c) => c.id === header.contact_id);
