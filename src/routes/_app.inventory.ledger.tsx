@@ -26,11 +26,13 @@ export const Route = createFileRoute("/_app/inventory/ledger")({
 const PAGE_SIZE = 50;
 
 const MOVEMENT_TYPES = [
+  { key: "opening", label: "期初入庫", color: "info" },
   { key: "sale", label: "銷貨出庫", color: "destructive" },
   { key: "purchase", label: "進貨入庫", color: "success" },
   { key: "sales_return", label: "銷退入庫", color: "success" },
   { key: "purchase_return", label: "進退出庫", color: "destructive" },
   { key: "adjust", label: "庫存調整", color: "secondary" },
+  { key: "void_reverse", label: "作廢沖回", color: "secondary" },
 ] as const;
 
 type MovementKey = (typeof MOVEMENT_TYPES)[number]["key"];
@@ -415,7 +417,9 @@ function MovementTypeBadge({ type }: { type: string }) {
       ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800"
       : t.color === "destructive"
         ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"
-        : "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
+        : t.color === "info"
+          ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
+          : "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
 
   return (
     <Badge variant="outline" className={cn("text-[11px]", colorClass)}>
