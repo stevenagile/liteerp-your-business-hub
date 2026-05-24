@@ -400,8 +400,17 @@ function ContactDialog({
       notes: form.notes || null,
       ...(isEdit ? {} : { company_id: profile?.company_id ?? null }),
     };
+    if (!profile?.company_id) {
+      setSaving(false);
+      toast.error("找不到公司");
+      return;
+    }
     const query = isEdit
-      ? supabase.from("contacts").update(payload).eq("id", form.id)
+      ? supabase
+          .from("contacts")
+          .update(payload)
+          .eq("id", form.id)
+          .eq("company_id", profile.company_id)
       : supabase.from("contacts").insert(payload);
     const { error } = await query;
     setSaving(false);
