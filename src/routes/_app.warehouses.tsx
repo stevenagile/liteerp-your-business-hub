@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +57,8 @@ const EMPTY: FormState = {
 };
 
 function WarehousesPage() {
+  const { profile } = useAuth();
+  const companyId = profile?.company_id ?? null;
   const [list, setList] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -63,10 +66,16 @@ function WarehousesPage() {
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
+    if (!companyId) {
+      setList([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data, error } = await supabase
       .from("warehouses")
       .select("id, code, name, address, is_default, is_active")
+      .eq("company_id", companyId)
       .order("code");
     if (error) {
       toast.error("讀取失敗:" + error.message);
@@ -78,7 +87,8 @@ function WarehousesPage() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId]);
 
   const openCreate = () => {
     setForm(EMPTY);
@@ -98,6 +108,10 @@ function WarehousesPage() {
   };
 
   const handleSave = async () => {
+    if (!companyId) {
+      toast.error("找不到公司資料，請重新登入");
+      return;
+    }
     if (!form.code.trim() || !form.name.trim()) {
       toast.error("編號與名稱為必填");
       return;
@@ -109,9 +123,14 @@ function WarehousesPage() {
       address: form.address.trim() || null,
       is_default: form.is_default,
       is_active: form.is_active,
+      company_id: companyId,
     };
     const { error } = form.id
-      ? await supabase.from("warehouses").update(payload).eq("id", form.id)
+      ? await supabase
+          .from("warehouses")
+          .update(payload)
+          .eq("id", form.id)
+          .eq("company_id", companyId)
       : await supabase.from("warehouses").insert(payload);
     setSaving(false);
     if (error) {
@@ -124,8 +143,13 @@ function WarehousesPage() {
   };
 
   const handleDelete = async (w: Warehouse) => {
+    if (!companyId) return;
     if (!confirm(`確定要刪除倉庫「${w.name}」嗎？`)) return;
-    const { error } = await supabase.from("warehouses").delete().eq("id", w.id);
+    const { error } = await supabase
+      .from("warehouses")
+      .delete()
+      .eq("id", w.id)
+      .eq("company_id", companyId);
     if (error) {
       toast.error("刪除失敗:" + error.message);
       return;
