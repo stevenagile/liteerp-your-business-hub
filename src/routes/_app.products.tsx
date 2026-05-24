@@ -276,10 +276,11 @@ function ProductsPage() {
             if (n > 1) dupInFile.add(c);
           });
           let existing = new Set<string>();
-          if (codes.length > 0) {
+          if (codes.length > 0 && companyId) {
             const { data } = await supabase
               .from("products")
               .select("code")
+              .eq("company_id", companyId)
               .in("code", codes);
             existing = new Set((data ?? []).map((d: { code: string }) => d.code));
           }
@@ -292,9 +293,10 @@ function ProductsPage() {
           });
         }}
         onImport={async (validRows) => {
+          if (!companyId) return { success: 0, failed: validRows.length, errors: ["找不到公司"] };
           const payload = validRows.map((r) => ({
             ...r.data,
-            company_id: profile?.company_id ?? null,
+            company_id: companyId,
           }));
           const { error } = await supabase.from("products").insert(payload);
           if (error) return { success: 0, failed: validRows.length, errors: [error.message] };
