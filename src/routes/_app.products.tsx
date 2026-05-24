@@ -68,6 +68,7 @@ function emptyProduct(): Product {
 
 function ProductsPage() {
   const { profile } = useAuth();
+  const companyId = profile?.company_id ?? null;
   const canWrite = usePermission("inventory", "write");
   const [list, setList] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,12 +78,18 @@ function ProductsPage() {
   const [importOpen, setImportOpen] = useState(false);
 
   const load = async () => {
+    if (!companyId) {
+      setList([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data, error } = await supabase
       .from("products")
       .select(
         "id, code, name, spec, category, unit, barcode, price1, price2, price3, cost_price, safety_stock, notes, company_id",
       )
+      .eq("company_id", companyId)
       .order("code", { ascending: true });
     if (error) {
       toast.error("讀取產品失敗:" + error.message);
@@ -94,7 +101,7 @@ function ProductsPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [companyId]);
 
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
