@@ -93,14 +93,21 @@ function ContactsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const { profile } = useAuth();
+  const companyId = profile?.company_id ?? null;
 
   const load = async () => {
+    if (!companyId) {
+      setList([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data, error } = await supabase
       .from("contacts")
       .select(
         "id, code, name, type, tax_id, contact_person, phone, email, address, payment_terms, price_level, credit_limit, notes, company_id",
       )
+      .eq("company_id", companyId)
       .order("code", { ascending: true });
     if (error) {
       toast.error("讀取客戶廠商失敗:" + error.message);
@@ -112,7 +119,7 @@ function ContactsPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [companyId]);
 
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
