@@ -68,6 +68,7 @@ function emptyProduct(): Product {
 
 function ProductsPage() {
   const { profile } = useAuth();
+  const companyId = profile?.company_id ?? null;
   const canWrite = usePermission("inventory", "write");
   const [list, setList] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,12 +78,18 @@ function ProductsPage() {
   const [importOpen, setImportOpen] = useState(false);
 
   const load = async () => {
+    if (!companyId) {
+      setList([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data, error } = await supabase
       .from("products")
       .select(
         "id, code, name, spec, category, unit, barcode, price1, price2, price3, cost_price, safety_stock, notes, company_id",
       )
+      .eq("company_id", companyId)
       .order("code", { ascending: true });
     if (error) {
       toast.error("讀取產品失敗:" + error.message);
@@ -94,7 +101,7 @@ function ProductsPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [companyId]);
 
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase();
@@ -269,10 +276,11 @@ function ProductsPage() {
             if (n > 1) dupInFile.add(c);
           });
           let existing = new Set<string>();
-          if (codes.length > 0) {
+          if (codes.length > 0 && companyId) {
             const { data } = await supabase
               .from("products")
               .select("code")
+              .eq("company_id", companyId)
               .in("code", codes);
             existing = new Set((data ?? []).map((d: { code: string }) => d.code));
           }
@@ -285,9 +293,10 @@ function ProductsPage() {
           });
         }}
         onImport={async (validRows) => {
+          if (!companyId) return { success: 0, failed: validRows.length, errors: ["找不到公司"] };
           const payload = validRows.map((r) => ({
             ...r.data,
-            company_id: profile?.company_id ?? null,
+            company_id: companyId,
           }));
           const { error } = await supabase.from("products").insert(payload);
           if (error) return { success: 0, failed: validRows.length, errors: [error.message] };
@@ -355,8 +364,17 @@ function ProductDialog({
       notes: form.notes || null,
       ...(isEdit ? {} : { company_id: profile?.company_id ?? null }),
     };
+    if (!profile?.company_id) {
+      setSaving(false);
+      toast.error("找不到公司");
+      return;
+    }
     const query = isEdit
-      ? supabase.from("products").update(payload).eq("id", form.id)
+      ? supabase
+          .from("products")
+          .update(payload)
+          .eq("id", form.id)
+          .eq("company_id", profile.company_id)
       : supabase.from("products").insert(payload);
     const { error } = await query;
     setSaving(false);
