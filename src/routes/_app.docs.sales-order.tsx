@@ -8,7 +8,17 @@ const DOC_STATUS_LABEL: Record<string, string> = {
   voided: "已作廢",
 };
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, ArrowRightLeft, Printer } from "lucide-react";
+import { Loader2, Plus, Pencil, ArrowRightLeft, Printer, Truck } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -65,7 +75,23 @@ function SalesOrderListPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [transferTarget, setTransferTarget] = useState<DocRow | null>(null);
+  const [shipTarget, setShipTarget] = useState<DocRow | null>(null);
+  const [shipping, setShipping] = useState(false);
   const navigate = useNavigate();
+
+  const handleShip = async () => {
+    if (!shipTarget) return;
+    setShipping(true);
+    const { error } = await supabase.rpc("agent_ship_order", { p_order_id: shipTarget.id });
+    setShipping(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("已出貨，銷貨單已建立");
+    setShipTarget(null);
+    load();
+  };
 
   const load = async () => {
     setLoading(true);
@@ -252,6 +278,16 @@ function SalesOrderListPage() {
                           轉銷貨
                         </Button>
                       )}
+                      {canConfirm && d.status === "confirmed" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShipTarget(d)}
+                        >
+                          <Truck className="mr-1 h-3.5 w-3.5" />
+                          出貨
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" asChild title="列印">
                         <a
                           href={`/print/sales_order/${d.id}`}
@@ -319,6 +355,24 @@ function SalesOrderListPage() {
           navigate({ to: "/docs/sales-invoice" });
         }}
       />
+
+      <AlertDialog open={Boolean(shipTarget)} onOpenChange={(v) => !v && !shipping && setShipTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確定出貨？</AlertDialogTitle>
+            <AlertDialogDescription>
+              將建立銷貨單並扣庫存、產生應收。訂單：{shipTarget?.doc_no ?? "—"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={shipping}>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleShip(); }} disabled={shipping}>
+              {shipping ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              確定出貨
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
