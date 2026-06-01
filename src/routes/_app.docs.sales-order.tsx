@@ -75,7 +75,23 @@ function SalesOrderListPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [transferTarget, setTransferTarget] = useState<DocRow | null>(null);
+  const [shipTarget, setShipTarget] = useState<DocRow | null>(null);
+  const [shipping, setShipping] = useState(false);
   const navigate = useNavigate();
+
+  const handleShip = async () => {
+    if (!shipTarget) return;
+    setShipping(true);
+    const { error } = await supabase.rpc("agent_ship_order", { p_order_id: shipTarget.id });
+    setShipping(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("已出貨，銷貨單已建立");
+    setShipTarget(null);
+    load();
+  };
 
   const load = async () => {
     setLoading(true);
