@@ -355,6 +355,24 @@ function SalesOrderListPage() {
           navigate({ to: "/docs/sales-invoice" });
         }}
       />
+
+      <AlertDialog open={Boolean(shipTarget)} onOpenChange={(v) => !v && !shipping && setShipTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確定出貨？</AlertDialogTitle>
+            <AlertDialogDescription>
+              將建立銷貨單並扣庫存、產生應收。訂單：{shipTarget?.doc_no ?? "—"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={shipping}>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleShip(); }} disabled={shipping}>
+              {shipping ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              確定出貨
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
