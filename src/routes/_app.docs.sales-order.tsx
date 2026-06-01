@@ -8,7 +8,17 @@ const DOC_STATUS_LABEL: Record<string, string> = {
   voided: "已作廢",
 };
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Pencil, ArrowRightLeft, Printer } from "lucide-react";
+import { Loader2, Plus, Pencil, ArrowRightLeft, Printer, Truck } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
