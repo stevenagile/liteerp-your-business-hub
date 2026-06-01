@@ -278,6 +278,16 @@ function SalesOrderListPage() {
                           轉銷貨
                         </Button>
                       )}
+                      {canConfirm && d.status === "confirmed" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShipTarget(d)}
+                        >
+                          <Truck className="mr-1 h-3.5 w-3.5" />
+                          出貨
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" asChild title="列印">
                         <a
                           href={`/print/sales_order/${d.id}`}
