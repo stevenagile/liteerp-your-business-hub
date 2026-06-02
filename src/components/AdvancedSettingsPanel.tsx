@@ -6,8 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type SalesPerson = { id: string; display_name: string | null };
 
 type SettingsShape = {
+  order_cutoff_hour?: number;
+  line_sales_person_id?: string | null;
   allow_negative_stock?: boolean;
   price_includes_tax?: boolean;
   low_stock_alert?: boolean;
