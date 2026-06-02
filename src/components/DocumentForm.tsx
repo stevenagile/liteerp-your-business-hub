@@ -35,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
 import { SearchSelect, type SearchOption } from "@/components/SearchSelect";
 import { VoidDocumentButton } from "@/components/VoidDocumentButton";
 import { PaymentHistoryList } from "@/components/PaymentHistoryList";
