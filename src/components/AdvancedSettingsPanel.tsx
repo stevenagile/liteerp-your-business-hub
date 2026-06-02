@@ -6,8 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type SalesPerson = { id: string; display_name: string | null };
 
 type SettingsShape = {
+  order_cutoff_hour?: number;
+  line_sales_person_id?: string | null;
   allow_negative_stock?: boolean;
   price_includes_tax?: boolean;
   low_stock_alert?: boolean;
@@ -17,6 +28,8 @@ type SettingsShape = {
 };
 
 const DEFAULTS: Required<SettingsShape> = {
+  order_cutoff_hour: 17,
+  line_sales_person_id: null,
   allow_negative_stock: false,
   price_includes_tax: false,
   low_stock_alert: false,
@@ -30,23 +43,31 @@ export function AdvancedSettingsPanel() {
   const [saving, setSaving] = useState(false);
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [settings, setSettings] = useState<SettingsShape>({ ...DEFAULTS });
+  const [salesPeople, setSalesPeople] = useState<SalesPerson[]>([]);
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
-        .from("company")
-        .select("id, settings")
-        .limit(1)
-        .maybeSingle();
-      if (error) {
-        toast.error("讀取進階參數失敗:" + error.message);
-      } else if (data) {
-        setCompanyId(data.id);
-        const raw = (data as { settings?: SettingsShape | null }).settings;
+      const [companyRes, peopleRes] = await Promise.all([
+        supabase.from("company").select("id, settings").limit(1).maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("id, display_name")
+          .eq("is_active", true)
+          .order("display_name", { ascending: true }),
+      ]);
+      if (companyRes.error) {
+        toast.error("讀取進階參數失敗:" + companyRes.error.message);
+      } else if (companyRes.data) {
+        setCompanyId(companyRes.data.id);
+        const raw = (companyRes.data as { settings?: SettingsShape | null })
+          .settings;
         setSettings({
           ...DEFAULTS,
           ...(raw ?? {}),
         });
+      }
+      if (!peopleRes.error) {
+        setSalesPeople((peopleRes.data ?? []) as SalesPerson[]);
       }
       setLoading(false);
     })();
@@ -89,6 +110,56 @@ export function AdvancedSettingsPanel() {
 
   return (
     <div className="space-y-6 rounded-lg border bg-card p-6 shadow-sm">
+      <SettingRow
+        label="截單時間"
+        description="配送日「前一天」此點前下單，才排得進該路線日；過了就排下一個路線日。"
+      >
+        <Select
+          value={String(settings.order_cutoff_hour ?? 17)}
+          onValueChange={(v) =>
+            setSettings((s) => ({ ...s, order_cutoff_hour: Number(v) }))
+          }
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from({ length: 24 }, (_, h) => (
+              <SelectItem key={h} value={String(h)}>
+                {String(h).padStart(2, "0")}:00
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SettingRow>
+
+      <SettingRow
+        label="LINE 自動接單業務員"
+        description="LINE Bot 自動建立的訂單會掛在此業務員名下（選填）"
+      >
+        <Select
+          value={settings.line_sales_person_id ?? "__none__"}
+          onValueChange={(v) =>
+            setSettings((s) => ({
+              ...s,
+              line_sales_person_id: v === "__none__" ? null : v,
+            }))
+          }
+        >
+          <SelectTrigger className="w-56">
+            <SelectValue placeholder="（未指定）" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">（未指定）</SelectItem>
+            {salesPeople.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.display_name || p.id.slice(0, 8)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SettingRow>
+
       <SettingRow
         label="允許負庫存銷貨"
         description="關閉時，庫存不足將無法確認銷貨單（建議關閉）"
