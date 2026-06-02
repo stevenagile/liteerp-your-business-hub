@@ -120,6 +120,7 @@ type Contact = {
   name: string;
   type: string;
   price_level: number | null;
+  price_includes_tax: boolean | null;
 };
 type Product = {
   id: string;
