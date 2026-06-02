@@ -111,6 +111,56 @@ export function AdvancedSettingsPanel() {
   return (
     <div className="space-y-6 rounded-lg border bg-card p-6 shadow-sm">
       <SettingRow
+        label="截單時間"
+        description="配送日「前一天」此點前下單，才排得進該路線日；過了就排下一個路線日。"
+      >
+        <Select
+          value={String(settings.order_cutoff_hour ?? 17)}
+          onValueChange={(v) =>
+            setSettings((s) => ({ ...s, order_cutoff_hour: Number(v) }))
+          }
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from({ length: 24 }, (_, h) => (
+              <SelectItem key={h} value={String(h)}>
+                {String(h).padStart(2, "0")}:00
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SettingRow>
+
+      <SettingRow
+        label="LINE 自動接單業務員"
+        description="LINE Bot 自動建立的訂單會掛在此業務員名下（選填）"
+      >
+        <Select
+          value={settings.line_sales_person_id ?? "__none__"}
+          onValueChange={(v) =>
+            setSettings((s) => ({
+              ...s,
+              line_sales_person_id: v === "__none__" ? null : v,
+            }))
+          }
+        >
+          <SelectTrigger className="w-56">
+            <SelectValue placeholder="（未指定）" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">（未指定）</SelectItem>
+            {salesPeople.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.display_name || p.id.slice(0, 8)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </SettingRow>
+
+      <SettingRow
         label="允許負庫存銷貨"
         description="關閉時，庫存不足將無法確認銷貨單（建議關閉）"
       >
