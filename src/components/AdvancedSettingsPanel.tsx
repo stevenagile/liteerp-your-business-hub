@@ -47,20 +47,27 @@ export function AdvancedSettingsPanel() {
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase
-        .from("company")
-        .select("id, settings")
-        .limit(1)
-        .maybeSingle();
-      if (error) {
-        toast.error("讀取進階參數失敗:" + error.message);
-      } else if (data) {
-        setCompanyId(data.id);
-        const raw = (data as { settings?: SettingsShape | null }).settings;
+      const [companyRes, peopleRes] = await Promise.all([
+        supabase.from("company").select("id, settings").limit(1).maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("id, display_name")
+          .eq("is_active", true)
+          .order("display_name", { ascending: true }),
+      ]);
+      if (companyRes.error) {
+        toast.error("讀取進階參數失敗:" + companyRes.error.message);
+      } else if (companyRes.data) {
+        setCompanyId(companyRes.data.id);
+        const raw = (companyRes.data as { settings?: SettingsShape | null })
+          .settings;
         setSettings({
           ...DEFAULTS,
           ...(raw ?? {}),
         });
+      }
+      if (!peopleRes.error) {
+        setSalesPeople((peopleRes.data ?? []) as SalesPerson[]);
       }
       setLoading(false);
     })();
