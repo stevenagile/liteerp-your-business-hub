@@ -77,6 +77,8 @@ function emptyContact(): Contact {
     phone: "",
     email: "",
     address: "",
+    region: "",
+    bind_code: "",
     payment_terms: 30,
     price_level: 1,
     credit_limit: 0,
