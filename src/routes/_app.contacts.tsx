@@ -572,6 +572,18 @@ function ContactDialog({
                 }
               />
             </Field>
+            <div className="flex items-center gap-3 self-end pb-1">
+              <Switch
+                id="price_includes_tax"
+                checked={form.price_includes_tax ?? false}
+                onCheckedChange={(v) =>
+                  setForm((f) => f && { ...f, price_includes_tax: v })
+                }
+              />
+              <Label htmlFor="price_includes_tax" className="cursor-pointer">
+                售價含稅
+              </Label>
+            </div>
             <Field label="備註" className="md:col-span-2">
               <Input
                 value={form.notes ?? ""}
