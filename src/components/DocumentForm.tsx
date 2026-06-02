@@ -263,20 +263,25 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
 
   // ---- 試算 ----
   const totals = useMemo(() => {
-    const subtotal = lines.reduce((sum, l) => {
+    const lineSum = lines.reduce((sum, l) => {
       const amt =
         (Number(l.quantity) || 0) *
         (Number(l.unit_price) || 0) *
         (1 - (Number(l.discount_pct) || 0) / 100);
       return sum + amt;
     }, 0);
-    const tax = subtotal * (taxRate / 100);
-    return {
-      subtotal,
-      tax,
-      total: subtotal + tax,
-    };
-  }, [lines, taxRate]);
+    const rate = taxRate / 100;
+    if (header.price_includes_tax) {
+      // 含稅:明細合計即為總計,反推未稅與稅金
+      const total = lineSum;
+      const subtotal = rate > 0 ? total / (1 + rate) : total;
+      return { subtotal, tax: total - subtotal, total };
+    }
+    // 未稅:明細合計為未稅,稅金=未稅×稅率
+    const subtotal = lineSum;
+    const tax = subtotal * rate;
+    return { subtotal, tax, total: subtotal + tax };
+  }, [lines, taxRate, header.price_includes_tax]);
 
   const isEdit = Boolean(header.id);
   const isDraft = header.status === "draft";
@@ -294,6 +299,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       ...h,
       contact_id: id,
       contact_name: c?.name ?? null,
+      // 草稿狀態下,選擇客戶後預設帶入該客戶的含稅設定(仍可手動改)
+      price_includes_tax: c ? Boolean(c.price_includes_tax) : h.price_includes_tax,
     }));
   };
 
