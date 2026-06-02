@@ -35,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
 import { SearchSelect, type SearchOption } from "@/components/SearchSelect";
 import { VoidDocumentButton } from "@/components/VoidDocumentButton";
 import { PaymentHistoryList } from "@/components/PaymentHistoryList";
@@ -80,6 +81,7 @@ export type DocHeader = {
   notes: string | null;
   company_id: string | null;
   sales_person_id: string | null;
+  price_includes_tax: boolean;
   void_reason?: string | null;
   voided_at?: string | null;
 };
@@ -97,6 +99,7 @@ export function emptyHeader(doc_type: DocType): DocHeader {
     notes: "",
     company_id: null,
     sales_person_id: null,
+    price_includes_tax: false,
   };
 }
 
@@ -118,6 +121,7 @@ type Contact = {
   name: string;
   type: string;
   price_level: number | null;
+  price_includes_tax: boolean | null;
 };
 type Product = {
   id: string;
@@ -178,7 +182,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     const { data: h, error: he } = await supabase
       .from("doc_headers")
       .select(
-        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, void_reason, voided_at",
+        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, price_includes_tax, void_reason, voided_at",
       )
       .eq("id", id)
       .maybeSingle();
@@ -206,7 +210,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
         await Promise.all([
           supabase
             .from("contacts")
-            .select("id, code, name, type, price_level")
+            .select("id, code, name, type, price_level, price_includes_tax")
             .in("type", isPurchase ? ["vendor", "both"] : ["customer", "both"])
             .order("code"),
           supabase
@@ -260,20 +264,25 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
 
   // ---- 試算 ----
   const totals = useMemo(() => {
-    const subtotal = lines.reduce((sum, l) => {
+    const lineSum = lines.reduce((sum, l) => {
       const amt =
         (Number(l.quantity) || 0) *
         (Number(l.unit_price) || 0) *
         (1 - (Number(l.discount_pct) || 0) / 100);
       return sum + amt;
     }, 0);
-    const tax = subtotal * (taxRate / 100);
-    return {
-      subtotal,
-      tax,
-      total: subtotal + tax,
-    };
-  }, [lines, taxRate]);
+    const rate = taxRate / 100;
+    if (header.price_includes_tax) {
+      // 含稅:明細合計即為總計,反推未稅與稅金
+      const total = lineSum;
+      const subtotal = rate > 0 ? total / (1 + rate) : total;
+      return { subtotal, tax: total - subtotal, total };
+    }
+    // 未稅:明細合計為未稅,稅金=未稅×稅率
+    const subtotal = lineSum;
+    const tax = subtotal * rate;
+    return { subtotal, tax, total: subtotal + tax };
+  }, [lines, taxRate, header.price_includes_tax]);
 
   const isEdit = Boolean(header.id);
   const isDraft = header.status === "draft";
@@ -291,6 +300,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       ...h,
       contact_id: id,
       contact_name: c?.name ?? null,
+      // 草稿狀態下,選擇客戶後預設帶入該客戶的含稅設定(仍可手動改)
+      price_includes_tax: c ? Boolean(c.price_includes_tax) : h.price_includes_tax,
     }));
   };
 
@@ -370,6 +381,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       contact_name: header.contact_name,
       warehouse_id: header.warehouse_id,
       notes: header.notes || null,
+      price_includes_tax: header.price_includes_tax,
       status: "draft",
       ...(showSalesPerson ? { sales_person_id: header.sales_person_id } : {}),
       ...(isEdit
@@ -596,6 +608,23 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </Field>
           )}
 
+          {!isAdjust && (
+            <Field label="售價含稅">
+              <div className="flex h-9 items-center gap-2">
+                <Switch
+                  checked={header.price_includes_tax}
+                  onCheckedChange={(v) =>
+                    setHeader((h) => ({ ...h, price_includes_tax: v }))
+                  }
+                  disabled={readOnly}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {header.price_includes_tax ? "明細單價已含稅" : "明細單價未稅"}
+                </span>
+              </div>
+            </Field>
+          )}
+
           <Field
             label={isAdjust ? "調整原因 (備註)" : "備註"}
             required={isAdjust}
@@ -777,6 +806,9 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       {/* ============ 合計 ============ */}
       <section className="flex justify-end">
         <div className="w-full max-w-sm space-y-2 rounded-lg border bg-card p-4 text-sm shadow-sm">
+          <div className="text-[11px] text-muted-foreground">
+            計稅模式:{header.price_includes_tax ? "含稅(明細單價已含稅)" : "未稅(稅金外加)"}
+          </div>
           <Row label="未稅合計" value={totals.subtotal} />
           <Row label={`稅金 (${taxRate}%)`} value={totals.tax} />
           <div className="border-t pt-2">

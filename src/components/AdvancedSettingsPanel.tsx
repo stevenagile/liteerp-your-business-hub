@@ -172,7 +172,10 @@ export function AdvancedSettingsPanel() {
         />
       </SettingRow>
 
-      <SettingRow label="售價是否含稅">
+      <SettingRow
+        label="新客戶預設售價含稅"
+        description="僅作為新增客戶時的預設值；實際含稅與否以各客戶設定、各單據設定為準。"
+      >
         <Switch
           checked={settings.price_includes_tax}
           onCheckedChange={(v) =>
