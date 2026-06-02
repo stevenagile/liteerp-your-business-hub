@@ -211,6 +211,7 @@ function ContactsPage() {
               <TableHead>名稱</TableHead>
               <TableHead className="w-24">類型</TableHead>
               <TableHead className="w-40">電話</TableHead>
+              <TableHead className="w-32">綁定碼</TableHead>
               <TableHead className="w-24 text-right">帳期(天)</TableHead>
               {canWrite && (
                 <TableHead className="w-20 text-right">操作</TableHead>
