@@ -806,6 +806,9 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       {/* ============ 合計 ============ */}
       <section className="flex justify-end">
         <div className="w-full max-w-sm space-y-2 rounded-lg border bg-card p-4 text-sm shadow-sm">
+          <div className="text-[11px] text-muted-foreground">
+            計稅模式:{header.price_includes_tax ? "含稅(明細單價已含稅)" : "未稅(稅金外加)"}
+          </div>
           <Row label="未稅合計" value={totals.subtotal} />
           <Row label={`稅金 (${taxRate}%)`} value={totals.tax} />
           <div className="border-t pt-2">
