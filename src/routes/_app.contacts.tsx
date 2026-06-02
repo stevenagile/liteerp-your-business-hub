@@ -109,7 +109,7 @@ function ContactsPage() {
     const { data, error } = await supabase
       .from("contacts")
       .select(
-        "id, code, name, type, tax_id, contact_person, phone, email, address, payment_terms, price_level, credit_limit, notes, company_id",
+        "id, code, name, type, tax_id, contact_person, phone, email, address, region, bind_code, payment_terms, price_level, credit_limit, notes, company_id",
       )
       .eq("company_id", companyId)
       .order("code", { ascending: true });
