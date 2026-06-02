@@ -110,18 +110,22 @@ function ContactsPage() {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase
-      .from("contacts")
-      .select(
-        "id, code, name, type, tax_id, contact_person, phone, email, address, region, bind_code, payment_terms, price_level, credit_limit, notes, company_id",
-      )
-      .eq("company_id", companyId)
-      .order("code", { ascending: true });
-    if (error) {
-      toast.error("讀取客戶廠商失敗:" + error.message);
+    const [{ data: contactsData, error: contactsError }, { data: companyData }] = await Promise.all([
+      supabase
+        .from("contacts")
+        .select(
+          "id, code, name, type, tax_id, contact_person, phone, email, address, region, bind_code, payment_terms, price_level, credit_limit, price_includes_tax, notes, company_id",
+        )
+        .eq("company_id", companyId)
+        .order("code", { ascending: true }),
+      supabase.from("company").select("settings").limit(1).single(),
+    ]);
+    if (contactsError) {
+      toast.error("讀取客戶廠商失敗:" + contactsError.message);
     } else {
-      setList((data ?? []) as Contact[]);
+      setList((contactsData ?? []) as Contact[]);
     }
+    setCompanySettings((companyData?.settings as Record<string, unknown>) ?? null);
     setLoading(false);
   };
 
