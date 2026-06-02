@@ -252,6 +252,9 @@ function ContactsPage() {
                   <TableCell className="text-muted-foreground">
                     {c.phone || "—"}
                   </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {c.bind_code || "—"}
+                  </TableCell>
                   <TableCell className="text-right">
                     {c.payment_terms ?? "—"}
                   </TableCell>
