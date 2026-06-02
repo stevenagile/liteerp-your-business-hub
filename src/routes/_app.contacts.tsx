@@ -57,6 +57,7 @@ type Contact = {
   payment_terms: number | null;
   price_level: number | null;
   credit_limit: number | null;
+  price_includes_tax: boolean | null;
   notes: string | null;
   company_id: string | null;
 };
@@ -83,6 +84,7 @@ function emptyContact(): Contact {
     payment_terms: 30,
     price_level: 1,
     credit_limit: 0,
+    price_includes_tax: false,
     notes: "",
     company_id: null,
   };
@@ -173,7 +175,9 @@ function ContactsPage() {
               </Button>
               <Button
                 onClick={() => {
-                  setEditing(emptyContact());
+                  const defaults = emptyContact();
+                  defaults.price_includes_tax = Boolean(companySettings?.price_includes_tax ?? false);
+                  setEditing(defaults);
                   setDialogOpen(true);
                 }}
               >
