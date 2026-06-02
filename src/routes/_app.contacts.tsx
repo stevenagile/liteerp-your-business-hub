@@ -156,16 +156,12 @@ function ContactsPage() {
             rows={filtered as unknown as Record<string, unknown>[]}
             filename="客戶廠商"
             columns={[
-              { key: "code", label: "編號" },
-              { key: "name", label: "名稱" },
+              { key: "code", label: "客戶代碼" },
+              { key: "name", label: "店名" },
               { key: "type", label: "類型", value: (r: Record<string, unknown>) => TYPE_LABEL[r.type as ContactType] ?? String(r.type ?? "") },
-              { key: "tax_id", label: "統編" },
-              { key: "contact_person", label: "聯絡人" },
+              { key: "region", label: "地區" },
               { key: "phone", label: "電話" },
-              { key: "email", label: "Email" },
-              { key: "address", label: "地址" },
-              { key: "payment_terms", label: "帳期(天)", type: "number" },
-              { key: "credit_limit", label: "信用額度", type: "number" },
+              { key: "bind_code", label: "綁定碼" },
             ]}
           />
           {canWrite && (
