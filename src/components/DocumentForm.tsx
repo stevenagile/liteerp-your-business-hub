@@ -380,6 +380,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       contact_name: header.contact_name,
       warehouse_id: header.warehouse_id,
       notes: header.notes || null,
+      price_includes_tax: header.price_includes_tax,
       status: "draft",
       ...(showSalesPerson ? { sales_person_id: header.sales_person_id } : {}),
       ...(isEdit
