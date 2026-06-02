@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Loader2, Plus, Pencil, Search, Upload } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -56,6 +57,7 @@ type Contact = {
   payment_terms: number | null;
   price_level: number | null;
   credit_limit: number | null;
+  price_includes_tax: boolean | null;
   notes: string | null;
   company_id: string | null;
 };
@@ -82,6 +84,7 @@ function emptyContact(): Contact {
     payment_terms: 30,
     price_level: 1,
     credit_limit: 0,
+    price_includes_tax: false,
     notes: "",
     company_id: null,
   };
@@ -96,6 +99,7 @@ function ContactsPage() {
   const [editing, setEditing] = useState<Contact | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [companySettings, setCompanySettings] = useState<Record<string, unknown> | null>(null);
   const { profile } = useAuth();
   const companyId = profile?.company_id ?? null;
 
@@ -106,18 +110,22 @@ function ContactsPage() {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase
-      .from("contacts")
-      .select(
-        "id, code, name, type, tax_id, contact_person, phone, email, address, region, bind_code, payment_terms, price_level, credit_limit, notes, company_id",
-      )
-      .eq("company_id", companyId)
-      .order("code", { ascending: true });
-    if (error) {
-      toast.error("讀取客戶廠商失敗:" + error.message);
+    const [{ data: contactsData, error: contactsError }, { data: companyData }] = await Promise.all([
+      supabase
+        .from("contacts")
+        .select(
+          "id, code, name, type, tax_id, contact_person, phone, email, address, region, bind_code, payment_terms, price_level, credit_limit, price_includes_tax, notes, company_id",
+        )
+        .eq("company_id", companyId)
+        .order("code", { ascending: true }),
+      supabase.from("company").select("settings").limit(1).single(),
+    ]);
+    if (contactsError) {
+      toast.error("讀取客戶廠商失敗:" + contactsError.message);
     } else {
-      setList((data ?? []) as Contact[]);
+      setList((contactsData ?? []) as Contact[]);
     }
+    setCompanySettings((companyData?.settings as Record<string, unknown>) ?? null);
     setLoading(false);
   };
 
@@ -172,7 +180,9 @@ function ContactsPage() {
               </Button>
               <Button
                 onClick={() => {
-                  setEditing(emptyContact());
+                  const defaults = emptyContact();
+                  defaults.price_includes_tax = Boolean(companySettings?.price_includes_tax ?? false);
+                  setEditing(defaults);
                   setDialogOpen(true);
                 }}
               >
@@ -401,6 +411,7 @@ function ContactDialog({
       payment_terms: form.payment_terms ?? 30,
       price_level: form.price_level ?? 1,
       credit_limit: form.credit_limit ?? 0,
+      price_includes_tax: form.price_includes_tax ?? false,
       notes: form.notes || null,
       ...(isEdit ? {} : { company_id: profile?.company_id ?? null }),
     };
@@ -561,6 +572,18 @@ function ContactDialog({
                 }
               />
             </Field>
+            <div className="flex items-center gap-3 self-end pb-1">
+              <Switch
+                id="price_includes_tax"
+                checked={form.price_includes_tax ?? false}
+                onCheckedChange={(v) =>
+                  setForm((f) => f && { ...f, price_includes_tax: v })
+                }
+              />
+              <Label htmlFor="price_includes_tax" className="cursor-pointer">
+                售價含稅
+              </Label>
+            </div>
             <Field label="備註" className="md:col-span-2">
               <Input
                 value={form.notes ?? ""}
