@@ -99,6 +99,7 @@ function ContactsPage() {
   const [editing, setEditing] = useState<Contact | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [companySettings, setCompanySettings] = useState<Record<string, unknown> | null>(null);
   const { profile } = useAuth();
   const companyId = profile?.company_id ?? null;
 
