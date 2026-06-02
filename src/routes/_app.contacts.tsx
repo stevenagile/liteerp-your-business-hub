@@ -51,6 +51,8 @@ type Contact = {
   phone: string | null;
   email: string | null;
   address: string | null;
+  region: string | null;
+  bind_code: string | null;
   payment_terms: number | null;
   price_level: number | null;
   credit_limit: number | null;
