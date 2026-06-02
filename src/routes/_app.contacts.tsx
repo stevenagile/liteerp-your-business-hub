@@ -231,7 +231,7 @@ function ContactsPage() {
             ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={canWrite ? 6 : 5}
+                  colSpan={canWrite ? 7 : 6}
                   className="h-24 text-center text-sm text-muted-foreground"
                 >
                   尚無資料
