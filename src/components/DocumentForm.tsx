@@ -209,7 +209,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
         await Promise.all([
           supabase
             .from("contacts")
-            .select("id, code, name, type, price_level")
+            .select("id, code, name, type, price_level, price_includes_tax")
             .in("type", isPurchase ? ["vendor", "both"] : ["customer", "both"])
             .order("code"),
           supabase
