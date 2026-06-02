@@ -411,6 +411,7 @@ function ContactDialog({
       payment_terms: form.payment_terms ?? 30,
       price_level: form.price_level ?? 1,
       credit_limit: form.credit_limit ?? 0,
+      price_includes_tax: form.price_includes_tax ?? false,
       notes: form.notes || null,
       ...(isEdit ? {} : { company_id: profile?.company_id ?? null }),
     };
