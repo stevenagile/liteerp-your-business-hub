@@ -28,6 +28,8 @@ type SettingsShape = {
 };
 
 const DEFAULTS: Required<SettingsShape> = {
+  order_cutoff_hour: 17,
+  line_sales_person_id: null,
   allow_negative_stock: false,
   price_includes_tax: false,
   low_stock_alert: false,
@@ -41,6 +43,7 @@ export function AdvancedSettingsPanel() {
   const [saving, setSaving] = useState(false);
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [settings, setSettings] = useState<SettingsShape>({ ...DEFAULTS });
+  const [salesPeople, setSalesPeople] = useState<SalesPerson[]>([]);
 
   useEffect(() => {
     (async () => {
