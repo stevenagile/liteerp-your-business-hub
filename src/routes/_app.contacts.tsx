@@ -222,7 +222,7 @@ function ContactsPage() {
             {loading ? (
               <TableRow>
                 <TableCell
-                  colSpan={canWrite ? 6 : 5}
+                  colSpan={canWrite ? 7 : 6}
                   className="h-24 text-center"
                 >
                   <Loader2 className="inline h-5 w-5 animate-spin text-muted-foreground" />
