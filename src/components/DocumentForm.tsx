@@ -608,6 +608,23 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </Field>
           )}
 
+          {!isAdjust && (
+            <Field label="售價含稅">
+              <div className="flex h-9 items-center gap-2">
+                <Switch
+                  checked={header.price_includes_tax}
+                  onCheckedChange={(v) =>
+                    setHeader((h) => ({ ...h, price_includes_tax: v }))
+                  }
+                  disabled={readOnly}
+                />
+                <span className="text-sm text-muted-foreground">
+                  {header.price_includes_tax ? "明細單價已含稅" : "明細單價未稅"}
+                </span>
+              </div>
+            </Field>
+          )}
+
           <Field
             label={isAdjust ? "調整原因 (備註)" : "備註"}
             required={isAdjust}
