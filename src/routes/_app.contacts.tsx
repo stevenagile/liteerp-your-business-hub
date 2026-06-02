@@ -51,6 +51,8 @@ type Contact = {
   phone: string | null;
   email: string | null;
   address: string | null;
+  region: string | null;
+  bind_code: string | null;
   payment_terms: number | null;
   price_level: number | null;
   credit_limit: number | null;
@@ -75,6 +77,8 @@ function emptyContact(): Contact {
     phone: "",
     email: "",
     address: "",
+    region: "",
+    bind_code: "",
     payment_terms: 30,
     price_level: 1,
     credit_limit: 0,
@@ -105,7 +109,7 @@ function ContactsPage() {
     const { data, error } = await supabase
       .from("contacts")
       .select(
-        "id, code, name, type, tax_id, contact_person, phone, email, address, payment_terms, price_level, credit_limit, notes, company_id",
+        "id, code, name, type, tax_id, contact_person, phone, email, address, region, bind_code, payment_terms, price_level, credit_limit, notes, company_id",
       )
       .eq("company_id", companyId)
       .order("code", { ascending: true });
@@ -152,16 +156,12 @@ function ContactsPage() {
             rows={filtered as unknown as Record<string, unknown>[]}
             filename="客戶廠商"
             columns={[
-              { key: "code", label: "編號" },
-              { key: "name", label: "名稱" },
+              { key: "code", label: "客戶代碼" },
+              { key: "name", label: "店名" },
               { key: "type", label: "類型", value: (r: Record<string, unknown>) => TYPE_LABEL[r.type as ContactType] ?? String(r.type ?? "") },
-              { key: "tax_id", label: "統編" },
-              { key: "contact_person", label: "聯絡人" },
+              { key: "region", label: "地區" },
               { key: "phone", label: "電話" },
-              { key: "email", label: "Email" },
-              { key: "address", label: "地址" },
-              { key: "payment_terms", label: "帳期(天)", type: "number" },
-              { key: "credit_limit", label: "信用額度", type: "number" },
+              { key: "bind_code", label: "綁定碼" },
             ]}
           />
           {canWrite && (
@@ -211,6 +211,7 @@ function ContactsPage() {
               <TableHead>名稱</TableHead>
               <TableHead className="w-24">類型</TableHead>
               <TableHead className="w-40">電話</TableHead>
+              <TableHead className="w-32">綁定碼</TableHead>
               <TableHead className="w-24 text-right">帳期(天)</TableHead>
               {canWrite && (
                 <TableHead className="w-20 text-right">操作</TableHead>
@@ -221,7 +222,7 @@ function ContactsPage() {
             {loading ? (
               <TableRow>
                 <TableCell
-                  colSpan={canWrite ? 6 : 5}
+                  colSpan={canWrite ? 7 : 6}
                   className="h-24 text-center"
                 >
                   <Loader2 className="inline h-5 w-5 animate-spin text-muted-foreground" />
@@ -230,7 +231,7 @@ function ContactsPage() {
             ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={canWrite ? 6 : 5}
+                  colSpan={canWrite ? 7 : 6}
                   className="h-24 text-center text-sm text-muted-foreground"
                 >
                   尚無資料
@@ -250,6 +251,9 @@ function ContactsPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {c.phone || "—"}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {c.bind_code || "—"}
                   </TableCell>
                   <TableCell className="text-right">
                     {c.payment_terms ?? "—"}
