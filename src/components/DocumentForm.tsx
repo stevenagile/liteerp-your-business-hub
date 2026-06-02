@@ -80,6 +80,7 @@ export type DocHeader = {
   notes: string | null;
   company_id: string | null;
   sales_person_id: string | null;
+  price_includes_tax: boolean;
   void_reason?: string | null;
   voided_at?: string | null;
 };
@@ -97,6 +98,7 @@ export function emptyHeader(doc_type: DocType): DocHeader {
     notes: "",
     company_id: null,
     sales_person_id: null,
+    price_includes_tax: false,
   };
 }
 
