@@ -82,6 +82,8 @@ export type DocHeader = {
   company_id: string | null;
   sales_person_id: string | null;
   price_includes_tax: boolean;
+  vehicle_id: string | null;
+  delivery_date: string | null; // yyyy-MM-dd
   void_reason?: string | null;
   voided_at?: string | null;
 };
@@ -100,6 +102,8 @@ export function emptyHeader(doc_type: DocType): DocHeader {
     company_id: null,
     sales_person_id: null,
     price_includes_tax: false,
+    vehicle_id: null,
+    delivery_date: null,
   };
 }
 
@@ -139,6 +143,12 @@ type Warehouse = {
   name: string;
   is_default: boolean | null;
 };
+type Vehicle = {
+  id: string;
+  name: string;
+  plate_no: string | null;
+  delivery_days: number[] | null;
+};
 
 type Props = {
   docType: DocType;
@@ -169,6 +179,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [salesPeople, setSalesPeople] = useState<{ id: string; display_name: string | null }[]>([]);
   const [taxRate, setTaxRate] = useState<number>(5);
 
@@ -177,12 +188,15 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     docType === "sales_order" ||
     docType === "quotation";
 
+  // 訂單才有派車(車輛+預計配送日)
+  const showDispatch = docType === "sales_order";
+
   // ---- 載入基礎資料 + 既有單據 ----
   const loadDoc = async (id: string) => {
     const { data: h, error: he } = await supabase
       .from("doc_headers")
       .select(
-        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, price_includes_tax, void_reason, voided_at",
+        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, price_includes_tax, vehicle_id, delivery_date, void_reason, voided_at",
       )
       .eq("id", id)
       .maybeSingle();
@@ -206,7 +220,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const [{ data: c }, { data: p }, { data: w }, { data: comp }, { data: sp }] =
+      const [{ data: c }, { data: p }, { data: w }, { data: comp }, { data: sp }, { data: vh }] =
         await Promise.all([
           supabase
             .from("contacts")
@@ -233,12 +247,20 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                 .in("role", ["sales", "admin", "manager"])
                 .order("display_name")
             : Promise.resolve({ data: [] as { id: string; display_name: string | null }[] }),
+          showDispatch
+            ? supabase
+                .from("vehicles")
+                .select("id, name, plate_no, delivery_days")
+                .eq("is_active", true)
+                .order("name")
+            : Promise.resolve({ data: [] as Vehicle[] }),
         ]);
       if (cancelled) return;
       setContacts((c ?? []) as Contact[]);
       setProducts((p ?? []) as Product[]);
       setWarehouses((w ?? []) as Warehouse[]);
       setSalesPeople((sp ?? []) as { id: string; display_name: string | null }[]);
+      setVehicles((vh ?? []) as Vehicle[]);
       const tr = (comp as { tax_rate?: number } | null)?.tax_rate;
       if (typeof tr === "number") setTaxRate(tr);
 
@@ -303,6 +325,39 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       // 草稿狀態下,選擇客戶後預設帶入該客戶的含稅設定(仍可手動改)
       price_includes_tax: c ? Boolean(c.price_includes_tax) : h.price_includes_tax,
     }));
+    // 訂單:依配送規則建議車輛與預計配送日(可手動改)
+    if (showDispatch && id) {
+      supabase
+        .rpc("next_dispatch", { p_contact_id: id })
+        .then(({ data }) => {
+          const d = (Array.isArray(data) ? data[0] : data) as
+            | { delivery_date: string | null; vehicle_id: string | null }
+            | undefined;
+          if (d) {
+            setHeader((h) => ({
+              ...h,
+              vehicle_id: d.vehicle_id ?? h.vehicle_id,
+              delivery_date: d.delivery_date ?? h.delivery_date,
+            }));
+          }
+        });
+    }
+  };
+
+  // ---- 派車車輛選擇:改車時依該車固定星期重算預計配送日 ----
+  const handleVehicleChange = async (v: string) => {
+    const vid = v === "none" ? null : v;
+    setHeader((h) => ({ ...h, vehicle_id: vid }));
+    if (!vid) return;
+    const veh = vehicles.find((x) => x.id === vid);
+    if (veh?.delivery_days && veh.delivery_days.length > 0) {
+      const { data } = await supabase.rpc("next_delivery_date_for_days", {
+        p_days: veh.delivery_days,
+      });
+      if (data) {
+        setHeader((h) => ({ ...h, delivery_date: data as string }));
+      }
+    }
   };
 
   // ---- 行操作 ----
@@ -384,6 +439,12 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       price_includes_tax: header.price_includes_tax,
       status: "draft",
       ...(showSalesPerson ? { sales_person_id: header.sales_person_id } : {}),
+      ...(showDispatch
+        ? {
+            vehicle_id: header.vehicle_id,
+            delivery_date: header.delivery_date || null,
+          }
+        : {}),
       ...(isEdit
         ? {}
         : {
@@ -605,6 +666,45 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                   ))}
                 </SelectContent>
               </Select>
+            </Field>
+          )}
+
+          {showDispatch && (
+            <Field label="派車車輛">
+              <Select
+                value={header.vehicle_id ?? "none"}
+                onValueChange={handleVehicleChange}
+                disabled={readOnly}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="自動（依配送規則）" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">自動（依配送規則）</SelectItem>
+                  {vehicles.map((v) => (
+                    <SelectItem key={v.id} value={v.id}>
+                      {v.name}
+                      {v.plate_no ? ` (${v.plate_no})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
+
+          {showDispatch && (
+            <Field label="預計配送日">
+              <Input
+                type="date"
+                value={header.delivery_date ?? ""}
+                onChange={(e) =>
+                  setHeader((h) => ({
+                    ...h,
+                    delivery_date: e.target.value || null,
+                  }))
+                }
+                disabled={readOnly}
+              />
             </Field>
           )}
 
