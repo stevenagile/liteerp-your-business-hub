@@ -34,6 +34,7 @@ type ManifestRow = {
   plate_no: string | null;
   driver_name: string | null;
   delivery_date: string;
+  doc_type: string;
   order_id: string;
   order_no: string | null;
   contact_id: string | null;
@@ -129,7 +130,7 @@ function DispatchPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">派車單</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            依車輛與配送日列出當趟要送的訂單與備貨彙總。
+            依車輛與配送日列出當趟要送的訂單／銷貨單與備貨彙總。
           </p>
         </div>
         <div className="flex gap-2">
@@ -140,7 +141,15 @@ function DispatchPage() {
               { key: "vehicle_name", label: "車輛" },
               { key: "driver_name", label: "司機" },
               { key: "delivery_date", label: "配送日" },
-              { key: "order_no", label: "訂單單號" },
+              {
+                key: "doc_type",
+                label: "單別",
+                value: (r: Record<string, unknown>) =>
+                  (r as { doc_type: string }).doc_type === "sales_invoice"
+                    ? "銷貨單"
+                    : "訂單",
+              },
+              { key: "order_no", label: "單號" },
               { key: "contact_name", label: "客戶" },
               { key: "district", label: "地區" },
               { key: "product_code", label: "品號" },
@@ -253,6 +262,7 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
       string,
       {
         order_no: string | null;
+        doc_type: string;
         contact_name: string | null;
         district: string | null;
         lines: ManifestRow[];
@@ -262,6 +272,7 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
       if (!map.has(r.order_id)) {
         map.set(r.order_id, {
           order_no: r.order_no,
+          doc_type: r.doc_type,
           contact_name: r.contact_name,
           district: r.district,
           lines: [],
@@ -291,7 +302,7 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
         )}
         <div className="text-sm text-muted-foreground">配送日：{date}</div>
         <div className="ml-auto text-sm text-muted-foreground">
-          {orders.length} 張訂單
+          {orders.length} 張單
         </div>
       </div>
 
@@ -337,7 +348,7 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>客戶 / 訂單</TableHead>
+                <TableHead>客戶 / 單據</TableHead>
                 <TableHead>品名</TableHead>
                 <TableHead className="w-24 text-right">數量</TableHead>
               </TableRow>
@@ -356,6 +367,9 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
                         </div>
                         <div className="font-mono text-xs text-muted-foreground">
                           {o.order_no ?? "—"}
+                          <span className="ml-1 rounded bg-muted px-1 py-0.5 font-sans text-[10px]">
+                            {o.doc_type === "sales_invoice" ? "銷貨" : "訂單"}
+                          </span>
                         </div>
                         {o.district && (
                           <div className="text-xs text-muted-foreground">
