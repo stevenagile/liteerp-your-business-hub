@@ -188,8 +188,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     docType === "sales_order" ||
     docType === "quotation";
 
-  // 訂單才有派車(車輛+預計配送日)
-  const showDispatch = docType === "sales_order";
+  // 訂單與銷貨單都有派車(車輛+預計配送日);轉單而來的銷貨單由後端觸發器繼承來源訂單
+  const showDispatch = docType === "sales_order" || docType === "sales_invoice";
 
   // ---- 載入基礎資料 + 既有單據 ----
   const loadDoc = async (id: string) => {
@@ -325,7 +325,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       // 草稿狀態下,選擇客戶後預設帶入該客戶的含稅設定(仍可手動改)
       price_includes_tax: c ? Boolean(c.price_includes_tax) : h.price_includes_tax,
     }));
-    // 訂單:依配送規則建議車輛與預計配送日(可手動改)
+    // 訂單/銷貨單:依配送規則建議車輛與預計配送日(可手動改)
     if (showDispatch && id) {
       supabase
         .rpc("next_dispatch", { p_contact_id: id })
