@@ -13,12 +13,15 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppWarehousesRouteImport } from './routes/_app.warehouses'
+import { Route as AppVehiclesRouteImport } from './routes/_app.vehicles'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReceivablesRouteImport } from './routes/_app.receivables'
 import { Route as AppProductsRouteImport } from './routes/_app.products'
 import { Route as AppPayablesRouteImport } from './routes/_app.payables'
 import { Route as AppNotificationsRouteImport } from './routes/_app.notifications'
 import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
+import { Route as AppDispatchRouteImport } from './routes/_app.dispatch'
+import { Route as AppDeliveryRulesRouteImport } from './routes/_app.delivery-rules'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.index'
@@ -67,6 +70,11 @@ const AppWarehousesRoute = AppWarehousesRouteImport.update({
   path: '/warehouses',
   getParentRoute: () => AppRoute,
 } as any)
+const AppVehiclesRoute = AppVehiclesRouteImport.update({
+  id: '/vehicles',
+  path: '/vehicles',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -95,6 +103,16 @@ const AppNotificationsRoute = AppNotificationsRouteImport.update({
 const AppExpensesRoute = AppExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDispatchRoute = AppDispatchRouteImport.update({
+  id: '/dispatch',
+  path: '/dispatch',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDeliveryRulesRoute = AppDeliveryRulesRouteImport.update({
+  id: '/delivery-rules',
+  path: '/delivery-rules',
   getParentRoute: () => AppRoute,
 } as any)
 const AppContactsRoute = AppContactsRouteImport.update({
@@ -244,12 +262,15 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/contacts': typeof AppContactsRoute
+  '/delivery-rules': typeof AppDeliveryRulesRoute
+  '/dispatch': typeof AppDispatchRoute
   '/expenses': typeof AppExpensesRoute
   '/notifications': typeof AppNotificationsRoute
   '/payables': typeof AppPayablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
   '/settings': typeof AppSettingsRouteWithChildren
+  '/vehicles': typeof AppVehiclesRoute
   '/warehouses': typeof AppWarehousesRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
   '/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
@@ -282,11 +303,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/contacts': typeof AppContactsRoute
+  '/delivery-rules': typeof AppDeliveryRulesRoute
+  '/dispatch': typeof AppDispatchRoute
   '/expenses': typeof AppExpensesRoute
   '/notifications': typeof AppNotificationsRoute
   '/payables': typeof AppPayablesRoute
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
+  '/vehicles': typeof AppVehiclesRoute
   '/warehouses': typeof AppWarehousesRoute
   '/': typeof AppIndexRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
@@ -322,12 +346,15 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/contacts': typeof AppContactsRoute
+  '/_app/delivery-rules': typeof AppDeliveryRulesRoute
+  '/_app/dispatch': typeof AppDispatchRoute
   '/_app/expenses': typeof AppExpensesRoute
   '/_app/notifications': typeof AppNotificationsRoute
   '/_app/payables': typeof AppPayablesRoute
   '/_app/products': typeof AppProductsRoute
   '/_app/receivables': typeof AppReceivablesRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
+  '/_app/vehicles': typeof AppVehiclesRoute
   '/_app/warehouses': typeof AppWarehousesRoute
   '/_app/': typeof AppIndexRoute
   '/_app/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
@@ -364,12 +391,15 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/contacts'
+    | '/delivery-rules'
+    | '/dispatch'
     | '/expenses'
     | '/notifications'
     | '/payables'
     | '/products'
     | '/receivables'
     | '/settings'
+    | '/vehicles'
     | '/warehouses'
     | '/docs/inventory-adjust'
     | '/docs/purchase-order'
@@ -402,11 +432,14 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/contacts'
+    | '/delivery-rules'
+    | '/dispatch'
     | '/expenses'
     | '/notifications'
     | '/payables'
     | '/products'
     | '/receivables'
+    | '/vehicles'
     | '/warehouses'
     | '/'
     | '/docs/inventory-adjust'
@@ -441,12 +474,15 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/_app/contacts'
+    | '/_app/delivery-rules'
+    | '/_app/dispatch'
     | '/_app/expenses'
     | '/_app/notifications'
     | '/_app/payables'
     | '/_app/products'
     | '/_app/receivables'
     | '/_app/settings'
+    | '/_app/vehicles'
     | '/_app/warehouses'
     | '/_app/'
     | '/_app/docs/inventory-adjust'
@@ -513,6 +549,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWarehousesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/vehicles': {
+      id: '/_app/vehicles'
+      path: '/vehicles'
+      fullPath: '/vehicles'
+      preLoaderRoute: typeof AppVehiclesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
@@ -553,6 +596,20 @@ declare module '@tanstack/react-router' {
       path: '/expenses'
       fullPath: '/expenses'
       preLoaderRoute: typeof AppExpensesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dispatch': {
+      id: '/_app/dispatch'
+      path: '/dispatch'
+      fullPath: '/dispatch'
+      preLoaderRoute: typeof AppDispatchRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/delivery-rules': {
+      id: '/_app/delivery-rules'
+      path: '/delivery-rules'
+      fullPath: '/delivery-rules'
+      preLoaderRoute: typeof AppDeliveryRulesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/contacts': {
@@ -776,12 +833,15 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppContactsRoute: typeof AppContactsRoute
+  AppDeliveryRulesRoute: typeof AppDeliveryRulesRoute
+  AppDispatchRoute: typeof AppDispatchRoute
   AppExpensesRoute: typeof AppExpensesRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppPayablesRoute: typeof AppPayablesRoute
   AppProductsRoute: typeof AppProductsRoute
   AppReceivablesRoute: typeof AppReceivablesRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
+  AppVehiclesRoute: typeof AppVehiclesRoute
   AppWarehousesRoute: typeof AppWarehousesRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDocsInventoryAdjustRoute: typeof AppDocsInventoryAdjustRoute
@@ -810,12 +870,15 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppContactsRoute: AppContactsRoute,
+  AppDeliveryRulesRoute: AppDeliveryRulesRoute,
+  AppDispatchRoute: AppDispatchRoute,
   AppExpensesRoute: AppExpensesRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppPayablesRoute: AppPayablesRoute,
   AppProductsRoute: AppProductsRoute,
   AppReceivablesRoute: AppReceivablesRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
+  AppVehiclesRoute: AppVehiclesRoute,
   AppWarehousesRoute: AppWarehousesRoute,
   AppIndexRoute: AppIndexRoute,
   AppDocsInventoryAdjustRoute: AppDocsInventoryAdjustRoute,

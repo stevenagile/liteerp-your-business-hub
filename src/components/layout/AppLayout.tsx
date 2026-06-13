@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "@tanstack/react-router";
 import { Menu, UserCircle2, LogOut } from "lucide-react";
-import { Sidebar } from "./Sidebar";
+import { Sidebar, type MenuItem } from "./Sidebar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,8 @@ import {
 
 export function AppLayout() {
   const [open, setOpen] = useState(false);
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [menuLoading, setMenuLoading] = useState(true);
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -24,6 +27,45 @@ export function AppLayout() {
       profile.role
     : "尚未設定角色";
 
+  // Load dynamic menu from core.get_my_menu
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      setMenuLoading(true);
+      const { data, error } = await supabase
+        .schema("core" as never)
+        .rpc("get_my_menu");
+      if (cancelled) return;
+      if (error) {
+        console.error("[menu] get_my_menu error", error);
+        setMenu([]);
+      } else {
+        setMenu((data ?? []) as MenuItem[]);
+      }
+      setMenuLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  // Update last_login_at once per session
+  useEffect(() => {
+    if (!user) return;
+    const key = `last_login_at_set_${user.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    supabase
+      .schema("core" as never)
+      .from("users")
+      .update({ last_login_at: new Date().toISOString() })
+      .eq("id", user.id)
+      .then(({ error }) => {
+        if (error) console.error("[auth] update last_login_at error", error);
+      });
+  }, [user?.id]);
+
   const handleLogout = async () => {
     await signOut();
     navigate({ to: "/login" });
@@ -31,7 +73,7 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar open={open} />
+      <Sidebar open={open} menu={menu} loading={menuLoading} />
 
       {open && (
         <div

@@ -1,130 +1,66 @@
+import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  LayoutDashboard,
-  Users,
-  Package,
-  Warehouse,
-  FileText,
-  ShoppingCart,
-  Receipt,
-  Truck,
-  PackageOpen,
-  ClipboardList,
-  Boxes,
-  Wallet,
-  CircleDollarSign,
-  TrendingUp,
-  BarChart3,
-  UserCheck,
-  Settings,
-  History,
-  ShieldCheck,
-  Car,
-  MapPin,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import * as Icons from "lucide-react";
+import { ChevronDown, ChevronRight, Circle, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext";
 
-type Item = { label: string; to: string; icon: LucideIcon };
-type Group = { title: string; items: Item[] };
+export type MenuItem = {
+  id: string | number;
+  parent_id: string | number | null;
+  label: string;
+  icon: string | null;
+  route: string | null;
+  sort_order: number | null;
+  can_view?: boolean;
+  can_create?: boolean;
+  can_edit?: boolean;
+  can_approve?: boolean;
+};
 
-const groups: Group[] = [
-  {
-    title: "總覽",
-    items: [{ label: "儀表板", to: "/", icon: LayoutDashboard }],
-  },
-  {
-    title: "基礎資料",
-    items: [
-      { label: "客戶廠商", to: "/contacts", icon: Users },
-      { label: "產品", to: "/products", icon: Package },
-      { label: "倉庫", to: "/warehouses", icon: Warehouse },
-    ],
-  },
-  {
-    title: "銷售",
-    items: [
-      { label: "報價單", to: "/docs/quotation", icon: FileText },
-      { label: "訂單", to: "/docs/sales-order", icon: ShoppingCart },
-      { label: "銷貨單", to: "/docs/sales-invoice", icon: Receipt },
-      { label: "銷退單", to: "/docs/sales-return", icon: PackageOpen },
-    ],
-  },
-  {
-    title: "採購",
-    items: [
-      { label: "採購單", to: "/docs/purchase-order", icon: Truck },
-      { label: "進貨單", to: "/docs/purchase-receipt", icon: PackageOpen },
-    ],
-  },
-  {
-    title: "庫存",
-    items: [
-      { label: "庫存總覽", to: "/inventory", icon: Boxes },
-      { label: "庫存異動明細", to: "/inventory/ledger", icon: History },
-      { label: "庫存調整", to: "/docs/inventory-adjust", icon: ClipboardList },
-    ],
-  },
-  {
-    title: "物流",
-    items: [
-      { label: "派車單", to: "/dispatch", icon: Truck },
-      { label: "車輛管理", to: "/vehicles", icon: Car },
-      { label: "配送規則", to: "/delivery-rules", icon: MapPin },
-    ],
-  },
-  {
-    title: "帳務",
-    items: [
-      { label: "應收帳款", to: "/receivables", icon: Wallet },
-      { label: "應付帳款", to: "/payables", icon: Wallet },
-      { label: "收款結帳", to: "/settlement/customer", icon: Wallet },
-      { label: "付款結帳", to: "/settlement/vendor", icon: Wallet },
-      { label: "客戶對帳單", to: "/statements/customer", icon: FileText },
-      { label: "廠商對帳單", to: "/statements/vendor", icon: FileText },
-      { label: "費用管理", to: "/expenses", icon: CircleDollarSign },
-    ],
-  },
-  {
-    title: "報表",
-    items: [
-      { label: "月營收", to: "/reports/revenue", icon: BarChart3 },
-      { label: "月損益", to: "/reports/pnl", icon: TrendingUp },
-      { label: "產品利潤", to: "/reports/product-profit", icon: BarChart3 },
-      { label: "客戶利潤", to: "/reports/customer-profit", icon: UserCheck },
-      { label: "銷貨明細", to: "/reports/sales-detail", icon: BarChart3 },
-      { label: "進貨明細", to: "/reports/purchase-detail", icon: BarChart3 },
-      { label: "帳齡分析", to: "/reports/aging", icon: BarChart3 },
-      { label: "業務績效", to: "/reports/salesperson", icon: UserCheck },
-    ],
-  },
-  {
-    title: "系統",
-    items: [{ label: "系統設定", to: "/settings", icon: Settings }],
-  },
-];
+type Node = MenuItem & { children: Node[] };
 
-const adminItems: Item[] = [
-  { label: "使用者管理", to: "/settings/users", icon: Users },
-  { label: "權限設定", to: "/settings/permissions", icon: ShieldCheck },
-  { label: "系統開帳", to: "/settings/opening", icon: ClipboardList },
-  { label: "進階參數", to: "/settings/advanced", icon: Settings },
-];
-
-export function Sidebar({ open }: { open: boolean }) {
-  const pathname = useRouterState({
-    select: (s) => s.location.pathname,
+function buildTree(items: MenuItem[]): Node[] {
+  const map = new Map<string | number, Node>();
+  items.forEach((it) => map.set(it.id, { ...it, children: [] }));
+  const roots: Node[] = [];
+  map.forEach((node) => {
+    if (node.parent_id != null && map.has(node.parent_id)) {
+      map.get(node.parent_id)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
   });
-  const { profile } = useAuth();
-  const isAdmin = profile?.role === "admin";
-  const displayGroups = isAdmin
-    ? groups.map((g) =>
-        g.title === "系統"
-          ? { ...g, items: [...g.items, ...adminItems] }
-          : g,
-      )
-    : groups;
+  const sortRec = (arr: Node[]) => {
+    arr.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    arr.forEach((n) => sortRec(n.children));
+  };
+  sortRec(roots);
+  return roots;
+}
+
+// Map kebab/snake icon name from DB to lucide-react PascalCase component
+function resolveIcon(name: string | null | undefined): LucideIcon | null {
+  if (!name) return null;
+  const pascal = name
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join("");
+  const Comp = (Icons as unknown as Record<string, LucideIcon>)[pascal];
+  return Comp ?? null;
+}
+
+export function Sidebar({
+  open,
+  menu,
+  loading,
+}: {
+  open: boolean;
+  menu: MenuItem[];
+  loading?: boolean;
+}) {
+  const tree = buildTree(menu);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <aside
@@ -148,40 +84,118 @@ export function Sidebar({ open }: { open: boolean }) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 py-3">
-        {displayGroups.map((g) => (
-          <div key={g.title} className="mb-4">
-            <div className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/50">
-              {g.title}
-            </div>
-            <ul className="space-y-0.5">
-              {g.items.map((item) => {
-                const active = pathname === item.to;
-                const Icon = item.icon;
-                return (
-                  <li key={item.to}>
-                    <Link
-                      to={item.to}
-                      className={cn(
-                        "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
-                        active
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
-                      )}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+        {loading && (
+          <div className="px-3 py-2 text-xs text-sidebar-foreground/50">
+            載入選單中…
           </div>
-        ))}
+        )}
+        {!loading && tree.length === 0 && (
+          <div className="px-3 py-2 text-xs text-sidebar-foreground/50">
+            無可顯示的選單
+          </div>
+        )}
+        <ul className="space-y-0.5">
+          {tree.map((n) => (
+            <MenuNode key={n.id} node={n} depth={0} pathname={pathname} />
+          ))}
+        </ul>
       </nav>
 
       <div className="border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/50">
         v0.1.0 · 開發版
       </div>
     </aside>
+  );
+}
+
+function MenuNode({
+  node,
+  depth,
+  pathname,
+}: {
+  node: Node;
+  depth: number;
+  pathname: string;
+}) {
+  const Icon = resolveIcon(node.icon) ?? (depth === 0 ? null : Circle);
+  const isGroup = node.route == null;
+  const hasChildren = node.children.length > 0;
+  const containsActive = (n: Node): boolean =>
+    (n.route != null && n.route === pathname) ||
+    n.children.some(containsActive);
+  const [open, setOpen] = useState<boolean>(
+    isGroup ? containsActive(node) || depth === 0 : false,
+  );
+
+  const indent = { paddingLeft: `${0.75 + depth * 0.75}rem` };
+
+  if (isGroup) {
+    return (
+      <li>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          style={indent}
+          className={cn(
+            "flex w-full items-center gap-2 rounded-md py-2 pr-2 text-left text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/60 hover:text-sidebar-foreground",
+          )}
+        >
+          {hasChildren ? (
+            open ? (
+              <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+            )
+          ) : (
+            <span className="w-3.5" />
+          )}
+          {Icon && <Icon className="h-3.5 w-3.5 shrink-0" />}
+          <span className="truncate">{node.label}</span>
+        </button>
+        {hasChildren && open && (
+          <ul className="space-y-0.5">
+            {node.children.map((c) => (
+              <MenuNode
+                key={c.id}
+                node={c}
+                depth={depth + 1}
+                pathname={pathname}
+              />
+            ))}
+          </ul>
+        )}
+      </li>
+    );
+  }
+
+  const active = pathname === node.route;
+  return (
+    <li>
+      <Link
+        to={node.route!}
+        style={indent}
+        className={cn(
+          "flex items-center gap-2.5 rounded-md py-2 pr-3 text-sm transition-colors",
+          active
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+        )}
+      >
+        {Icon && <Icon className="h-4 w-4 shrink-0" />}
+        <span className="truncate">{node.label}</span>
+      </Link>
+      {hasChildren && (
+        <ul className="space-y-0.5">
+          {node.children.map((c) => (
+            <MenuNode
+              key={c.id}
+              node={c}
+              depth={depth + 1}
+              pathname={pathname}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
   );
 }
