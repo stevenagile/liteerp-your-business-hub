@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import {
   CircleCheck,
@@ -94,23 +95,32 @@ function Dashboard() {
     })();
 
     (async () => {
-      const [rev, pnl, stock] = await Promise.all([
-        supabase
-          .from("v_monthly_revenue")
-          .select("month, revenue, outstanding")
-          .order("month", { ascending: false })
-          .limit(12),
-        supabase
-          .from("v_monthly_pnl")
-          .select("month, revenue, net_profit, gross_margin_pct, net_margin_pct")
-          .order("month", { ascending: false })
-          .limit(12),
-        supabase.from("v_stock").select("is_low").eq("is_low", true),
-      ]);
-      if (cancelled) return;
-      setRevenueRows((rev.data as RevenueRow[]) ?? []);
-      setPnlRows((pnl.data as PnlRow[]) ?? []);
-      setLowStockCount(stock.data?.length ?? 0);
+      try {
+        const [rev, pnl, stock] = await Promise.all([
+          supabase
+            .from("v_monthly_revenue")
+            .select("month, revenue, outstanding")
+            .order("month", { ascending: false })
+            .limit(12),
+          supabase
+            .from("v_monthly_pnl")
+            .select("month, revenue, net_profit, gross_margin_pct, net_margin_pct")
+            .order("month", { ascending: false })
+            .limit(12),
+          supabase.from("v_stock").select("is_low").eq("is_low", true),
+        ]);
+        if (cancelled) return;
+        const firstErr = rev.error || pnl.error || stock.error;
+        if (firstErr) toast.error("部分營運數據讀取失敗：" + firstErr.message);
+        setRevenueRows((rev.data as RevenueRow[]) ?? []);
+        setPnlRows((pnl.data as PnlRow[]) ?? []);
+        setLowStockCount(stock.data?.length ?? 0);
+      } catch (e) {
+        if (!cancelled)
+          toast.error(
+            "營運數據讀取失敗：" + (e instanceof Error ? e.message : String(e)),
+          );
+      }
     })();
 
     return () => {
@@ -226,15 +236,15 @@ function Dashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" fontSize={12} />
-                  <YAxis fontSize={12} tickFormatter={(v) => Number(v).toLocaleString()} />
+                  <XAxis dataKey="month" fontSize={13} />
+                  <YAxis fontSize={13} tickFormatter={(v) => Number(v).toLocaleString()} />
                   <Tooltip
                     formatter={(v: number) => Number(v).toLocaleString()}
                     contentStyle={{
                       background: "hsl(var(--card))",
                       border: "1px solid hsl(var(--border))",
                       borderRadius: 6,
-                      fontSize: 12,
+                      fontSize: 13,
                     }}
                   />
                   <Legend />
@@ -313,7 +323,7 @@ function MarginStat({
 }) {
   return (
     <div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-sm text-muted-foreground">{label}</div>
       <div className={`mt-1 text-3xl font-bold ${accent}`}>
         {Number(value ?? 0).toFixed(2)}%
       </div>
