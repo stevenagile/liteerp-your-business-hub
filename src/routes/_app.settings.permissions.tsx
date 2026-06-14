@@ -95,7 +95,14 @@ function PermissionsPage() {
         load();
       }
     } else {
+      // 新增時需帶 company_id（NOT NULL）
+      const { data: cid, error: cErr } = await supabase.rpc("my_company_id");
+      if (cErr) {
+        toast.error("取得公司失敗:" + cErr.message);
+        return;
+      }
       const payload = {
+        company_id: cid,
         role,
         module,
         can_read: false,
@@ -137,9 +144,9 @@ function PermissionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">權限設定</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">功能權限（業務模組）</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          管理各角色對各模組的操作權限。管理員擁有所有權限,不在此表控管。
+          管理各角色對各業務模組的操作權限（讀取 / 編輯 / 確認 / 作廢）。管理員擁有所有權限,不在此表控管。注：「選單顯示」請到「角色權限」頁設定。
         </p>
       </div>
 
@@ -172,7 +179,7 @@ function PermissionsPage() {
                           {ACTIONS.map((a) => (
                             <label
                               key={a.key}
-                              className="flex items-center gap-1.5 text-xs"
+                              className="flex items-center gap-1.5 text-sm"
                             >
                               <Checkbox
                                 checked={Boolean(row?.[a.key as keyof Perm])}
