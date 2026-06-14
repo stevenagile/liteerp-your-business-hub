@@ -67,11 +67,12 @@ function UsersPage() {
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [editName, setEditName] = useState("");
 
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteName, setInviteName] = useState("");
-  const [inviteRole, setInviteRole] = useState<string>("");
-  const [inviting, setInviting] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newName, setNewName] = useState("");
+  const [newRole, setNewRole] = useState<string>("");
+  const [creating, setCreating] = useState(false);
 
   const roleLabel = (code: string | null) =>
     roles.find((r) => r.code === code)?.label ?? code ?? "—";
@@ -149,30 +150,36 @@ function UsersPage() {
     load();
   };
 
-  const invite = async (e: FormEvent) => {
+  const createUser = async (e: FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail || !inviteRole) {
-      toast.error("請輸入 Email 並選擇角色");
+    if (!newEmail || !newPassword || !newRole) {
+      toast.error("請輸入 Email、密碼並選擇角色");
       return;
     }
-    setInviting(true);
-    const { error } = await supabase.functions.invoke("invite_user", {
+    if (newPassword.length < 6) {
+      toast.error("密碼至少 6 碼");
+      return;
+    }
+    setCreating(true);
+    const { error } = await supabase.functions.invoke("create_user", {
       body: {
-        email: inviteEmail.trim(),
-        role: inviteRole,
-        display_name: inviteName.trim() || undefined,
+        email: newEmail.trim(),
+        password: newPassword,
+        role: newRole,
+        display_name: newName.trim() || undefined,
       },
     });
-    setInviting(false);
+    setCreating(false);
     if (error) {
-      toast.error(error.message || "邀請失敗");
+      toast.error(error.message || "建立失敗");
       return;
     }
-    toast.success("已寄出邀請信");
-    setInviteOpen(false);
-    setInviteEmail("");
-    setInviteName("");
-    setInviteRole("");
+    toast.success("帳號已建立，請將帳密交給使用者");
+    setCreateOpen(false);
+    setNewEmail("");
+    setNewPassword("");
+    setNewName("");
+    setNewRole("");
     load();
   };
 
@@ -204,9 +211,9 @@ function UsersPage() {
             )}
           </p>
         </div>
-        <Button onClick={() => setInviteOpen(true)} disabled={!canEdit} size="sm">
+        <Button onClick={() => setCreateOpen(true)} disabled={!canEdit} size="sm">
           <UserPlus className="mr-2 h-4 w-4" />
-          邀請使用者
+          新增使用者
         </Button>
       </div>
 
@@ -343,37 +350,47 @@ function UsersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 邀請使用者 */}
-      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+      {/* 新增使用者 */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>邀請使用者</DialogTitle>
+            <DialogTitle>新增使用者</DialogTitle>
           </DialogHeader>
-          <form onSubmit={invite} className="space-y-4">
+          <form onSubmit={createUser} className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              系統會建立帳號並寄出邀請信，對方點信中連結設定密碼即可登入。
+              由管理員直接設定帳號密碼，建立後即可登入。請將帳密交給使用者。
             </p>
             <div className="space-y-2">
               <Label>Email</Label>
               <Input
                 type="email"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="user@example.com"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>密碼（至少 6 碼）</Label>
+              <Input
+                type="text"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="設定初始密碼"
                 required
               />
             </div>
             <div className="space-y-2">
               <Label>姓名（可選）</Label>
               <Input
-                value={inviteName}
-                onChange={(e) => setInviteName(e.target.value)}
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
                 placeholder="顯示姓名"
               />
             </div>
             <div className="space-y-2">
               <Label>角色</Label>
-              <Select value={inviteRole} onValueChange={setInviteRole}>
+              <Select value={newRole} onValueChange={setNewRole}>
                 <SelectTrigger>
                   <SelectValue placeholder="選擇角色" />
                 </SelectTrigger>
@@ -390,13 +407,13 @@ function UsersPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setInviteOpen(false)}
+                onClick={() => setCreateOpen(false)}
               >
                 取消
               </Button>
-              <Button type="submit" disabled={inviting}>
-                {inviting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                送出邀請
+              <Button type="submit" disabled={creating}>
+                {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                建立帳號
               </Button>
             </DialogFooter>
           </form>
