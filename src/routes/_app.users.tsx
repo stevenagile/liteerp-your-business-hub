@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Loader2, Pencil, UserPlus } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -67,11 +67,6 @@ function UsersPage() {
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [editName, setEditName] = useState("");
 
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<string>("");
-  const [inviting, setInviting] = useState(false);
-
   const roleLabel = (code: string | null) =>
     roles.find((r) => r.code === code)?.label ?? code ?? "—";
 
@@ -79,14 +74,8 @@ function UsersPage() {
   useEffect(() => {
     (async () => {
       const [{ data: viewOk }, { data: editOk }] = await Promise.all([
-        core().rpc("has_menu_access", {
-          p_menu: "user_list",
-          p_action: "view",
-        }),
-        core().rpc("has_menu_access", {
-          p_menu: "user_list",
-          p_action: "edit",
-        }),
+        core().rpc("has_menu_access", { p_menu: "user_list", p_action: "view" }),
+        core().rpc("has_menu_access", { p_menu: "user_list", p_action: "edit" }),
       ]);
       const v = viewOk === true;
       setCanView(v);
@@ -154,29 +143,6 @@ function UsersPage() {
     load();
   };
 
-  const invite = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!inviteEmail || !inviteRole) {
-      toast.error("請輸入 Email 並選擇角色");
-      return;
-    }
-    setInviting(true);
-    const { data, error } = await supabase.functions.invoke("invite_user", {
-      body: { email: inviteEmail.trim(), role: inviteRole },
-    });
-    setInviting(false);
-    if (error) {
-      toast.error(error.message || "邀請失敗");
-      return;
-    }
-    toast.success("已寄出邀請");
-    setInviteOpen(false);
-    setInviteEmail("");
-    setInviteRole("");
-    load();
-    void data;
-  };
-
   if (guardLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -197,7 +163,7 @@ function UsersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">使用者管理</h1>
+          <h1 className="text-2xl font-semibold">使用者管理</h1>
           <p className="text-sm text-muted-foreground">
             管理系統使用者、角色與啟用狀態
             {!canEdit && (
@@ -205,19 +171,9 @@ function UsersPage() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setInviteOpen(true)}
-            disabled={!canEdit}
-            size="sm"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            邀請使用者
-          </Button>
-          <span className="text-xs text-muted-foreground">
-            需後端 Edge Function: invite_user
-          </span>
-        </div>
+        <span className="text-xs text-muted-foreground">
+          新增帳號請至 Supabase 後台建立（邀請功能待建）
+        </span>
       </div>
 
       <div className="rounded-md border bg-card">
@@ -261,7 +217,7 @@ function UsersPage() {
                         value={u.role ?? ""}
                         onValueChange={(v) => updateRole(u, v)}
                       >
-                        <SelectTrigger className="h-8">
+                        <SelectTrigger className="h-9">
                           <SelectValue placeholder="選擇角色" />
                         </SelectTrigger>
                         <SelectContent>
@@ -348,60 +304,6 @@ function UsersPage() {
                 取消
               </Button>
               <Button type="submit">儲存</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* 邀請使用者 */}
-      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>邀請使用者</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={invite} className="space-y-4">
-            <p className="text-xs text-muted-foreground">
-              建立登入帳號需透過 Supabase Auth,送出後將呼叫後端 Edge Function
-              <code className="mx-1 rounded bg-muted px-1">invite_user</code>
-              寄出邀請信。
-            </p>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input
-                type="email"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder="user@example.com"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>角色</Label>
-              <Select value={inviteRole} onValueChange={setInviteRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="選擇角色" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((r) => (
-                    <SelectItem key={r.code} value={r.code}>
-                      {r.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setInviteOpen(false)}
-              >
-                取消
-              </Button>
-              <Button type="submit" disabled={inviting}>
-                {inviting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                送出邀請
-              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
