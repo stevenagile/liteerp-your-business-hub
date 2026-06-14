@@ -140,6 +140,16 @@
   }
 }
 
+/* === 可讀性下限：拉高全站極小字（長輩友善） === */
+.text-\[10px\] {
+  font-size: 0.8125rem !important;
+  line-height: 1.45 !important;
+}
+.text-\[11px\] {
+  font-size: 0.8125rem !important;
+  line-height: 1.45 !important;
+}
+
 @media print {
   /* 列印時以標準 16px，避免放大影響版面 */
   html {

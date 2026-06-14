@@ -62,7 +62,8 @@ export function notificationLink(n: Notification): string | null {
 }
 
 export function NotificationBell() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const companyId = (profile as { company_id?: string } | null)?.company_id;
   const [items, setItems] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
@@ -84,13 +85,18 @@ export function NotificationBell() {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !companyId) return;
     load();
     const channel = supabase
       .channel("notif")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications" },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `company_id=eq.${companyId}`,
+        },
         (payload) => {
           const n = payload.new as Notification;
           setItems((prev) => [n, ...prev].slice(0, 10));
@@ -105,7 +111,7 @@ export function NotificationBell() {
       supabase.removeChannel(channel);
       if (animTimer.current) clearTimeout(animTimer.current);
     };
-  }, [user]);
+  }, [user, companyId]);
 
   const markRead = async (n: Notification) => {
     if (n.is_read) return;
@@ -162,11 +168,11 @@ export function NotificationBell() {
                     <div className="truncate text-sm font-medium">{n.title ?? meta.label}</div>
                   </div>
                   {n.message && (
-                    <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                    <div className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
                       {n.message}
                     </div>
                   )}
-                  <div className="mt-1 text-[11px] text-muted-foreground">
+                  <div className="mt-1 text-xs text-muted-foreground">
                     {relativeTime(n.created_at)}
                   </div>
                 </div>
