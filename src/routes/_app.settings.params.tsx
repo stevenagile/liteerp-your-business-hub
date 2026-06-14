@@ -21,26 +21,37 @@ export const Route = createFileRoute("/_app/settings/params")({
 
 const core = () => supabase.schema("core" as never);
 
-type CompanySettings = {
-  company_id: string;
+// 公司識別資料：直接讀寫 public.company（單據計稅與列印的真正來源）
+type Company = {
+  id: string;
   name: string | null;
   tax_id: string | null;
-  owner: string | null;
   address: string | null;
   phone: string | null;
   email: string | null;
-  invoice_title: string | null;
   logo_url: string | null;
+  tax_rate: number | null; // 小數，如 0.05
+  default_currency: string | null;
+  settings: Record<string, unknown> | null;
 };
 
-type SystemParams = {
-  company_id: string;
-  tax_rate: number | null; // 存小數 0.05
-  currency: string | null;
-  fiscal_year_start_month: number | null;
-  doc_number_format: string | null;
-  rounding_mode: string | null;
-  default_warehouse_id: string | null;
+// 額外參數，存於 company.settings JSON（不影響既有其他鍵）
+type Extra = {
+  owner: string;
+  invoice_title: string;
+  fiscal_year_start_month: number;
+  doc_number_format: string;
+  rounding_mode: string;
+  default_warehouse_id: string;
+};
+
+const DEFAULT_EXTRA: Extra = {
+  owner: "",
+  invoice_title: "",
+  fiscal_year_start_month: 1,
+  doc_number_format: "{TYPE}-{YYYYMMDD}-{SEQ:3}",
+  rounding_mode: "round",
+  default_warehouse_id: "",
 };
 
 function ParamsPage() {
@@ -52,26 +63,21 @@ function ParamsPage() {
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [company, setCompany] = useState<CompanySettings | null>(null);
-  const [params, setParams] = useState<SystemParams | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
+  const [extra, setExtra] = useState<Extra>(DEFAULT_EXTRA);
+  const [otherSettings, setOtherSettings] = useState<Record<string, unknown>>({});
   const [taxRatePct, setTaxRatePct] = useState<string>("");
 
   const [savingCompany, setSavingCompany] = useState(false);
   const [savingParams, setSavingParams] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // 守衛
+  // 守衛（沿用 core 選單權限）
   useEffect(() => {
     (async () => {
       const [{ data: v }, { data: e }] = await Promise.all([
-        core().rpc("has_menu_access", {
-          p_menu: "env_params",
-          p_action: "view",
-        }),
-        core().rpc("has_menu_access", {
-          p_menu: "env_params",
-          p_action: "edit",
-        }),
+        core().rpc("has_menu_access", { p_menu: "env_params", p_action: "view" }),
+        core().rpc("has_menu_access", { p_menu: "env_params", p_action: "edit" }),
       ]);
       const ok = v === true;
       setCanView(ok);
@@ -84,7 +90,6 @@ function ParamsPage() {
     })();
   }, [navigate]);
 
-  // 取 company_id 與資料
   useEffect(() => {
     if (!canView) return;
     (async () => {
@@ -97,53 +102,69 @@ function ParamsPage() {
       }
       setCompanyId(cid as string);
 
-      const [c, p] = await Promise.all([
-        core()
-          .from("company_settings")
-          .select("*")
-          .eq("company_id", cid)
-          .maybeSingle(),
-        core()
-          .from("system_params")
-          .select("*")
-          .eq("company_id", cid)
-          .maybeSingle(),
-      ]);
+      const { data, error } = await supabase
+        .from("company")
+        .select(
+          "id,name,tax_id,address,phone,email,logo_url,tax_rate,default_currency,settings",
+        )
+        .eq("id", cid)
+        .maybeSingle();
+      if (error) toast.error(error.message);
 
-      if (c.error) toast.error(c.error.message);
-      const cs =
-        (c.data as CompanySettings | null) ?? ({
-          company_id: cid as string,
-          name: "",
-          tax_id: "",
-          owner: "",
-          address: "",
-          phone: "",
-          email: "",
-          invoice_title: "",
-          logo_url: "",
-        } as CompanySettings);
-      setCompany(cs);
-
-      if (p.error) toast.error(p.error.message);
-      const sp =
-        (p.data as SystemParams | null) ?? ({
-          company_id: cid as string,
-          tax_rate: 0.05,
-          currency: "TWD",
-          fiscal_year_start_month: 1,
-          doc_number_format: "{TYPE}-{YYYYMMDD}-{SEQ:3}",
-          rounding_mode: "round",
-          default_warehouse_id: null,
-        } as SystemParams);
-      setParams(sp);
+      const c = (data as Company | null) ?? ({
+        id: cid as string,
+        name: "",
+        tax_id: "",
+        address: "",
+        phone: "",
+        email: "",
+        logo_url: "",
+        tax_rate: 0.05,
+        default_currency: "TWD",
+        settings: {},
+      } as Company);
+      setCompany(c);
       setTaxRatePct(
-        sp.tax_rate != null ? String(Math.round(sp.tax_rate * 10000) / 100) : "",
+        c.tax_rate != null ? String(Math.round(c.tax_rate * 10000) / 100) : "",
       );
+
+      const s = (c.settings ?? {}) as Record<string, unknown>;
+      const known = [
+        "owner",
+        "invoice_title",
+        "fiscal_year_start_month",
+        "doc_number_format",
+        "rounding_mode",
+        "default_warehouse_id",
+      ];
+      const rest: Record<string, unknown> = {};
+      Object.keys(s).forEach((k) => {
+        if (!known.includes(k)) rest[k] = s[k];
+      });
+      setOtherSettings(rest);
+      setExtra({
+        owner: (s.owner as string) ?? "",
+        invoice_title: (s.invoice_title as string) ?? "",
+        fiscal_year_start_month: (s.fiscal_year_start_month as number) ?? 1,
+        doc_number_format:
+          (s.doc_number_format as string) ?? DEFAULT_EXTRA.doc_number_format,
+        rounding_mode: (s.rounding_mode as string) ?? "round",
+        default_warehouse_id: (s.default_warehouse_id as string) ?? "",
+      });
 
       setLoading(false);
     })();
   }, [canView]);
+
+  const mergedSettings = (e: Extra) => ({
+    ...otherSettings,
+    owner: e.owner || null,
+    invoice_title: e.invoice_title || null,
+    fiscal_year_start_month: e.fiscal_year_start_month,
+    doc_number_format: e.doc_number_format,
+    rounding_mode: e.rounding_mode,
+    default_warehouse_id: e.default_warehouse_id || null,
+  });
 
   const handleLogoUpload = async (file: File) => {
     if (!companyId) return;
@@ -168,22 +189,18 @@ function ParamsPage() {
     e.preventDefault();
     if (!company || !companyId) return;
     setSavingCompany(true);
-    const { error } = await core()
-      .from("company_settings")
-      .upsert(
-        {
-          company_id: companyId,
-          name: company.name,
-          tax_id: company.tax_id,
-          owner: company.owner,
-          address: company.address,
-          phone: company.phone,
-          email: company.email,
-          invoice_title: company.invoice_title,
-          logo_url: company.logo_url,
-        },
-        { onConflict: "company_id" },
-      );
+    const { error } = await supabase
+      .from("company")
+      .update({
+        name: company.name,
+        tax_id: company.tax_id,
+        address: company.address,
+        phone: company.phone,
+        email: company.email,
+        logo_url: company.logo_url,
+        settings: mergedSettings(extra),
+      })
+      .eq("id", companyId);
     setSavingCompany(false);
     if (error) return toast.error(error.message);
     toast.success("已儲存公司基本資料");
@@ -191,35 +208,29 @@ function ParamsPage() {
 
   const saveParams = async (e: FormEvent) => {
     e.preventDefault();
-    if (!params || !companyId) return;
+    if (!company || !companyId) return;
 
     const pct = Number(taxRatePct);
     if (isNaN(pct) || pct < 0 || pct > 100) {
       return toast.error("稅率必須為 0-100 之間的數字");
     }
-    const m = Number(params.fiscal_year_start_month ?? 0);
+    const m = Number(extra.fiscal_year_start_month ?? 0);
     if (!Number.isInteger(m) || m < 1 || m > 12) {
       return toast.error("會計年度起始月必須為 1-12");
     }
 
     setSavingParams(true);
-    const { error } = await core()
-      .from("system_params")
-      .upsert(
-        {
-          company_id: companyId,
-          tax_rate: Math.round(pct * 100) / 10000,
-          currency: params.currency || "TWD",
-          fiscal_year_start_month: m,
-          doc_number_format: params.doc_number_format,
-          rounding_mode: params.rounding_mode || "round",
-          default_warehouse_id: params.default_warehouse_id || null,
-        },
-        { onConflict: "company_id" },
-      );
+    const { error } = await supabase
+      .from("company")
+      .update({
+        tax_rate: Math.round(pct * 100) / 10000,
+        default_currency: company.default_currency || "TWD",
+        settings: mergedSettings(extra),
+      })
+      .eq("id", companyId);
     setSavingParams(false);
     if (error) return toast.error(error.message);
-    toast.success("已儲存系統參數");
+    toast.success("已儲存財稅參數");
   };
 
   if (guardLoading) {
@@ -236,7 +247,7 @@ function ParamsPage() {
       </div>
     );
   }
-  if (loading || !company || !params) {
+  if (loading || !company) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -249,20 +260,17 @@ function ParamsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">系統參數設定</h1>
+        <h1 className="text-2xl font-semibold">環境參數設定</h1>
         <p className="text-sm text-muted-foreground">
-          公司資料、財稅與單據相關參數
+          公司資料、財稅與單據相關參數（與單據計稅、列印共用同一份公司資料）
           {ro && <span className="ml-2 text-xs">(目前為唯讀檢視)</span>}
         </p>
       </div>
 
       {/* 區塊一:公司基本資料 */}
-      <form
-        onSubmit={saveCompany}
-        className="rounded-md border bg-card"
-      >
+      <form onSubmit={saveCompany} className="rounded-md border bg-card">
         <div className="flex items-center justify-between border-b px-4 py-2.5">
-          <div className="text-sm font-medium">公司基本資料</div>
+          <div className="text-base font-medium">公司基本資料</div>
           <Button type="submit" size="sm" disabled={ro || savingCompany}>
             {savingCompany ? (
               <Loader2 className="mr-1 h-4 w-4 animate-spin" />
@@ -279,9 +287,7 @@ function ParamsPage() {
               value={company.name ?? ""}
               maxLength={100}
               disabled={ro}
-              onChange={(e) =>
-                setCompany({ ...company, name: e.target.value })
-              }
+              onChange={(e) => setCompany({ ...company, name: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -290,20 +296,16 @@ function ParamsPage() {
               value={company.tax_id ?? ""}
               maxLength={20}
               disabled={ro}
-              onChange={(e) =>
-                setCompany({ ...company, tax_id: e.target.value })
-              }
+              onChange={(e) => setCompany({ ...company, tax_id: e.target.value })}
             />
           </div>
           <div className="space-y-2">
             <Label>負責人</Label>
             <Input
-              value={company.owner ?? ""}
+              value={extra.owner}
               maxLength={50}
               disabled={ro}
-              onChange={(e) =>
-                setCompany({ ...company, owner: e.target.value })
-              }
+              onChange={(e) => setExtra({ ...extra, owner: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -312,9 +314,7 @@ function ParamsPage() {
               value={company.phone ?? ""}
               maxLength={30}
               disabled={ro}
-              onChange={(e) =>
-                setCompany({ ...company, phone: e.target.value })
-              }
+              onChange={(e) => setCompany({ ...company, phone: e.target.value })}
             />
           </div>
           <div className="space-y-2 md:col-span-2">
@@ -323,9 +323,7 @@ function ParamsPage() {
               value={company.address ?? ""}
               maxLength={200}
               disabled={ro}
-              onChange={(e) =>
-                setCompany({ ...company, address: e.target.value })
-              }
+              onChange={(e) => setCompany({ ...company, address: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -335,19 +333,17 @@ function ParamsPage() {
               value={company.email ?? ""}
               maxLength={120}
               disabled={ro}
-              onChange={(e) =>
-                setCompany({ ...company, email: e.target.value })
-              }
+              onChange={(e) => setCompany({ ...company, email: e.target.value })}
             />
           </div>
           <div className="space-y-2">
             <Label>發票抬頭</Label>
             <Input
-              value={company.invoice_title ?? ""}
+              value={extra.invoice_title}
               maxLength={100}
               disabled={ro}
               onChange={(e) =>
-                setCompany({ ...company, invoice_title: e.target.value })
+                setExtra({ ...extra, invoice_title: e.target.value })
               }
             />
           </div>
@@ -361,7 +357,7 @@ function ParamsPage() {
                   className="h-16 w-16 rounded border bg-muted object-contain"
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded border bg-muted text-[10px] text-muted-foreground">
+                <div className="flex h-16 w-16 items-center justify-center rounded border bg-muted text-xs text-muted-foreground">
                   無
                 </div>
               )}
@@ -378,14 +374,14 @@ function ParamsPage() {
                   <label
                     className={
                       ro
-                        ? "pointer-events-none inline-flex items-center gap-1 text-xs text-muted-foreground"
-                        : "inline-flex cursor-pointer items-center gap-1 text-xs text-primary hover:underline"
+                        ? "pointer-events-none inline-flex items-center gap-1 text-sm text-muted-foreground"
+                        : "inline-flex cursor-pointer items-center gap-1 text-sm text-primary hover:underline"
                     }
                   >
                     {uploading ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
-                      <Upload className="h-3 w-3" />
+                      <Upload className="h-3.5 w-3.5" />
                     )}
                     上傳圖片 (storage: company-assets)
                     <input
@@ -408,12 +404,9 @@ function ParamsPage() {
       </form>
 
       {/* 區塊二:財稅 / 單據參數 */}
-      <form
-        onSubmit={saveParams}
-        className="rounded-md border bg-card"
-      >
+      <form onSubmit={saveParams} className="rounded-md border bg-card">
         <div className="flex items-center justify-between border-b px-4 py-2.5">
-          <div className="text-sm font-medium">財稅 / 單據參數</div>
+          <div className="text-base font-medium">財稅 / 單據參數</div>
           <Button type="submit" size="sm" disabled={ro || savingParams}>
             {savingParams ? (
               <Loader2 className="mr-1 h-4 w-4 animate-spin" />
@@ -439,27 +432,30 @@ function ParamsPage() {
               />
               <span className="text-sm text-muted-foreground">%</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              儲存時自動轉為小數(如 5% → 0.05)
+            <p className="text-sm text-muted-foreground">
+              儲存時自動轉為小數(如 5% → 0.05)，單據計稅即時套用
             </p>
           </div>
           <div className="space-y-2">
             <Label>幣別</Label>
             <Input
-              value={params.currency ?? "TWD"}
+              value={company.default_currency ?? "TWD"}
               maxLength={10}
               disabled={ro}
               onChange={(e) =>
-                setParams({ ...params, currency: e.target.value.toUpperCase() })
+                setCompany({
+                  ...company,
+                  default_currency: e.target.value.toUpperCase(),
+                })
               }
             />
           </div>
           <div className="space-y-2">
             <Label>會計年度起始月</Label>
             <Select
-              value={String(params.fiscal_year_start_month ?? 1)}
+              value={String(extra.fiscal_year_start_month ?? 1)}
               onValueChange={(v) =>
-                setParams({ ...params, fiscal_year_start_month: Number(v) })
+                setExtra({ ...extra, fiscal_year_start_month: Number(v) })
               }
               disabled={ro}
             >
@@ -478,10 +474,8 @@ function ParamsPage() {
           <div className="space-y-2">
             <Label>四捨五入</Label>
             <Select
-              value={params.rounding_mode ?? "round"}
-              onValueChange={(v) =>
-                setParams({ ...params, rounding_mode: v })
-              }
+              value={extra.rounding_mode ?? "round"}
+              onValueChange={(v) => setExtra({ ...extra, rounding_mode: v })}
               disabled={ro}
             >
               <SelectTrigger>
@@ -498,14 +492,14 @@ function ParamsPage() {
             <Label>單據編號規則</Label>
             <Textarea
               rows={2}
-              value={params.doc_number_format ?? ""}
+              value={extra.doc_number_format ?? ""}
               disabled={ro}
               onChange={(e) =>
-                setParams({ ...params, doc_number_format: e.target.value })
+                setExtra({ ...extra, doc_number_format: e.target.value })
               }
               placeholder="{TYPE}-{YYYYMMDD}-{SEQ:3}"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               佔位符:<code className="mx-1">{"{TYPE}"}</code>單據類型、
               <code className="mx-1">{"{YYYYMMDD}"}</code>日期、
               <code className="mx-1">{"{SEQ:3}"}</code>3 位流水號
@@ -514,13 +508,10 @@ function ParamsPage() {
           <div className="space-y-2 md:col-span-2">
             <Label>預設倉別 ID</Label>
             <Input
-              value={params.default_warehouse_id ?? ""}
+              value={extra.default_warehouse_id ?? ""}
               disabled={ro}
               onChange={(e) =>
-                setParams({
-                  ...params,
-                  default_warehouse_id: e.target.value || null,
-                })
+                setExtra({ ...extra, default_warehouse_id: e.target.value })
               }
               placeholder="可暫留空"
             />
