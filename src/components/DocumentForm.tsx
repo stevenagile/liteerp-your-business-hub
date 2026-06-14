@@ -510,12 +510,10 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       toast.error("請先儲存草稿");
       return;
     }
-    console.log("[confirm_document] calling RPC with id:", header.id);
     setConfirming(true);
-    const { data, error } = await supabase.rpc("confirm_document", {
+    const { error } = await supabase.rpc("confirm_document", {
       p_doc_id: header.id,
     });
-    console.log("[confirm_document] result", { data, error });
     if (error) {
       setConfirming(false);
       toast.error(
