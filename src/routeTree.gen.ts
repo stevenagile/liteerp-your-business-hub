@@ -25,6 +25,9 @@ import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppDispatchRouteImport } from './routes/_app.dispatch'
 import { Route as AppDeliveryRulesRouteImport } from './routes/_app.delivery-rules'
 import { Route as AppContactsRouteImport } from './routes/_app.contacts'
+import { Route as AppAuditRouteImport } from './routes/_app.audit'
+import { Route as AppLineOrdersRouteImport } from './routes/_app.line-orders'
+import { Route as AppPriceRevisionRouteImport } from './routes/_app.price-revision'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.index'
 import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.index'
 import { Route as AppStatementsVendorRouteImport } from './routes/_app.statements.vendor'
@@ -36,6 +39,7 @@ import { Route as AppSettingsPermissionsRouteImport } from './routes/_app.settin
 import { Route as AppSettingsParamsRouteImport } from './routes/_app.settings.params'
 import { Route as AppSettingsOpeningRouteImport } from './routes/_app.settings.opening'
 import { Route as AppSettingsMenuRouteImport } from './routes/_app.settings.menu'
+import { Route as AppSettingsGovernanceRouteImport } from './routes/_app.settings.governance'
 import { Route as AppSettingsAdvancedRouteImport } from './routes/_app.settings.advanced'
 import { Route as AppReportsSalespersonRouteImport } from './routes/_app.reports.salesperson'
 import { Route as AppReportsSalesDetailRouteImport } from './routes/_app.reports.sales-detail'
@@ -53,6 +57,8 @@ import { Route as AppDocsQuotationRouteImport } from './routes/_app.docs.quotati
 import { Route as AppDocsPurchaseReceiptRouteImport } from './routes/_app.docs.purchase-receipt'
 import { Route as AppDocsPurchaseOrderRouteImport } from './routes/_app.docs.purchase-order'
 import { Route as AppDocsInventoryAdjustRouteImport } from './routes/_app.docs.inventory-adjust'
+import { Route as AppDocsManualRouteImport } from './routes/_app.docs.manual'
+import { Route as AppDocsChangelogRouteImport } from './routes/_app.docs.changelog'
 import { Route as AppPrintDocTypeIdRouteImport } from './routes/_app.print.$docType.$id'
 
 const LoginRoute = LoginRouteImport.update({
@@ -134,6 +140,21 @@ const AppContactsRoute = AppContactsRouteImport.update({
   path: '/contacts',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAuditRoute = AppAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLineOrdersRoute = AppLineOrdersRouteImport.update({
+  id: '/line-orders',
+  path: '/line-orders',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPriceRevisionRoute = AppPriceRevisionRouteImport.update({
+  id: '/price-revision',
+  path: '/price-revision',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -187,6 +208,11 @@ const AppSettingsOpeningRoute = AppSettingsOpeningRouteImport.update({
 const AppSettingsMenuRoute = AppSettingsMenuRouteImport.update({
   id: '/menu',
   path: '/menu',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsGovernanceRoute = AppSettingsGovernanceRouteImport.update({
+  id: '/governance',
+  path: '/governance',
   getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppSettingsAdvancedRoute = AppSettingsAdvancedRouteImport.update({
@@ -276,6 +302,16 @@ const AppDocsInventoryAdjustRoute = AppDocsInventoryAdjustRouteImport.update({
   path: '/docs/inventory-adjust',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDocsManualRoute = AppDocsManualRouteImport.update({
+  id: '/docs/manual',
+  path: '/docs/manual',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDocsChangelogRoute = AppDocsChangelogRouteImport.update({
+  id: '/docs/changelog',
+  path: '/docs/changelog',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPrintDocTypeIdRoute = AppPrintDocTypeIdRouteImport.update({
   id: '/print/$docType/$id',
   path: '/print/$docType/$id',
@@ -298,7 +334,12 @@ export interface FileRoutesByFullPath {
   '/users': typeof AppUsersRoute
   '/vehicles': typeof AppVehiclesRoute
   '/warehouses': typeof AppWarehousesRoute
+  '/audit': typeof AppAuditRoute
+  '/line-orders': typeof AppLineOrdersRoute
+  '/price-revision': typeof AppPriceRevisionRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
+  '/docs/manual': typeof AppDocsManualRoute
+  '/docs/changelog': typeof AppDocsChangelogRoute
   '/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
   '/docs/purchase-receipt': typeof AppDocsPurchaseReceiptRoute
   '/docs/quotation': typeof AppDocsQuotationRoute
@@ -315,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/reports/sales-detail': typeof AppReportsSalesDetailRoute
   '/reports/salesperson': typeof AppReportsSalespersonRoute
   '/settings/advanced': typeof AppSettingsAdvancedRoute
+  '/settings/governance': typeof AppSettingsGovernanceRoute
   '/settings/menu': typeof AppSettingsMenuRoute
   '/settings/opening': typeof AppSettingsOpeningRoute
   '/settings/params': typeof AppSettingsParamsRoute
@@ -343,7 +385,12 @@ export interface FileRoutesByTo {
   '/vehicles': typeof AppVehiclesRoute
   '/warehouses': typeof AppWarehousesRoute
   '/': typeof AppIndexRoute
+  '/audit': typeof AppAuditRoute
+  '/line-orders': typeof AppLineOrdersRoute
+  '/price-revision': typeof AppPriceRevisionRoute
   '/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
+  '/docs/manual': typeof AppDocsManualRoute
+  '/docs/changelog': typeof AppDocsChangelogRoute
   '/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
   '/docs/purchase-receipt': typeof AppDocsPurchaseReceiptRoute
   '/docs/quotation': typeof AppDocsQuotationRoute
@@ -360,6 +407,7 @@ export interface FileRoutesByTo {
   '/reports/sales-detail': typeof AppReportsSalesDetailRoute
   '/reports/salesperson': typeof AppReportsSalespersonRoute
   '/settings/advanced': typeof AppSettingsAdvancedRoute
+  '/settings/governance': typeof AppSettingsGovernanceRoute
   '/settings/menu': typeof AppSettingsMenuRoute
   '/settings/opening': typeof AppSettingsOpeningRoute
   '/settings/params': typeof AppSettingsParamsRoute
@@ -390,8 +438,13 @@ export interface FileRoutesById {
   '/_app/users': typeof AppUsersRoute
   '/_app/vehicles': typeof AppVehiclesRoute
   '/_app/warehouses': typeof AppWarehousesRoute
+  '/_app/audit': typeof AppAuditRoute
+  '/_app/line-orders': typeof AppLineOrdersRoute
+  '/_app/price-revision': typeof AppPriceRevisionRoute
   '/_app/': typeof AppIndexRoute
   '/_app/docs/inventory-adjust': typeof AppDocsInventoryAdjustRoute
+  '/_app/docs/manual': typeof AppDocsManualRoute
+  '/_app/docs/changelog': typeof AppDocsChangelogRoute
   '/_app/docs/purchase-order': typeof AppDocsPurchaseOrderRoute
   '/_app/docs/purchase-receipt': typeof AppDocsPurchaseReceiptRoute
   '/_app/docs/quotation': typeof AppDocsQuotationRoute
@@ -408,6 +461,7 @@ export interface FileRoutesById {
   '/_app/reports/sales-detail': typeof AppReportsSalesDetailRoute
   '/_app/reports/salesperson': typeof AppReportsSalespersonRoute
   '/_app/settings/advanced': typeof AppSettingsAdvancedRoute
+  '/_app/settings/governance': typeof AppSettingsGovernanceRoute
   '/_app/settings/menu': typeof AppSettingsMenuRoute
   '/_app/settings/opening': typeof AppSettingsOpeningRoute
   '/_app/settings/params': typeof AppSettingsParamsRoute
@@ -439,7 +493,12 @@ export interface FileRouteTypes {
     | '/users'
     | '/vehicles'
     | '/warehouses'
+    | '/audit'
+    | '/line-orders'
+    | '/price-revision'
     | '/docs/inventory-adjust'
+    | '/docs/manual'
+    | '/docs/changelog'
     | '/docs/purchase-order'
     | '/docs/purchase-receipt'
     | '/docs/quotation'
@@ -456,6 +515,7 @@ export interface FileRouteTypes {
     | '/reports/sales-detail'
     | '/reports/salesperson'
     | '/settings/advanced'
+    | '/settings/governance'
     | '/settings/menu'
     | '/settings/opening'
     | '/settings/params'
@@ -484,7 +544,12 @@ export interface FileRouteTypes {
     | '/vehicles'
     | '/warehouses'
     | '/'
+    | '/audit'
+    | '/line-orders'
+    | '/price-revision'
     | '/docs/inventory-adjust'
+    | '/docs/manual'
+    | '/docs/changelog'
     | '/docs/purchase-order'
     | '/docs/purchase-receipt'
     | '/docs/quotation'
@@ -501,6 +566,7 @@ export interface FileRouteTypes {
     | '/reports/sales-detail'
     | '/reports/salesperson'
     | '/settings/advanced'
+    | '/settings/governance'
     | '/settings/menu'
     | '/settings/opening'
     | '/settings/params'
@@ -513,6 +579,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/settings'
     | '/print/$docType/$id'
+  fileRoutesById: FileRoutesById
   id:
     | '__root__'
     | '/_app'
@@ -530,8 +597,13 @@ export interface FileRouteTypes {
     | '/_app/users'
     | '/_app/vehicles'
     | '/_app/warehouses'
+    | '/_app/audit'
+    | '/_app/line-orders'
+    | '/_app/price-revision'
     | '/_app/'
     | '/_app/docs/inventory-adjust'
+    | '/_app/docs/manual'
+    | '/_app/docs/changelog'
     | '/_app/docs/purchase-order'
     | '/_app/docs/purchase-receipt'
     | '/_app/docs/quotation'
@@ -548,6 +620,7 @@ export interface FileRouteTypes {
     | '/_app/reports/sales-detail'
     | '/_app/reports/salesperson'
     | '/_app/settings/advanced'
+    | '/_app/settings/governance'
     | '/_app/settings/menu'
     | '/_app/settings/opening'
     | '/_app/settings/params'
@@ -589,6 +662,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/audit': {
+      id: '/_app/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AppAuditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/line-orders': {
+      id: '/_app/line-orders'
+      path: '/line-orders'
+      fullPath: '/line-orders'
+      preLoaderRoute: typeof AppLineOrdersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/price-revision': {
+      id: '/_app/price-revision'
+      path: '/price-revision'
+      fullPath: '/price-revision'
+      preLoaderRoute: typeof AppPriceRevisionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/docs/manual': {
+      id: '/_app/docs/manual'
+      path: '/docs/manual'
+      fullPath: '/docs/manual'
+      preLoaderRoute: typeof AppDocsManualRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/docs/changelog': {
+      id: '/_app/docs/changelog'
+      path: '/docs/changelog'
+      fullPath: '/docs/changelog'
+      preLoaderRoute: typeof AppDocsChangelogRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/governance': {
+      id: '/_app/settings/governance'
+      path: '/governance'
+      fullPath: '/settings/governance'
+      preLoaderRoute: typeof AppSettingsGovernanceRouteImport
+      parentRoute: typeof AppSettingsRoute
     }
     '/_app/warehouses': {
       id: '/_app/warehouses'
@@ -889,6 +1004,7 @@ declare module '@tanstack/react-router' {
 
 interface AppSettingsRouteChildren {
   AppSettingsAdvancedRoute: typeof AppSettingsAdvancedRoute
+  AppSettingsGovernanceRoute: typeof AppSettingsGovernanceRoute
   AppSettingsMenuRoute: typeof AppSettingsMenuRoute
   AppSettingsOpeningRoute: typeof AppSettingsOpeningRoute
   AppSettingsParamsRoute: typeof AppSettingsParamsRoute
@@ -899,6 +1015,7 @@ interface AppSettingsRouteChildren {
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsAdvancedRoute: AppSettingsAdvancedRoute,
+  AppSettingsGovernanceRoute: AppSettingsGovernanceRoute,
   AppSettingsMenuRoute: AppSettingsMenuRoute,
   AppSettingsOpeningRoute: AppSettingsOpeningRoute,
   AppSettingsParamsRoute: AppSettingsParamsRoute,
@@ -925,8 +1042,13 @@ interface AppRouteChildren {
   AppUsersRoute: typeof AppUsersRoute
   AppVehiclesRoute: typeof AppVehiclesRoute
   AppWarehousesRoute: typeof AppWarehousesRoute
+  AppAuditRoute: typeof AppAuditRoute
+  AppLineOrdersRoute: typeof AppLineOrdersRoute
+  AppPriceRevisionRoute: typeof AppPriceRevisionRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDocsInventoryAdjustRoute: typeof AppDocsInventoryAdjustRoute
+  AppDocsManualRoute: typeof AppDocsManualRoute
+  AppDocsChangelogRoute: typeof AppDocsChangelogRoute
   AppDocsPurchaseOrderRoute: typeof AppDocsPurchaseOrderRoute
   AppDocsPurchaseReceiptRoute: typeof AppDocsPurchaseReceiptRoute
   AppDocsQuotationRoute: typeof AppDocsQuotationRoute
@@ -964,8 +1086,13 @@ const AppRouteChildren: AppRouteChildren = {
   AppUsersRoute: AppUsersRoute,
   AppVehiclesRoute: AppVehiclesRoute,
   AppWarehousesRoute: AppWarehousesRoute,
+  AppAuditRoute: AppAuditRoute,
+  AppLineOrdersRoute: AppLineOrdersRoute,
+  AppPriceRevisionRoute: AppPriceRevisionRoute,
   AppIndexRoute: AppIndexRoute,
   AppDocsInventoryAdjustRoute: AppDocsInventoryAdjustRoute,
+  AppDocsManualRoute: AppDocsManualRoute,
+  AppDocsChangelogRoute: AppDocsChangelogRoute,
   AppDocsPurchaseOrderRoute: AppDocsPurchaseOrderRoute,
   AppDocsPurchaseReceiptRoute: AppDocsPurchaseReceiptRoute,
   AppDocsQuotationRoute: AppDocsQuotationRoute,
