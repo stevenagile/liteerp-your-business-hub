@@ -26,7 +26,7 @@ type Payment = {
   id: string;
   payment_date: string | null;
   amount: number | null;
-  payment_method: string | null;
+  method: string | null;
   reference: string | null;
   notes: string | null;
   created_at: string | null;
@@ -62,9 +62,9 @@ export function PaymentHistoryList({
     const { data, error } = await supabase
       .from("payments")
       .select(
-        "id,payment_date,amount,payment_method,reference,notes,created_at",
+        "id,payment_date,amount,method,reference,notes,created_at",
       )
-      .eq("doc_id", docId)
+      .eq("doc_header_id", docId)
       .order("created_at", { ascending: true });
     setLoading(false);
     if (error) {
@@ -127,7 +127,7 @@ export function PaymentHistoryList({
                 <TableRow key={p.id}>
                   <TableCell>{p.payment_date ?? "—"}</TableCell>
                   <TableCell>
-                    {methodLabel[p.payment_method ?? ""] ?? p.payment_method ?? "—"}
+                    {methodLabel[p.method ?? ""] ?? p.method ?? "—"}
                   </TableCell>
                   <TableCell>{p.reference ?? "—"}</TableCell>
                   <TableCell className="max-w-[240px] truncate">
