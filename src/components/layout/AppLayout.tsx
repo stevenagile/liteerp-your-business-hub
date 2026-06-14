@@ -23,7 +23,7 @@ export function AppLayout() {
 
   const displayName = profile?.display_name || user?.email || "使用者";
   const roleLabel = profile?.role
-    ? { admin: "管理員", manager: "主管", user: "一般用戶" }[profile.role] ??
+    ? { admin: "系統管理員", manager: "主管", sales: "業務", warehouse: "倉管", accountant: "會計", staff: "一般員工" }[profile.role] ??
       profile.role
     : "尚未設定角色";
 
@@ -58,11 +58,9 @@ export function AppLayout() {
     sessionStorage.setItem(key, "1");
     supabase
       .schema("core" as never)
-      .from("users")
-      .update({ last_login_at: new Date().toISOString() })
-      .eq("id", user.id)
+      .rpc("touch_last_login")
       .then(({ error }) => {
-        if (error) console.error("[auth] update last_login_at error", error);
+        if (error) console.error("[auth] touch_last_login error", error);
       });
   }, [user?.id]);
 
