@@ -35,15 +35,14 @@ export const Route = createFileRoute("/_app/users")({
   component: UsersPage,
 });
 
-type Role = { id: string; name: string; code: string };
+type Role = { code: string; label: string };
 type UserRow = {
   id: string;
   email: string | null;
   display_name: string | null;
   is_active: boolean;
   last_login_at: string | null;
-  role_id: string | null;
-  roles: { name: string | null; code: string | null } | null;
+  role: string | null;
 };
 
 const core = () => supabase.schema("core" as never);
@@ -70,8 +69,11 @@ function UsersPage() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRoleId, setInviteRoleId] = useState<string>("");
+  const [inviteRole, setInviteRole] = useState<string>("");
   const [inviting, setInviting] = useState(false);
+
+  const roleLabel = (code: string | null) =>
+    roles.find((r) => r.code === code)?.label ?? code ?? "—";
 
   // 進頁守衛
   useEffect(() => {
@@ -100,16 +102,11 @@ function UsersPage() {
   const load = async () => {
     setLoading(true);
     const [u, r] = await Promise.all([
-      core()
-        .from("users")
-        .select(
-          "id, email, display_name, is_active, last_login_at, role_id, roles(name, code)",
-        )
-        .order("display_name", { ascending: true }),
-      core().from("roles").select("id,name,code").order("name"),
+      core().rpc("list_users"),
+      core().rpc("list_roles"),
     ]);
     if (u.error) toast.error(u.error.message);
-    else setUsers((u.data ?? []) as unknown as UserRow[]);
+    else setUsers((u.data ?? []) as UserRow[]);
     if (r.error) toast.error(r.error.message);
     else setRoles((r.data ?? []) as Role[]);
     setLoading(false);
@@ -117,23 +114,26 @@ function UsersPage() {
 
   useEffect(() => {
     if (canView) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView]);
 
-  const updateRole = async (user: UserRow, roleId: string) => {
-    const { error } = await core()
-      .from("users")
-      .update({ role_id: roleId })
-      .eq("id", user.id);
+  const updateRole = async (user: UserRow, role: string) => {
+    const { error } = await core().rpc("admin_update_user", {
+      p_id: user.id,
+      p_role: role,
+    });
     if (error) return toast.error(error.message);
     toast.success("已更新角色");
-    load();
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? { ...u, role } : u)),
+    );
   };
 
   const toggleActive = async (user: UserRow, next: boolean) => {
-    const { error } = await core()
-      .from("users")
-      .update({ is_active: next })
-      .eq("id", user.id);
+    const { error } = await core().rpc("admin_update_user", {
+      p_id: user.id,
+      p_is_active: next,
+    });
     if (error) return toast.error(error.message);
     toast.success(next ? "已啟用" : "已停用");
     setUsers((prev) =>
@@ -144,10 +144,10 @@ function UsersPage() {
   const saveName = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing) return;
-    const { error } = await core()
-      .from("users")
-      .update({ display_name: editName.trim() || null })
-      .eq("id", editing.id);
+    const { error } = await core().rpc("admin_update_user", {
+      p_id: editing.id,
+      p_display_name: editName.trim() || null,
+    });
     if (error) return toast.error(error.message);
     toast.success("已更新姓名");
     setEditing(null);
@@ -156,13 +156,13 @@ function UsersPage() {
 
   const invite = async (e: FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail || !inviteRoleId) {
+    if (!inviteEmail || !inviteRole) {
       toast.error("請輸入 Email 並選擇角色");
       return;
     }
     setInviting(true);
     const { data, error } = await supabase.functions.invoke("invite_user", {
-      body: { email: inviteEmail.trim(), role_id: inviteRoleId },
+      body: { email: inviteEmail.trim(), role: inviteRole },
     });
     setInviting(false);
     if (error) {
@@ -172,7 +172,7 @@ function UsersPage() {
     toast.success("已寄出邀請");
     setInviteOpen(false);
     setInviteEmail("");
-    setInviteRoleId("");
+    setInviteRole("");
     load();
     void data;
   };
@@ -258,7 +258,7 @@ function UsersPage() {
                   <TableCell>
                     {canEdit ? (
                       <Select
-                        value={u.role_id ?? ""}
+                        value={u.role ?? ""}
                         onValueChange={(v) => updateRole(u, v)}
                       >
                         <SelectTrigger className="h-8">
@@ -266,14 +266,14 @@ function UsersPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {roles.map((r) => (
-                            <SelectItem key={r.id} value={r.id}>
-                              {r.name}
+                            <SelectItem key={r.code} value={r.code}>
+                              {r.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     ) : (
-                      <span>{u.roles?.name || "—"}</span>
+                      <span>{roleLabel(u.role)}</span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -377,14 +377,14 @@ function UsersPage() {
             </div>
             <div className="space-y-2">
               <Label>角色</Label>
-              <Select value={inviteRoleId} onValueChange={setInviteRoleId}>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
                 <SelectTrigger>
                   <SelectValue placeholder="選擇角色" />
                 </SelectTrigger>
                 <SelectContent>
                   {roles.map((r) => (
-                    <SelectItem key={r.id} value={r.id}>
-                      {r.name}
+                    <SelectItem key={r.code} value={r.code}>
+                      {r.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
