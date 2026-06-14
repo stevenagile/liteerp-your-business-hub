@@ -255,7 +255,7 @@ function MenuStructurePage() {
   };
 
   const move = async (it: MenuItem, dir: -1 | 1) => {
-    // Find siblings (same parent_id), reorder by sort_order
+    // 同層級兄弟，依 sort_order 排序後與相鄰者交換
     const siblings = items
       .filter((i) => (i.parent_id ?? null) === (it.parent_id ?? null))
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
@@ -264,17 +264,15 @@ function MenuStructurePage() {
     if (!swap) return;
     const a = it.sort_order ?? 0;
     const b = swap.sort_order ?? 0;
-    const av = a === b ? a + dir : a;
-    const bv = a === b ? a : b;
-    // ensure different values: if same, bump
-    const newA = a === b ? a + (dir === 1 ? 1 : -1) : b;
-    const newB = a;
-    void av;
-    void bv;
-    await Promise.all([
-      core().from("menu_items").update({ sort_order: newA }).eq("id", it.id),
-      core().from("menu_items").update({ sort_order: newB }).eq("id", swap.id),
+    // 一般情況交換兩者 sort_order；若相等則依方向給 it 不同值以確保順序改變
+    const newSelf = a === b ? a + dir : b;
+    const newSwap = a;
+    const results = await Promise.all([
+      core().from("menu_items").update({ sort_order: newSelf }).eq("id", it.id),
+      core().from("menu_items").update({ sort_order: newSwap }).eq("id", swap.id),
     ]);
+    const err = results.find((r) => r.error)?.error;
+    if (err) return toast.error(err.message);
     load();
   };
 
@@ -308,7 +306,7 @@ function MenuStructurePage() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">選單結構</h1>
+          <h1 className="text-2xl font-semibold">選單結構</h1>
           <p className="text-sm text-muted-foreground">
             管理側邊欄選單項與層級
             {!canEdit && <span className="ml-2 text-xs">(目前為唯讀檢視)</span>}
@@ -320,8 +318,8 @@ function MenuStructurePage() {
         </Button>
       </div>
 
-      <div className="flex items-start gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <div className="flex items-start gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+        <Info className="mt-0.5 h-4 w-4 shrink-0" />
         <div className="space-y-1">
           <div>
             • <code>route</code> 對應的頁面需另行建立(路由檔),否則點擊會 404。
@@ -370,7 +368,7 @@ function MenuStructurePage() {
                       <span className={n.route ? "" : "font-medium text-muted-foreground"}>
                         {n.label}
                       </span>
-                      <span className="text-[10px] text-muted-foreground/60">
+                      <span className="text-xs text-muted-foreground/70">
                         ({n.id})
                       </span>
                     </div>
@@ -386,16 +384,16 @@ function MenuStructurePage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6"
+                        className="h-8 w-8"
                         disabled={!canEdit}
                         onClick={() => move(n, -1)}
                         aria-label="上移"
                       >
-                        <ChevronUp className="h-3.5 w-3.5" />
+                        <ChevronUp className="h-4 w-4" />
                       </Button>
                       <Input
                         type="number"
-                        className="h-7 w-14 text-center"
+                        className="h-8 w-14 text-center"
                         value={n.sort_order ?? 0}
                         disabled={!canEdit}
                         onChange={(e) => {
@@ -411,12 +409,12 @@ function MenuStructurePage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6"
+                        className="h-8 w-8"
                         disabled={!canEdit}
                         onClick={() => move(n, 1)}
                         aria-label="下移"
                       >
-                        <ChevronDown className="h-3.5 w-3.5" />
+                        <ChevronDown className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -434,7 +432,7 @@ function MenuStructurePage() {
                         系統
                       </Badge>
                     ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
+                      <span className="text-sm text-muted-foreground">—</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -442,23 +440,23 @@ function MenuStructurePage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-8 w-8"
                         disabled={!canEdit}
                         onClick={() => openEdit(n)}
                         aria-label="編輯"
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <Pencil className="h-4 w-4" />
                       </Button>
                       {!n.is_system && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                           disabled={!canEdit}
                           onClick={() => removeItem(n)}
                           aria-label="刪除"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
@@ -486,7 +484,7 @@ function MenuStructurePage() {
                 required
                 maxLength={50}
               />
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 建立後不可更改,只允許英數、底線、連字號
               </p>
             </div>
