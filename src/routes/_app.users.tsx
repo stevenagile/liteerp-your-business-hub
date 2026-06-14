@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2, Pencil, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -66,6 +66,12 @@ function UsersPage() {
 
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [editName, setEditName] = useState("");
+
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteRole, setInviteRole] = useState<string>("");
+  const [inviting, setInviting] = useState(false);
 
   const roleLabel = (code: string | null) =>
     roles.find((r) => r.code === code)?.label ?? code ?? "—";
@@ -143,6 +149,33 @@ function UsersPage() {
     load();
   };
 
+  const invite = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!inviteEmail || !inviteRole) {
+      toast.error("請輸入 Email 並選擇角色");
+      return;
+    }
+    setInviting(true);
+    const { error } = await supabase.functions.invoke("invite_user", {
+      body: {
+        email: inviteEmail.trim(),
+        role: inviteRole,
+        display_name: inviteName.trim() || undefined,
+      },
+    });
+    setInviting(false);
+    if (error) {
+      toast.error(error.message || "邀請失敗");
+      return;
+    }
+    toast.success("已寄出邀請信");
+    setInviteOpen(false);
+    setInviteEmail("");
+    setInviteName("");
+    setInviteRole("");
+    load();
+  };
+
   if (guardLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -171,9 +204,10 @@ function UsersPage() {
             )}
           </p>
         </div>
-        <span className="text-xs text-muted-foreground">
-          新增帳號請至 Supabase 後台建立（邀請功能待建）
-        </span>
+        <Button onClick={() => setInviteOpen(true)} disabled={!canEdit} size="sm">
+          <UserPlus className="mr-2 h-4 w-4" />
+          邀請使用者
+        </Button>
       </div>
 
       <div className="rounded-md border bg-card">
@@ -304,6 +338,66 @@ function UsersPage() {
                 取消
               </Button>
               <Button type="submit">儲存</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 邀請使用者 */}
+      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>邀請使用者</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={invite} className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              系統會建立帳號並寄出邀請信，對方點信中連結設定密碼即可登入。
+            </p>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="user@example.com"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>姓名（可選）</Label>
+              <Input
+                value={inviteName}
+                onChange={(e) => setInviteName(e.target.value)}
+                placeholder="顯示姓名"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>角色</Label>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="選擇角色" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((r) => (
+                    <SelectItem key={r.code} value={r.code}>
+                      {r.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setInviteOpen(false)}
+              >
+                取消
+              </Button>
+              <Button type="submit" disabled={inviting}>
+                {inviting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                送出邀請
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
