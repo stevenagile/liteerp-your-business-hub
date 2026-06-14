@@ -1,21 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Loader2, Plus, Save, Trash2, Lock } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2, Save, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_app/roles")({
@@ -24,14 +14,7 @@ export const Route = createFileRoute("/_app/roles")({
 
 const core = () => supabase.schema("core" as never);
 
-type Role = {
-  id: string;
-  code: string;
-  name: string;
-  description: string | null;
-  is_system: boolean;
-  sort_order?: number | null;
-};
+type Role = { code: string; label: string };
 
 type MenuItem = {
   id: string;
@@ -43,7 +26,7 @@ type MenuItem = {
 type MenuNode = MenuItem & { children: MenuNode[] };
 
 type AccessRow = {
-  role_id: string;
+  role: string;
   menu_id: string;
   can_view: boolean;
   can_create: boolean;
@@ -51,12 +34,15 @@ type AccessRow = {
   can_approve: boolean;
 };
 
-type AccessMap = Record<
-  string,
-  { can_view: boolean; can_create: boolean; can_edit: boolean; can_approve: boolean }
->;
+type Cell = {
+  can_view: boolean;
+  can_create: boolean;
+  can_edit: boolean;
+  can_approve: boolean;
+};
+type AccessMap = Record<string, Cell>;
 
-const ACTIONS: Array<{ key: keyof AccessMap[string]; label: string }> = [
+const ACTIONS: Array<{ key: keyof Cell; label: string }> = [
   { key: "can_view", label: "檢視" },
   { key: "can_create", label: "新增" },
   { key: "can_edit", label: "編輯" },
@@ -82,7 +68,10 @@ function buildTree(items: MenuItem[]): MenuNode[] {
   return roots;
 }
 
-function flattenTree(nodes: MenuNode[], depth = 0): Array<MenuNode & { depth: number }> {
+function flattenTree(
+  nodes: MenuNode[],
+  depth = 0,
+): Array<MenuNode & { depth: number }> {
   const out: Array<MenuNode & { depth: number }> = [];
   for (const n of nodes) {
     out.push({ ...n, depth });
@@ -98,15 +87,14 @@ function RolesPage() {
 
   const [roles, setRoles] = useState<Role[]>([]);
   const [menus, setMenus] = useState<MenuItem[]>([]);
-  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [access, setAccess] = useState<AccessMap>({});
   const [originalAccess, setOriginalAccess] = useState<AccessMap>({});
   const [loadingList, setLoadingList] = useState(true);
   const [loadingMatrix, setLoadingMatrix] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [newRole, setNewRole] = useState({ code: "", name: "", description: "" });
+  const isAdminRole = selectedRole === "admin";
 
   // 守衛
   useEffect(() => {
@@ -128,10 +116,7 @@ function RolesPage() {
   const loadRolesAndMenus = async () => {
     setLoadingList(true);
     const [r, m] = await Promise.all([
-      core()
-        .from("roles")
-        .select("id, code, name, description, is_system, sort_order")
-        .order("sort_order"),
+      core().rpc("list_roles"),
       core()
         .from("menu_items")
         .select("id,parent_id,label,sort_order")
@@ -141,7 +126,10 @@ function RolesPage() {
     else {
       const list = (r.data ?? []) as Role[];
       setRoles(list);
-      if (!selectedRoleId && list.length > 0) setSelectedRoleId(list[0].id);
+      setSelectedRole(
+        (cur) =>
+          cur ?? list.find((x) => x.code !== "admin")?.code ?? list[0]?.code ?? null,
+      );
     }
     if (m.error) toast.error(m.error.message);
     else setMenus((m.data ?? []) as MenuItem[]);
@@ -155,7 +143,7 @@ function RolesPage() {
 
   // Load matrix for selected role
   useEffect(() => {
-    if (!selectedRoleId) {
+    if (!selectedRole || selectedRole === "admin") {
       setAccess({});
       setOriginalAccess({});
       return;
@@ -163,9 +151,9 @@ function RolesPage() {
     (async () => {
       setLoadingMatrix(true);
       const { data, error } = await core()
-        .from("role_menu_access")
+        .from("menu_role_access")
         .select("*")
-        .eq("role_id", selectedRoleId);
+        .eq("role", selectedRole);
       if (error) {
         toast.error(error.message);
         setAccess({});
@@ -185,18 +173,14 @@ function RolesPage() {
       }
       setLoadingMatrix(false);
     })();
-  }, [selectedRoleId]);
+  }, [selectedRole]);
 
   const flat = useMemo(() => flattenTree(buildTree(menus)), [menus]);
 
-  const getCell = (menuId: string, key: keyof AccessMap[string]) =>
+  const getCell = (menuId: string, key: keyof Cell) =>
     access[menuId]?.[key] ?? false;
 
-  const setCell = (
-    menuId: string,
-    key: keyof AccessMap[string],
-    value: boolean,
-  ) => {
+  const setCell = (menuId: string, key: keyof Cell, value: boolean) => {
     setAccess((prev) => {
       const cur = prev[menuId] ?? {
         can_view: false,
@@ -206,9 +190,7 @@ function RolesPage() {
       };
       const next = { ...cur, [key]: value };
       // 審核隱含可見
-      if (key === "can_approve" && value && !next.can_view) {
-        next.can_view = true;
-      }
+      if (key === "can_approve" && value && !next.can_view) next.can_view = true;
       return { ...prev, [menuId]: next };
     });
   };
@@ -218,10 +200,8 @@ function RolesPage() {
     [access, originalAccess],
   );
 
-  const selectedRole = roles.find((r) => r.id === selectedRoleId) || null;
-
   const saveMatrix = async () => {
-    if (!selectedRoleId) return;
+    if (!selectedRole || selectedRole === "admin") return;
     setSaving(true);
     const upserts: AccessRow[] = [];
     const deletes: string[] = [];
@@ -242,7 +222,7 @@ function RolesPage() {
           orig.can_approve !== cur.can_approve;
         if (changed) {
           upserts.push({
-            role_id: selectedRoleId,
+            role: selectedRole,
             menu_id: m.id,
             can_view: cur.can_view,
             can_create: cur.can_create,
@@ -255,8 +235,8 @@ function RolesPage() {
 
     if (upserts.length) {
       const { error } = await core()
-        .from("role_menu_access")
-        .upsert(upserts, { onConflict: "role_id,menu_id" });
+        .from("menu_role_access")
+        .upsert(upserts, { onConflict: "role,menu_id" });
       if (error) {
         setSaving(false);
         return toast.error(error.message);
@@ -264,9 +244,9 @@ function RolesPage() {
     }
     if (deletes.length) {
       const { error } = await core()
-        .from("role_menu_access")
+        .from("menu_role_access")
         .delete()
-        .eq("role_id", selectedRoleId)
+        .eq("role", selectedRole)
         .in("menu_id", deletes);
       if (error) {
         setSaving(false);
@@ -276,42 +256,6 @@ function RolesPage() {
     setSaving(false);
     toast.success("已儲存權限");
     setOriginalAccess(JSON.parse(JSON.stringify(access)));
-  };
-
-  const createRole = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!newRole.code.trim() || !newRole.name.trim()) {
-      return toast.error("請輸入代碼與名稱");
-    }
-    const { data: companyId, error: cErr } = await core().rpc("current_company");
-    if (cErr) return toast.error(cErr.message);
-    const { data, error } = await core()
-      .from("roles")
-      .insert({
-        code: newRole.code.trim(),
-        name: newRole.name.trim(),
-        description: newRole.description.trim() || null,
-        is_system: false,
-        company_id: companyId,
-      })
-      .select("id, code, name, description, is_system, sort_order")
-      .single();
-    if (error) return toast.error(error.message);
-    toast.success("已新增角色");
-    setCreateOpen(false);
-    setNewRole({ code: "", name: "", description: "" });
-    await loadRolesAndMenus();
-    if (data?.id) setSelectedRoleId(data.id as string);
-  };
-
-  const deleteRole = async (r: Role) => {
-    if (r.is_system) return;
-    if (!confirm(`確定刪除角色「${r.name}」？`)) return;
-    const { error } = await core().from("roles").delete().eq("id", r.id);
-    if (error) return toast.error(error.message);
-    toast.success("已刪除");
-    if (selectedRoleId === r.id) setSelectedRoleId(null);
-    loadRolesAndMenus();
   };
 
   if (guardLoading) {
@@ -329,78 +273,50 @@ function RolesPage() {
     );
   }
 
+  const selected = roles.find((r) => r.code === selectedRole) || null;
+
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-xl font-semibold">角色權限</h1>
         <p className="text-sm text-muted-foreground">
-          編輯各角色對選單的「檢視 / 新增 / 編輯 / 審核」權限
+          設定各角色對選單的「檢視 / 新增 / 編輯 / 審核」權限。角色沿用系統帳號角色。
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
         {/* Roles list */}
         <div className="rounded-md border bg-card">
-          <div className="flex items-center justify-between border-b px-3 py-2">
-            <div className="text-sm font-medium">角色</div>
-            <Button size="sm" variant="ghost" onClick={() => setCreateOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" />
-              新增
-            </Button>
-          </div>
+          <div className="border-b px-3 py-2 text-sm font-medium">角色</div>
           {loadingList ? (
             <div className="flex h-32 items-center justify-center">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
-          ) : roles.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              尚無角色
-            </div>
           ) : (
             <ul className="max-h-[70vh] overflow-y-auto">
               {roles.map((r) => {
-                const active = r.id === selectedRoleId;
+                const active = r.code === selectedRole;
                 return (
-                  <li key={r.id}>
+                  <li key={r.code}>
                     <button
                       type="button"
-                      onClick={() => setSelectedRoleId(r.id)}
+                      onClick={() => setSelectedRole(r.code)}
                       className={cn(
-                        "flex w-full items-start justify-between gap-2 border-b px-3 py-2 text-left text-sm transition-colors hover:bg-accent",
+                        "flex w-full items-center justify-between gap-2 border-b px-3 py-2 text-left text-sm transition-colors hover:bg-accent",
                         active && "bg-accent",
                       )}
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 font-medium">
-                          {r.is_system && (
-                            <Lock className="h-3 w-3 text-muted-foreground" />
-                          )}
-                          <span className="truncate">{r.name}</span>
-                        </div>
+                        <div className="truncate font-medium">{r.label}</div>
                         <div className="truncate text-[11px] text-muted-foreground">
                           {r.code}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        {r.is_system && (
-                          <Badge variant="secondary" className="text-[10px]">
-                            系統
-                          </Badge>
-                        )}
-                        {!r.is_system && (
-                          <button
-                            type="button"
-                            className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteRole(r);
-                            }}
-                            aria-label="刪除角色"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </div>
+                      {r.code === "admin" && (
+                        <Badge variant="secondary" className="gap-1 text-[10px]">
+                          <Lock className="h-3 w-3" /> 全開
+                        </Badge>
+                      )}
                     </button>
                   </li>
                 );
@@ -412,20 +328,13 @@ function RolesPage() {
         {/* Matrix */}
         <div className="rounded-md border bg-card">
           <div className="flex items-center justify-between border-b px-4 py-2.5">
-            <div>
-              <div className="text-sm font-medium">
-                {selectedRole ? selectedRole.name : "請選擇角色"}
-              </div>
-              {selectedRole?.description && (
-                <div className="text-xs text-muted-foreground">
-                  {selectedRole.description}
-                </div>
-              )}
+            <div className="text-sm font-medium">
+              {selected ? selected.label : "請選擇角色"}
             </div>
             <Button
               size="sm"
               onClick={saveMatrix}
-              disabled={!selectedRoleId || !isDirty || saving}
+              disabled={!selectedRole || isAdminRole || !isDirty || saving}
             >
               {saving ? (
                 <Loader2 className="mr-1 h-4 w-4 animate-spin" />
@@ -436,9 +345,13 @@ function RolesPage() {
             </Button>
           </div>
 
-          {!selectedRoleId ? (
+          {!selectedRole ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
               請先從左側選擇角色
+            </div>
+          ) : isAdminRole ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              管理員 (admin) 預設擁有所有選單與動作權限,不需個別設定。
             </div>
           ) : loadingMatrix ? (
             <div className="flex h-48 items-center justify-center">
@@ -504,59 +417,6 @@ function RolesPage() {
           )}
         </div>
       </div>
-
-      {/* 新增角色 Modal */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>新增角色</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={createRole} className="space-y-4">
-            <div className="space-y-2">
-              <Label>代碼 (code) *</Label>
-              <Input
-                value={newRole.code}
-                onChange={(e) =>
-                  setNewRole((p) => ({ ...p, code: e.target.value }))
-                }
-                placeholder="例:sales_manager"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>名稱 *</Label>
-              <Input
-                value={newRole.name}
-                onChange={(e) =>
-                  setNewRole((p) => ({ ...p, name: e.target.value }))
-                }
-                placeholder="例:銷售主管"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>說明</Label>
-              <Textarea
-                value={newRole.description}
-                onChange={(e) =>
-                  setNewRole((p) => ({ ...p, description: e.target.value }))
-                }
-                rows={2}
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setCreateOpen(false)}
-              >
-                取消
-              </Button>
-              <Button type="submit">建立</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
