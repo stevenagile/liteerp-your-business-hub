@@ -23,6 +23,7 @@ import { Route as AppPriceRevisionRouteImport } from './routes/_app.price-revisi
 import { Route as AppPayablesRouteImport } from './routes/_app.payables'
 import { Route as AppNotificationsRouteImport } from './routes/_app.notifications'
 import { Route as AppLineOrdersRouteImport } from './routes/_app.line-orders'
+import { Route as AppFoodsRouteImport } from './routes/_app.foods'
 import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
 import { Route as AppDispatchRouteImport } from './routes/_app.dispatch'
 import { Route as AppDeliveryRulesRouteImport } from './routes/_app.delivery-rules'
@@ -128,6 +129,11 @@ const AppNotificationsRoute = AppNotificationsRouteImport.update({
 const AppLineOrdersRoute = AppLineOrdersRouteImport.update({
   id: '/line-orders',
   path: '/line-orders',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFoodsRoute = AppFoodsRouteImport.update({
+  id: '/foods',
+  path: '/foods',
   getParentRoute: () => AppRoute,
 } as any)
 const AppExpensesRoute = AppExpensesRouteImport.update({
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/delivery-rules': typeof AppDeliveryRulesRoute
   '/dispatch': typeof AppDispatchRoute
   '/expenses': typeof AppExpensesRoute
+  '/foods': typeof AppFoodsRoute
   '/line-orders': typeof AppLineOrdersRoute
   '/notifications': typeof AppNotificationsRoute
   '/payables': typeof AppPayablesRoute
@@ -377,6 +384,7 @@ export interface FileRoutesByTo {
   '/delivery-rules': typeof AppDeliveryRulesRoute
   '/dispatch': typeof AppDispatchRoute
   '/expenses': typeof AppExpensesRoute
+  '/foods': typeof AppFoodsRoute
   '/line-orders': typeof AppLineOrdersRoute
   '/notifications': typeof AppNotificationsRoute
   '/payables': typeof AppPayablesRoute
@@ -430,6 +438,7 @@ export interface FileRoutesById {
   '/_app/delivery-rules': typeof AppDeliveryRulesRoute
   '/_app/dispatch': typeof AppDispatchRoute
   '/_app/expenses': typeof AppExpensesRoute
+  '/_app/foods': typeof AppFoodsRoute
   '/_app/line-orders': typeof AppLineOrdersRoute
   '/_app/notifications': typeof AppNotificationsRoute
   '/_app/payables': typeof AppPayablesRoute
@@ -485,6 +494,7 @@ export interface FileRouteTypes {
     | '/delivery-rules'
     | '/dispatch'
     | '/expenses'
+    | '/foods'
     | '/line-orders'
     | '/notifications'
     | '/payables'
@@ -536,6 +546,7 @@ export interface FileRouteTypes {
     | '/delivery-rules'
     | '/dispatch'
     | '/expenses'
+    | '/foods'
     | '/line-orders'
     | '/notifications'
     | '/payables'
@@ -588,6 +599,7 @@ export interface FileRouteTypes {
     | '/_app/delivery-rules'
     | '/_app/dispatch'
     | '/_app/expenses'
+    | '/_app/foods'
     | '/_app/line-orders'
     | '/_app/notifications'
     | '/_app/payables'
@@ -737,6 +749,13 @@ declare module '@tanstack/react-router' {
       path: '/line-orders'
       fullPath: '/line-orders'
       preLoaderRoute: typeof AppLineOrdersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/foods': {
+      id: '/_app/foods'
+      path: '/foods'
+      fullPath: '/foods'
+      preLoaderRoute: typeof AppFoodsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/expenses': {
@@ -1033,6 +1052,7 @@ interface AppRouteChildren {
   AppDeliveryRulesRoute: typeof AppDeliveryRulesRoute
   AppDispatchRoute: typeof AppDispatchRoute
   AppExpensesRoute: typeof AppExpensesRoute
+  AppFoodsRoute: typeof AppFoodsRoute
   AppLineOrdersRoute: typeof AppLineOrdersRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
   AppPayablesRoute: typeof AppPayablesRoute
@@ -1077,6 +1097,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDeliveryRulesRoute: AppDeliveryRulesRoute,
   AppDispatchRoute: AppDispatchRoute,
   AppExpensesRoute: AppExpensesRoute,
+  AppFoodsRoute: AppFoodsRoute,
   AppLineOrdersRoute: AppLineOrdersRoute,
   AppNotificationsRoute: AppNotificationsRoute,
   AppPayablesRoute: AppPayablesRoute,
@@ -1124,13 +1145,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
