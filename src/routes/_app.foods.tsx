@@ -112,11 +112,10 @@ function emptyFood(): FoodProduct {
    嘗試從 product_extra JSON 解析食品欄位
    ═══════════════════════════════════════════ */
 function parseExtra(p: Record<string, unknown>): Partial<FoodProduct> {
-  const extra =
-    typeof p.notes === "string" && p.notes.startsWith("{");
-  if (!extra) return {};
+  const extraStr = typeof p.notes === "string" && p.notes.startsWith("{") ? p.notes : null;
+  if (!extraStr) return {};
   try {
-    const obj = JSON.parse(p.notes);
+    const obj = JSON.parse(extraStr);
     return {
       expiry_days: typeof obj.expiry_days === "number" ? obj.expiry_days : null,
       origin: obj.origin ?? null,
