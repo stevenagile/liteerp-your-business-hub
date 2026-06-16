@@ -70,11 +70,14 @@ export function Sidebar({
       )}
     >
       <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-success font-bold text-success-foreground">
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-md font-bold text-white"
+          style={{ backgroundColor: "#6B9B5C" }}
+        >
           L
         </div>
         <div>
-          <div className="text-base font-semibold leading-tight text-white">
+          <div className="text-base font-semibold leading-tight text-sidebar-foreground">
             LiteERP
           </div>
           <div className="text-xs leading-tight text-sidebar-foreground/70">
