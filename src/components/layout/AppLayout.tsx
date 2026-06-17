@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function AppLayout() {
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [menuLoading, setMenuLoading] = useState(true);
   const { user, profile, signOut } = useAuth();
@@ -71,22 +72,36 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar open={open} menu={menu} loading={menuLoading} />
-
-      {open && (
-        <div
-          className="fixed inset-0 z-30 bg-black/40 md:hidden"
-          onClick={() => setOpen(false)}
+      {!collapsed && (
+        <Sidebar
+          open={mobileOpen || !collapsed}
+          menu={menu}
+          loading={menuLoading}
+          onCollapse={() => {
+            setCollapsed(true);
+            setMobileOpen(false);
+          }}
+          onLogout={handleLogout}
         />
       )}
 
-      <div className="md:pl-60">
+      {mobileOpen && !collapsed && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <div className={collapsed ? "" : "md:pl-64"}>
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-card px-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
-              className="rounded-md p-1.5 hover:bg-accent md:hidden"
-              onClick={() => setOpen((v) => !v)}
+              className="rounded-md p-1.5 hover:bg-accent"
+              onClick={() => {
+                if (collapsed) setCollapsed(false);
+                else setMobileOpen((v) => !v);
+              }}
               aria-label="切換選單"
             >
               <Menu className="h-5 w-5" />
