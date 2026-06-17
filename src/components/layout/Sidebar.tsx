@@ -235,17 +235,17 @@ function MenuNode({
     <li>
       <Link
         to={node.route!}
-        style={{ paddingLeft: padLeft }}
+        style={
+          active
+            ? { paddingLeft: padLeft, backgroundColor: "#5C8A4D" }
+            : { paddingLeft: padLeft }
+        }
         className={cn(
           "flex items-center gap-3 rounded-full py-2.5 pr-4 text-[15px] transition-colors",
           active
             ? "font-semibold text-white shadow-sm"
             : "text-sidebar-foreground/85 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
         )}
-        style2={undefined as never}
-        {...(active
-          ? { style: { paddingLeft: padLeft, backgroundColor: "#5C8A4D" } }
-          : {})}
       >
         {Icon && (
           <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
