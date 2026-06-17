@@ -102,10 +102,10 @@ export function Sidebar({
         </div>
         <div className="min-w-0">
           <div className="text-lg font-bold leading-tight text-sidebar-foreground truncate">
-            智能生管系統
+            LiteERP · 進銷存
           </div>
           <div className="text-xs leading-tight text-sidebar-foreground/60 truncate">
-            LiteERP · 進銷存
+            智能生管系統
           </div>
         </div>
       </div>
