@@ -1,7 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import * as Icons from "lucide-react";
-import { ChevronDown, ChevronRight, Circle, type LucideIcon } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Circle,
+  Leaf,
+  LogOut,
+  Menu as MenuIcon,
+  Moon,
+  Sun,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type MenuItem = {
@@ -38,7 +48,6 @@ function buildTree(items: MenuItem[]): Node[] {
   return roots;
 }
 
-// Map kebab/snake icon name from DB to lucide-react PascalCase component
 function resolveIcon(name: string | null | undefined): LucideIcon | null {
   if (!name) return null;
   const pascal = name
@@ -54,39 +63,58 @@ export function Sidebar({
   open,
   menu,
   loading,
+  onCollapse,
+  onLogout,
 }: {
   open: boolean;
   menu: MenuItem[];
   loading?: boolean;
+  onCollapse?: () => void;
+  onLogout?: () => void;
 }) {
   const tree = buildTree(menu);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  const [isDark, setIsDark] = useState<boolean>(() =>
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark"),
+  );
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
+
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar text-sidebar-foreground transition-transform duration-200 md:translate-x-0",
+        "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-transform duration-200 md:translate-x-0",
         open ? "translate-x-0" : "-translate-x-full",
       )}
     >
-      <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 pt-5 pb-4">
         <div
-          className="flex h-9 w-9 items-center justify-center rounded-md font-bold text-white"
-          style={{ backgroundColor: "#6B9B5C" }}
+          className="flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-sm"
+          style={{ backgroundColor: "#5C8A4D" }}
         >
-          L
+          <Leaf className="h-6 w-6" strokeWidth={2.2} />
         </div>
-        <div>
-          <div className="text-base font-semibold leading-tight text-sidebar-foreground">
-            LiteERP
+        <div className="min-w-0">
+          <div className="text-lg font-bold leading-tight text-sidebar-foreground truncate">
+            智能生管系統
           </div>
-          <div className="text-xs leading-tight text-sidebar-foreground/70">
-            進銷存管理系統
+          <div className="text-xs leading-tight text-sidebar-foreground/60 truncate">
+            LiteERP · 進銷存
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-3">
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto px-3 pb-3">
+        <div className="px-2 pt-3 pb-2 text-xs font-medium text-sidebar-foreground/55">
+          主要功能
+        </div>
         {loading && (
           <div className="px-3 py-2 text-sm text-sidebar-foreground/70">
             載入選單中…
@@ -97,15 +125,47 @@ export function Sidebar({
             無可顯示的選單
           </div>
         )}
-        <ul className="space-y-0.5">
+        <ul className="space-y-1">
           {tree.map((n) => (
             <MenuNode key={n.id} node={n} depth={0} pathname={pathname} />
           ))}
         </ul>
       </nav>
 
-      <div className="border-t border-sidebar-border px-4 py-3 text-xs text-sidebar-foreground/60">
-        v0.1.0 · 開發版
+      {/* Footer: theme toggle + logout */}
+      <div className="border-t border-sidebar-border px-3 py-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsDark((v) => !v)}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+            aria-label="切換主題"
+          >
+            {isDark ? (
+              <Moon className="h-5 w-5" />
+            ) : (
+              <Sun className="h-5 w-5" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg font-semibold text-destructive hover:bg-destructive/10"
+          >
+            <LogOut className="h-5 w-5" />
+            登出
+          </button>
+        </div>
+
+        {/* Collapse */}
+        <button
+          type="button"
+          onClick={onCollapse}
+          className="mt-2 flex h-9 w-full items-center justify-center rounded-lg text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+          aria-label="收合選單"
+        >
+          <MenuIcon className="h-5 w-5" />
+        </button>
       </div>
     </aside>
   );
@@ -127,10 +187,10 @@ function MenuNode({
     (n.route != null && n.route === pathname) ||
     n.children.some(containsActive);
   const [open, setOpen] = useState<boolean>(
-    isGroup ? containsActive(node) || depth === 0 : false,
+    isGroup ? containsActive(node) : false,
   );
 
-  const indent = { paddingLeft: `${0.75 + depth * 0.75}rem` };
+  const padLeft = `${0.75 + depth * 0.875}rem`;
 
   if (isGroup) {
     return (
@@ -138,25 +198,24 @@ function MenuNode({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          style={indent}
-          className={cn(
-            "flex w-full items-center gap-2 rounded-md py-2 pr-2 text-left text-sm font-semibold text-sidebar-foreground/80 hover:text-sidebar-foreground",
-          )}
+          style={{ paddingLeft: padLeft }}
+          className="flex w-full items-center gap-3 rounded-full py-2.5 pr-3 text-left text-[15px] font-medium text-sidebar-foreground/85 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
         >
-          {hasChildren ? (
-            open ? (
-              <ChevronDown className="h-4 w-4 shrink-0" />
-            ) : (
-              <ChevronRight className="h-4 w-4 shrink-0" />
-            )
+          {Icon ? (
+            <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
           ) : (
-            <span className="w-4" />
+            <span className="w-[18px]" />
           )}
-          {Icon && <Icon className="h-4 w-4 shrink-0" />}
-          <span className="truncate">{node.label}</span>
+          <span className="flex-1 truncate">{node.label}</span>
+          {hasChildren &&
+            (open ? (
+              <ChevronDown className="h-4 w-4 shrink-0 opacity-60" />
+            ) : (
+              <ChevronRight className="h-4 w-4 shrink-0 opacity-60" />
+            ))}
         </button>
         {hasChildren && open && (
-          <ul className="space-y-0.5">
+          <ul className="mt-1 space-y-1">
             {node.children.map((c) => (
               <MenuNode
                 key={c.id}
@@ -176,19 +235,25 @@ function MenuNode({
     <li>
       <Link
         to={node.route!}
-        style={indent}
+        style={{ paddingLeft: padLeft }}
         className={cn(
-          "flex items-center gap-2.5 rounded-md py-2 pr-3 text-[15px] transition-colors",
+          "flex items-center gap-3 rounded-full py-2.5 pr-4 text-[15px] transition-colors",
           active
-            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-            : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+            ? "font-semibold text-white shadow-sm"
+            : "text-sidebar-foreground/85 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
         )}
+        style2={undefined as never}
+        {...(active
+          ? { style: { paddingLeft: padLeft, backgroundColor: "#5C8A4D" } }
+          : {})}
       >
-        {Icon && <Icon className="h-4 w-4 shrink-0" />}
+        {Icon && (
+          <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
+        )}
         <span className="truncate">{node.label}</span>
       </Link>
       {hasChildren && (
-        <ul className="space-y-0.5">
+        <ul className="mt-1 space-y-1">
           {node.children.map((c) => (
             <MenuNode
               key={c.id}
