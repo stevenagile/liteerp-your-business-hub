@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function AppLayout() {
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [menuLoading, setMenuLoading] = useState(true);
   const { user, profile, signOut } = useAuth();
