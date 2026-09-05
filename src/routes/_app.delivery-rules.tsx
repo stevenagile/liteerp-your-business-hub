@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,6 +76,7 @@ const EMPTY: FormState = {
 };
 
 function DeliveryRulesPage() {
+  const { allowed, checking } = usePermissionGuard("/delivery-rules");
   const { profile } = useAuth();
   const companyId = profile?.company_id ?? null;
   const [list, setList] = useState<Rule[]>([]);
@@ -83,6 +86,8 @@ function DeliveryRulesPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Rule | null>(null);
 
   const vehicleName = useMemo(() => {
     const m = new Map(vehicles.map((v) => [v.id, v.name]));
@@ -90,11 +95,13 @@ function DeliveryRulesPage() {
   }, [vehicles]);
 
   const load = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     const [{ data: r, error }, { data: v }] = await Promise.all([
       supabase
         .from("delivery_rules")
         .select("id, weekday, city, district, truck, vehicle_id")
+        .eq("company_id", profile?.company_id ?? "")
         .order("weekday")
         .order("district"),
       supabase.from("vehicles").select("id, name, is_active").order("name"),
@@ -169,17 +176,17 @@ function DeliveryRulesPage() {
     load();
   };
 
-  const handleDelete = async (r: Rule) => {
-    if (
-      !confirm(
-        `確定要刪除規則「${WEEKDAY_LABEL[r.weekday]} ${r.district} → ${r.truck}」嗎？`,
-      )
-    )
-      return;
+  const handleDelete = (r: Rule) => {
+    setDeleteTarget(r);
+    setDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     const { error } = await supabase
       .from("delivery_rules")
       .delete()
-      .eq("id", r.id);
+      .eq("id", deleteTarget.id);
     if (error) {
       toast.error("刪除失敗:" + error.message);
       return;
@@ -187,6 +194,9 @@ function DeliveryRulesPage() {
     toast.success("已刪除");
     load();
   };
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">
@@ -387,6 +397,16 @@ function DeliveryRulesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="確認刪除"
+        description={`確定要刪除規則「${deleteTarget ? `${WEEKDAY_LABEL[deleteTarget.weekday]} ${deleteTarget.district} → ${deleteTarget.truck}` : ""}」嗎？`}
+        confirmLabel="刪除"
+        variant="destructive"
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

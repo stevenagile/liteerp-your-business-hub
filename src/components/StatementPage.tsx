@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,6 +68,7 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
   const title = isCustomer ? "客戶對帳單" : "廠商對帳單";
   const partyLabel = isCustomer ? "客戶" : "廠商";
 
+  const { profile } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
   const [contactId, setContactId] = useState<string>("");
@@ -102,6 +104,7 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
   );
 
   const generate = async () => {
+    if (!profile?.company_id) return;
     if (!contactId) return toast.error(`請選擇${partyLabel}`);
     if (!startDate || !endDate) return toast.error("請選擇期間");
     setLoading(true);
@@ -110,6 +113,7 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
       const { data: prior, error: e1 } = await supabase
         .from(viewName)
         .select("debit,credit")
+        .eq("company_id", profile?.company_id ?? "")
         .eq("contact_id", contactId)
         .lt("txn_date", startDate);
       if (e1) throw e1;
@@ -122,6 +126,7 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
       const { data: list, error: e2 } = await supabase
         .from(viewName)
         .select("txn_date,txn_type,doc_no,debit,credit")
+        .eq("company_id", profile?.company_id ?? "")
         .eq("contact_id", contactId)
         .gte("txn_date", startDate)
         .lte("txn_date", endDate)

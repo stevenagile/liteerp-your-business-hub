@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +42,7 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
   const verb = isCustomer ? "收款" : "付款";
   const partyLabel = isCustomer ? "客戶" : "廠商";
   const title = isCustomer ? "客戶收款結帳" : "廠商付款結帳";
+  const { profile } = useAuth();
   const canWrite = usePermission("finance", "write");
 
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -67,10 +69,12 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
   }, [isCustomer]);
 
   const loadDocs = async (cid: string) => {
+    if (!profile?.company_id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("doc_headers")
       .select("id,doc_no,doc_date,total_amount,paid_amount")
+      .eq("company_id", profile?.company_id ?? "")
       .eq("doc_type", docType)
       .eq("contact_id", cid)
       .in("status", ["confirmed", "completed"])

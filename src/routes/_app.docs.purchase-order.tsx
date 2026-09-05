@@ -9,10 +9,12 @@ const DOC_STATUS_LABEL: Record<string, string> = {
 };
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil, ArrowRightLeft, Printer } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
 import { usePermission } from "@/hooks/usePermission";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,8 +57,10 @@ type DocRow = {
 };
 
 function PurchaseOrderListPage() {
+  const { allowed, checking } = usePermissionGuard("/docs/purchase-order");
   const canWrite = usePermission("purchase", "write");
   const canConfirm = usePermission("purchase", "confirm");
+  const { profile } = useAuth();
   const [list, setList] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string>("all");
@@ -68,6 +72,7 @@ function PurchaseOrderListPage() {
   const navigate = useNavigate();
 
   const load = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     let q = supabase
       .from("doc_headers")
@@ -75,6 +80,7 @@ function PurchaseOrderListPage() {
         "id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no",
       )
       .eq("doc_type", "purchase_order")
+      .eq("company_id", profile?.company_id ?? "")
       .order("doc_date", { ascending: false })
       .order("doc_no", { ascending: false });
     if (status !== "all") q = q.eq("status", status);
@@ -110,6 +116,9 @@ function PurchaseOrderListPage() {
     setEditingId(id);
     setDialogOpen(true);
   };
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">
