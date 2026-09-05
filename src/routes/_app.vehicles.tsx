@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +94,7 @@ function formatDays(days: number[] | null): string {
 }
 
 function VehiclesPage() {
+  const { allowed, checking } = usePermissionGuard("/vehicles");
   const { profile } = useAuth();
   const companyId = profile?.company_id ?? null;
   const [list, setList] = useState<Vehicle[]>([]);
@@ -99,6 +102,8 @@ function VehiclesPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Vehicle | null>(null);
 
   const load = async () => {
     if (!companyId) {
@@ -194,14 +199,18 @@ function VehiclesPage() {
     load();
   };
 
-  const handleDelete = async (v: Vehicle) => {
+  const handleDelete = (v: Vehicle) => {
     if (!companyId) return;
-    if (!confirm(`確定要刪除車輛「${v.name}」嗎？已派車的訂單會保留但車輛欄位將清空。`))
-      return;
+    setDeleteTarget(v);
+    setDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!companyId || !deleteTarget) return;
     const { error } = await supabase
       .from("vehicles")
       .delete()
-      .eq("id", v.id)
+      .eq("id", deleteTarget.id)
       .eq("company_id", companyId);
     if (error) {
       toast.error("刪除失敗:" + error.message);
@@ -210,6 +219,9 @@ function VehiclesPage() {
     toast.success("已刪除");
     load();
   };
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">
@@ -408,6 +420,16 @@ function VehiclesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="確認刪除"
+        description={`確定要刪除車輛「${deleteTarget?.name}」嗎？已派車的訂單會保留但車輛欄位將清空。`}
+        confirmLabel="刪除"
+        variant="destructive"
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

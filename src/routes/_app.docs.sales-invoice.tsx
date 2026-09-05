@@ -14,11 +14,13 @@ const PAY_STATUS_LABEL: Record<string, string> = {
 };
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil, Wallet, Undo2, Printer } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { PaymentDialog } from "@/components/PaymentDialog";
 import { TransferToOrderDialog } from "@/components/TransferToOrderDialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePermission } from "@/hooks/usePermission";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,8 +94,10 @@ function PaymentBadge({ status }: { status: string | null }) {
 }
 
 function SalesInvoiceListPage() {
+  const { allowed, checking } = usePermissionGuard("/docs/sales-invoice");
   const canWrite = usePermission("sales", "write");
   const canPay = usePermission("finance", "write");
+  const { profile } = useAuth();
   const [list, setList] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string>("all");
@@ -105,6 +109,7 @@ function SalesInvoiceListPage() {
   const [returnTarget, setReturnTarget] = useState<DocRow | null>(null);
 
   const load = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     let q = supabase
       .from("doc_headers")
@@ -112,6 +117,7 @@ function SalesInvoiceListPage() {
         "id, doc_no, doc_date, contact_name, total_amount, paid_amount, status, source_doc_no, payment_status",
       )
       .eq("doc_type", "sales_invoice")
+      .eq("company_id", profile?.company_id ?? "")
       .order("doc_date", { ascending: false })
       .order("doc_no", { ascending: false });
     if (status !== "all") q = q.eq("status", status);
@@ -147,6 +153,9 @@ function SalesInvoiceListPage() {
     setEditingId(id);
     setDialogOpen(true);
   };
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">
