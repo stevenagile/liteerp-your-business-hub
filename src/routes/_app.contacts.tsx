@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "re
 import { Loader2, Plus, Pencil, Search, Upload } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { usePermission } from "@/hooks/usePermission";
@@ -52,7 +53,10 @@ type Contact = {
   phone: string | null;
   email: string | null;
   address: string | null;
+  /** 配送地區（對應 delivery_rules.district，派車規則用） */
   region: string | null;
+  /** 配送星期 ISO 1=一 … 7=日（派車規則用） */
+  delivery_days: number[] | null;
   bind_code: string | null;
   payment_terms: number | null;
   price_level: number | null;
@@ -68,6 +72,37 @@ const TYPE_LABEL: Record<ContactType, string> = {
   both: "兩者",
 };
 
+const WEEKDAYS: { value: number; label: string }[] = [
+  { value: 1, label: "一" },
+  { value: 2, label: "二" },
+  { value: 3, label: "三" },
+  { value: 4, label: "四" },
+  { value: 5, label: "五" },
+  { value: 6, label: "六" },
+  { value: 7, label: "日" },
+];
+
+/** [2,5] → "二五" */
+function formatDays(days: number[] | null | undefined): string {
+  if (!days || days.length === 0) return "";
+  return [...days]
+    .sort((a, b) => a - b)
+    .map((d) => WEEKDAYS.find((w) => w.value === d)?.label ?? String(d))
+    .join("");
+}
+
+/** 匯入用：接受 "2,5" / "二、五" / "2 5" 等寫法 → [2,5] */
+function parseDays(raw: unknown): number[] | null {
+  if (raw == null || raw === "") return null;
+  const s = String(raw);
+  const out = new Set<number>();
+  for (const w of WEEKDAYS) {
+    if (s.includes(w.label)) out.add(w.value);
+  }
+  for (const m of s.match(/[1-7]/g) ?? []) out.add(Number(m));
+  return out.size ? [...out].sort((a, b) => a - b) : null;
+}
+
 function emptyContact(): Contact {
   return {
     id: "",
@@ -80,6 +115,7 @@ function emptyContact(): Contact {
     email: "",
     address: "",
     region: "",
+    delivery_days: null,
     bind_code: "",
     payment_terms: 30,
     price_level: 1,
@@ -114,7 +150,7 @@ function ContactsPage() {
       supabase
         .from("contacts")
         .select(
-          "id, code, name, type, tax_id, contact_person, phone, email, address, region, bind_code, payment_terms, price_level, credit_limit, price_includes_tax, notes, company_id",
+          "id, code, name, type, tax_id, contact_person, phone, email, address, region, delivery_days, bind_code, payment_terms, price_level, credit_limit, price_includes_tax, notes, company_id",
         )
         .eq("company_id", companyId)
         .order("code", { ascending: true }),
@@ -145,10 +181,13 @@ function ContactsPage() {
       if (!kw) return true;
       return (
         c.name?.toLowerCase().includes(kw) ||
-        c.code?.toLowerCase().includes(kw)
+        c.code?.toLowerCase().includes(kw) ||
+        c.region?.toLowerCase().includes(kw)
       );
     });
   }, [list, tab, keyword]);
+
+  const colCount = canWrite ? 8 : 7;
 
   return (
     <div className="space-y-6">
@@ -156,7 +195,7 @@ function ContactsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">客戶廠商</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            管理往來客戶與供應廠商資料。
+            管理往來客戶與供應廠商資料。客戶的「地區＋配送星期」決定派車規則的車種與配送日。
           </p>
         </div>
         <div className="flex gap-2">
@@ -168,6 +207,11 @@ function ContactsPage() {
               { key: "name", label: "店名" },
               { key: "type", label: "類型", value: (r: Record<string, unknown>) => TYPE_LABEL[r.type as ContactType] ?? String(r.type ?? "") },
               { key: "region", label: "地區" },
+              {
+                key: "delivery_days",
+                label: "配送星期",
+                value: (r: Record<string, unknown>) => formatDays(r.delivery_days as number[] | null),
+              },
               { key: "phone", label: "電話" },
               { key: "bind_code", label: "綁定碼" },
             ]}
@@ -205,7 +249,7 @@ function ContactsPage() {
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="搜尋名稱或編號"
+            placeholder="搜尋名稱、編號或地區"
             className="pl-8"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
@@ -220,6 +264,7 @@ function ContactsPage() {
               <TableHead className="w-32">編號</TableHead>
               <TableHead>名稱</TableHead>
               <TableHead className="w-24">類型</TableHead>
+              <TableHead className="w-36">地區 / 配送</TableHead>
               <TableHead className="w-40">電話</TableHead>
               <TableHead className="w-32">綁定碼</TableHead>
               <TableHead className="w-24 text-right">帳期(天)</TableHead>
@@ -231,17 +276,14 @@ function ContactsPage() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell
-                  colSpan={canWrite ? 7 : 6}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={colCount} className="h-24 text-center">
                   <Loader2 className="inline h-5 w-5 animate-spin text-muted-foreground" />
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={canWrite ? 7 : 6}
+                  colSpan={colCount}
                   className="h-24 text-center text-sm text-muted-foreground"
                 >
                   尚無資料
@@ -258,6 +300,18 @@ function ContactsPage() {
                     >
                       {TYPE_LABEL[c.type] ?? c.type}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {c.type === "vendor" ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      <div className="leading-tight">
+                        <div>{c.region || <span className="text-warning">未設地區</span>}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDays(c.delivery_days) ? `週${formatDays(c.delivery_days)}` : "未設配送日"}
+                        </div>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {c.phone || "—"}
@@ -335,10 +389,14 @@ function ContactsPage() {
         }}
         onImport={async (validRows) => {
           if (!companyId) return { success: 0, failed: validRows.length, errors: ["找不到公司"] };
-          const payload = validRows.map((r) => ({
-            ...r.data,
-            company_id: companyId,
-          }));
+          const payload = validRows.map((r) => {
+            const { delivery_days, ...rest } = r.data as Record<string, unknown>;
+            return {
+              ...rest,
+              delivery_days: parseDays(delivery_days),
+              company_id: companyId,
+            };
+          });
           const { error } = await supabase.from("contacts").insert(payload);
           if (error) return { success: 0, failed: validRows.length, errors: [error.message] };
           return { success: validRows.length, failed: 0 };
@@ -367,6 +425,8 @@ const CONTACT_IMPORT_FIELDS: ImportField[] = [
   { key: "email", label: "Email" },
   { key: "address", label: "地址" },
   { key: "shipping_address", label: "送貨地址" },
+  { key: "region", label: "配送地區", example: "溪湖" },
+  { key: "delivery_days", label: "配送星期(1-7,逗號分隔)", example: "2,5" },
   { key: "payment_terms", label: "帳期天數", type: "number", default: 30, example: 30 },
   { key: "price_level", label: "售價等級", type: "number", default: 1, example: 1 },
   { key: "credit_limit", label: "信用額度", type: "number", default: 0, example: 0 },
@@ -395,6 +455,18 @@ function ContactDialog({
 
   if (!form) return null;
   const isEdit = Boolean(form.id);
+  const isCustomer = form.type === "customer" || form.type === "both";
+
+  const toggleDay = (d: number) => {
+    setForm((f) => {
+      if (!f) return f;
+      const cur = new Set(f.delivery_days ?? []);
+      if (cur.has(d)) cur.delete(d);
+      else cur.add(d);
+      const next = [...cur].sort((a, b) => a - b);
+      return { ...f, delivery_days: next.length ? next : null };
+    });
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -408,6 +480,8 @@ function ContactDialog({
       phone: form.phone || null,
       email: form.email || null,
       address: form.address || null,
+      region: form.region?.trim() || null,
+      delivery_days: form.delivery_days && form.delivery_days.length ? form.delivery_days : null,
       payment_terms: form.payment_terms ?? 30,
       price_level: form.price_level ?? 1,
       credit_limit: form.credit_limit ?? 0,
@@ -521,6 +595,42 @@ function ContactDialog({
                 }
               />
             </Field>
+
+            {/* ---- 配送（客戶用；決定派車車種與配送日） ---- */}
+            {isCustomer && (
+              <>
+                <Field label="配送地區" hint="須與「配送規則」的地區一致，例：溪湖、北斗、西屯">
+                  <Input
+                    value={form.region ?? ""}
+                    placeholder="例：溪湖"
+                    onChange={(e) =>
+                      setForm((f) => f && { ...f, region: e.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="配送星期" hint="可複選；LINE 下單與開單依此排下一趟">
+                  <div className="flex h-9 items-center gap-1">
+                    {WEEKDAYS.map((w) => {
+                      const on = form.delivery_days?.includes(w.value) ?? false;
+                      return (
+                        <Button
+                          key={w.value}
+                          type="button"
+                          size="sm"
+                          variant={on ? "default" : "outline"}
+                          className={cn("h-8 w-9 px-0", !on && "text-muted-foreground")}
+                          onClick={() => toggleDay(w.value)}
+                          aria-pressed={on}
+                        >
+                          {w.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </Field>
+              </>
+            )}
+
             <Field label="帳期 (天)">
               <Input
                 type="number"
@@ -592,6 +702,11 @@ function ContactDialog({
                 }
               />
             </Field>
+            {isEdit && form.bind_code && (
+              <div className="text-xs text-muted-foreground md:col-span-2">
+                LINE 綁定碼：<span className="font-mono">{form.bind_code}</span>（系統自動產生，不可修改）
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -615,11 +730,13 @@ function ContactDialog({
 function Field({
   label,
   required,
+  hint,
   className,
   children,
 }: {
   label: string;
   required?: boolean;
+  hint?: string;
   className?: string;
   children: ReactNode;
 }) {
@@ -630,6 +747,7 @@ function Field({
         {required && <span className="ml-0.5 text-destructive">*</span>}
       </Label>
       {children}
+      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
     </div>
   );
 }

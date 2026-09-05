@@ -1,13 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { format, addDays } from "date-fns";
-import { Loader2, Printer, Truck } from "lucide-react";
+import { Loader2, Printer, RefreshCw, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -24,16 +35,34 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// 派車頁（車種化）：以「車種（大車／小車）」為主軸，實體車輛為選配。
+// 支援 URL 搜尋參數 ?date=YYYY-MM-DD&truck=大車|小車&doc=sales_order|sales_invoice
+// 供每日推播深連結直接開到當天出貨單。
+type DispatchSearch = {
+  date?: string;
+  truck?: string;
+  doc?: string;
+};
+
 export const Route = createFileRoute("/_app/dispatch")({
+  validateSearch: (s: Record<string, unknown>): DispatchSearch => ({
+    date: typeof s.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s.date) ? s.date : undefined,
+    truck: s.truck === "大車" || s.truck === "小車" ? s.truck : undefined,
+    doc: s.doc === "sales_order" || s.doc === "sales_invoice" ? s.doc : undefined,
+  }),
   component: DispatchPage,
 });
 
+type TruckFilter = "all" | "大車" | "小車";
+type DocFilter = "all" | "sales_order" | "sales_invoice";
+
 type ManifestRow = {
+  delivery_date: string;
+  truck_type: string | null;
   vehicle_id: string | null;
   vehicle_name: string | null;
   plate_no: string | null;
   driver_name: string | null;
-  delivery_date: string;
   doc_type: string;
   order_id: string;
   order_no: string | null;
@@ -48,48 +77,59 @@ type ManifestRow = {
   quantity: number;
 };
 
-type VehicleOpt = { id: string; name: string };
-
-type VehicleGroup = {
-  key: string;
-  vehicle_name: string;
-  plate_no: string | null;
-  driver_name: string | null;
+type TruckGroup = {
+  key: string; // "大車" | "小車" | "unassigned"
+  label: string;
+  unassigned: boolean;
   rows: ManifestRow[];
 };
 
+const TRUCK_ORDER: Record<string, number> = { 大車: 0, 小車: 1, unassigned: 9 };
+
 function DispatchPage() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const today = format(new Date(), "yyyy-MM-dd");
-  const [date, setDate] = useState(today);
-  const [vehicleId, setVehicleId] = useState<string>("all");
-  const [vehicles, setVehicles] = useState<VehicleOpt[]>([]);
+  const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
+
+  const [date, setDate] = useState(search.date ?? today);
+  const [truck, setTruck] = useState<TruckFilter>((search.truck as TruckFilter) ?? "all");
+  const [docType, setDocType] = useState<DocFilter>((search.doc as DocFilter) ?? "all");
   const [rows, setRows] = useState<ManifestRow[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 重新套用派車規則
+  const [reassigning, setReassigning] = useState(false);
+  const [fullRecalc, setFullRecalc] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // 篩選同步到 URL（可分享 / 推播深連結）
   useEffect(() => {
-    supabase
-      .from("vehicles")
-      .select("id, name")
-      .order("name")
-      .then(({ data }) => setVehicles((data ?? []) as VehicleOpt[]));
-  }, []);
+    navigate({
+      search: {
+        date: date !== today ? date : undefined,
+        truck: truck !== "all" ? truck : undefined,
+        doc: docType !== "all" ? docType : undefined,
+      },
+      replace: true,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, truck, docType]);
 
   const load = async () => {
     setLoading(true);
     let q = supabase
       .from("v_dispatch_manifest")
       .select("*")
-      .eq("delivery_date", date)
+      .eq("delivery_date", date);
+    if (truck !== "all") q = q.eq("truck_type", truck);
+    if (docType !== "all") q = q.eq("doc_type", docType);
+    const { data, error } = await q
+      .order("truck_type", { nullsFirst: false })
+      .order("district")
+      .order("contact_name")
       .order("order_no")
       .order("line_no");
-    if (vehicleId !== "all") {
-      if (vehicleId === "unassigned") {
-        q = q.is("vehicle_id", null);
-      } else {
-        q = q.eq("vehicle_id", vehicleId);
-      }
-    }
-    const { data, error } = await q;
     if (error) {
       toast.error("讀取派車單失敗:" + error.message);
     } else {
@@ -101,28 +141,56 @@ function DispatchPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, vehicleId]);
+  }, [date, truck, docType]);
 
-  // 依車輛分組
-  const groups = useMemo<VehicleGroup[]>(() => {
-    const map = new Map<string, VehicleGroup>();
+  // 依車種分組；truck_type 為 null 者另成「未帶車種」組
+  const groups = useMemo<TruckGroup[]>(() => {
+    const map = new Map<string, TruckGroup>();
     for (const r of rows) {
-      const key = r.vehicle_id ?? "unassigned";
+      const key = r.truck_type ?? "unassigned";
       if (!map.has(key)) {
         map.set(key, {
           key,
-          vehicle_name: r.vehicle_name ?? "未指派車輛",
-          plate_no: r.plate_no,
-          driver_name: r.driver_name,
+          label: r.truck_type ?? "未帶車種（規則對不到，請補配送規則或客戶地區）",
+          unassigned: !r.truck_type,
           rows: [],
         });
       }
       map.get(key)!.rows.push(r);
     }
-    return [...map.values()].sort((a, b) =>
-      a.vehicle_name.localeCompare(b.vehicle_name, "zh-Hant"),
+    return [...map.values()].sort(
+      (a, b) => (TRUCK_ORDER[a.key] ?? 5) - (TRUCK_ORDER[b.key] ?? 5),
     );
   }, [rows]);
+
+  const unassignedCount = useMemo(
+    () => new Set(rows.filter((r) => !r.truck_type).map((r) => r.order_id)).size,
+    [rows],
+  );
+
+  const runReassign = async () => {
+    setReassigning(true);
+    const { data, error } = await supabase.rpc("reassign_dispatch", {
+      p_only_unassigned: !fullRecalc,
+      p_delivery_date: fullRecalc ? date : null,
+    });
+    setReassigning(false);
+    setConfirmOpen(false);
+    if (error) {
+      toast.error("重新套用失敗:" + error.message);
+      return;
+    }
+    toast.success(`已回填 ${Number(data ?? 0)} 筆派車`);
+    load();
+  };
+
+  const handleReassignClick = () => {
+    if (fullRecalc) {
+      setConfirmOpen(true);
+    } else {
+      runReassign();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -130,16 +198,43 @@ function DispatchPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">派車單</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            依車輛與配送日列出當趟要送的訂單／銷貨單與備貨彙總。
+            依車種（大車／小車）與配送日列出當趟要送的訂單／銷貨單與備貨彙總。
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex items-center gap-2 rounded-md border px-2 py-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleReassignClick}
+              disabled={reassigning}
+            >
+              {reassigning ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-1.5 h-4 w-4" />
+              )}
+              重新套用派車規則
+            </Button>
+            <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
+              <Checkbox
+                checked={fullRecalc}
+                onCheckedChange={(v) => setFullRecalc(Boolean(v))}
+              />
+              重算 {date} 全部單（會覆蓋手動指定）
+            </label>
+          </div>
           <ExportExcelButton
             rows={rows as unknown as Record<string, unknown>[]}
-            filename={`派車單_${date}`}
+            filename={`派車單_${date}${truck !== "all" ? `_${truck}` : ""}`}
             columns={[
-              { key: "vehicle_name", label: "車輛" },
-              { key: "driver_name", label: "司機" },
+              {
+                key: "truck_type",
+                label: "車種",
+                value: (r: Record<string, unknown>) =>
+                  String((r as { truck_type: string | null }).truck_type ?? "未帶車種"),
+              },
+              { key: "vehicle_name", label: "車輛(選配)" },
               { key: "delivery_date", label: "配送日" },
               {
                 key: "doc_type",
@@ -165,7 +260,7 @@ function DispatchPage() {
         </div>
       </div>
 
-      {/* 篩選 */}
+      {/* 第一段：篩選 */}
       <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-card p-4 shadow-sm print:hidden">
         <div className="space-y-1.5">
           <Label className="text-xs">配送日</Label>
@@ -173,7 +268,7 @@ function DispatchPage() {
             type="date"
             className="w-40"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(e) => e.target.value && setDate(e.target.value)}
           />
         </div>
         <div className="flex gap-1 pb-0.5">
@@ -186,59 +281,89 @@ function DispatchPage() {
           </Button>
           <Button
             size="sm"
-            variant={
-              date === format(addDays(new Date(), 1), "yyyy-MM-dd")
-                ? "default"
-                : "outline"
-            }
-            onClick={() => setDate(format(addDays(new Date(), 1), "yyyy-MM-dd"))}
+            variant={date === tomorrow ? "default" : "outline"}
+            onClick={() => setDate(tomorrow)}
           >
             明天
           </Button>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">車輛</Label>
-          <Select value={vehicleId} onValueChange={setVehicleId}>
-            <SelectTrigger className="w-44">
+          <Label className="text-xs">車種</Label>
+          <Select value={truck} onValueChange={(v) => setTruck(v as TruckFilter)}>
+            <SelectTrigger className="w-36">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全部車輛</SelectItem>
-              <SelectItem value="unassigned">未指派</SelectItem>
-              {vehicles.map((v) => (
-                <SelectItem key={v.id} value={v.id}>
-                  {v.name}
-                </SelectItem>
-              ))}
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="大車">大車</SelectItem>
+              <SelectItem value="小車">小車</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">單別</Label>
+          <Select value={docType} onValueChange={(v) => setDocType(v as DocFilter)}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部</SelectItem>
+              <SelectItem value="sales_order">訂單</SelectItem>
+              <SelectItem value="sales_invoice">銷貨單</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {unassignedCount > 0 && (
+          <div className="ml-auto rounded-md bg-warning/10 px-3 py-1.5 text-xs text-warning-foreground">
+            ⚠ {unassignedCount} 張單未帶車種，可按「重新套用派車規則」補齊
+          </div>
+        )}
       </div>
 
+      {/* 第二段：結果 */}
       {loading ? (
         <div className="flex h-40 items-center justify-center rounded-lg border bg-card">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : groups.length === 0 ? (
         <div className="flex h-40 items-center justify-center rounded-lg border bg-card text-sm text-muted-foreground">
-          {date} 沒有排定配送的訂單。
+          {date} 沒有排定配送的{truck !== "all" ? truck : ""}單據。
         </div>
       ) : (
-        groups.map((g) => <VehicleManifest key={g.key} group={g} date={date} />)
+        groups.map((g) => <TruckManifest key={g.key} group={g} date={date} />)
       )}
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>重算 {date} 全部單的派車？</AlertDialogTitle>
+            <AlertDialogDescription>
+              會依目前的配送規則重新計算該日所有訂單／銷貨單的車種與配送日，
+              <span className="font-medium text-foreground">手動指定的車種會被覆蓋</span>。
+              只想補「未帶車種」的單，請取消勾選後再執行。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={runReassign} disabled={reassigning}>
+              確定重算
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function VehicleManifest({ group, date }: { group: VehicleGroup; date: string }) {
-  // 備貨彙總:同產品跨訂單加總
+function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
+  // 備貨彙總：同產品（品名+單位）跨客戶加總，方便倉庫一次備齊
   const productSummary = useMemo(() => {
     const map = new Map<
       string,
       { code: string | null; name: string | null; unit: string | null; qty: number }
     >();
     for (const r of group.rows) {
-      const key = r.product_id ?? `${r.product_code}`;
+      const key = `${r.product_id ?? r.product_code}|${r.unit ?? ""}`;
       const cur = map.get(key);
       if (cur) {
         cur.qty += Number(r.quantity) || 0;
@@ -256,7 +381,7 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
     );
   }, [group.rows]);
 
-  // 訂單分組(維持明細順序)
+  // 各站明細：依單據分組（rows 已依 地區→客戶→單號→行號 排序）
   const orders = useMemo(() => {
     const map = new Map<
       string,
@@ -265,6 +390,7 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
         doc_type: string;
         contact_name: string | null;
         district: string | null;
+        vehicle_name: string | null;
         lines: ManifestRow[];
       }
     >();
@@ -275,6 +401,7 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
           doc_type: r.doc_type,
           contact_name: r.contact_name,
           district: r.district,
+          vehicle_name: r.vehicle_name,
           lines: [],
         });
       }
@@ -283,26 +410,24 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
     return [...map.values()];
   }, [group.rows]);
 
+  const totalQty = productSummary.reduce((s, p) => s + p.qty, 0);
+
   return (
-    <section className="break-inside-avoid rounded-lg border bg-card shadow-sm">
+    <section
+      className={
+        "break-inside-avoid rounded-lg border bg-card shadow-sm print:break-after-page" +
+        (group.unassigned ? " border-warning/50" : "")
+      }
+    >
       <div className="flex flex-wrap items-center gap-x-6 gap-y-1 border-b px-4 py-3">
         <div className="flex items-center gap-2 text-base font-semibold">
           <Truck className="h-4 w-4 text-muted-foreground" />
-          {group.vehicle_name}
+          {group.label}
         </div>
-        {group.plate_no && (
-          <div className="font-mono text-sm text-muted-foreground">
-            {group.plate_no}
-          </div>
-        )}
-        {group.driver_name && (
-          <div className="text-sm text-muted-foreground">
-            司機：{group.driver_name}
-          </div>
-        )}
         <div className="text-sm text-muted-foreground">配送日：{date}</div>
-        <div className="ml-auto text-sm text-muted-foreground">
-          {orders.length} 張單
+        <div className="ml-auto flex gap-4 text-sm text-muted-foreground">
+          <span>{orders.length} 站</span>
+          <span>合計 {totalQty.toLocaleString()}</span>
         </div>
       </div>
 
@@ -343,7 +468,7 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
         {/* 各站明細 */}
         <div>
           <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
-            配送明細
+            各站明細
           </h3>
           <Table>
             <TableHeader>
@@ -364,18 +489,23 @@ function VehicleManifest({ group, date }: { group: VehicleGroup; date: string })
                       >
                         <div className="font-medium">
                           {o.contact_name ?? "—"}
+                          {o.district && (
+                            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                              {o.district}
+                            </span>
+                          )}
                         </div>
                         <div className="font-mono text-xs text-muted-foreground">
                           {o.order_no ?? "—"}
                           <span className="ml-1 rounded bg-muted px-1 py-0.5 font-sans text-[10px]">
                             {o.doc_type === "sales_invoice" ? "銷貨" : "訂單"}
                           </span>
+                          {o.vehicle_name && (
+                            <span className="ml-1 font-sans text-[10px]">
+                              車：{o.vehicle_name}
+                            </span>
+                          )}
                         </div>
-                        {o.district && (
-                          <div className="text-xs text-muted-foreground">
-                            {o.district}
-                          </div>
-                        )}
                       </TableCell>
                     ) : null}
                     <TableCell>{l.product_name ?? "—"}</TableCell>
