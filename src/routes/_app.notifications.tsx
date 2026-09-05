@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,7 @@ const PAGE_SIZE = 20;
 
 function NotificationsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [rows, setRows] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -42,12 +44,15 @@ function NotificationsPage() {
   const [readFilter, setReadFilter] = useState<string>("all");
 
   const load = async () => {
+    if (!user) return;
     setLoading(true);
     let q = supabase
       .from("notifications")
       .select("id,title,message,event_type,is_read,created_at,payload", {
         count: "exact",
       })
+      // FE-01: 加上 user 過濾作為縱深防禦
+      .eq("target_user_id", user.id)
       .order("created_at", { ascending: false })
       .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
     if (typeFilter !== "all") q = q.eq("event_type", typeFilter);
@@ -66,10 +71,13 @@ function NotificationsPage() {
   }, [page, typeFilter, readFilter]);
 
   const markAllRead = async () => {
+    if (!user) return;
+    // FE-02: 加上 target_user_id 過濾,避免影響其他用戶的通知
     const { error } = await supabase
       .from("notifications")
       .update({ is_read: true })
-      .eq("is_read", false);
+      .eq("is_read", false)
+      .eq("target_user_id", user.id);
     if (error) return toast.error(error.message);
     toast.success("已全部標示為已讀");
     load();

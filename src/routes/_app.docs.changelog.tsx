@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 
 export const Route = createFileRoute("/_app/docs/changelog")({
   component: ChangelogPage,
@@ -21,7 +23,7 @@ const LOG: Entry[] = [
     version: "稅率與可讀性修正",
     date: "2026-06-14",
     items: [
-      "修正收付款明細讀取錯誤、沖銷鈕未顯示的問題。",
+      "修正收付款明細讀取錯誤、沖銷鍵未顯示的問題。",
       "環境參數改接公司主資料，修改稅率即時反映到單據計稅。",
       "全站字級放大、提高對比，長輩友善。",
     ],
@@ -29,6 +31,10 @@ const LOG: Entry[] = [
 ];
 
 function ChangelogPage() {
+  const { allowed, checking } = usePermissionGuard("/docs/changelog");
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
+
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <div>

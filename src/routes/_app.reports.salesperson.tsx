@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpDown, Loader2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +39,8 @@ const fmt = (n: number | null | undefined) =>
 type SortKey = "total_sales" | "gross_profit";
 
 function SalespersonReport() {
+  const { allowed, checking } = usePermissionGuard("/reports/salesperson");
+  const { profile } = useAuth();
   const [startMonth, setStartMonth] = useState(firstOfYear());
   const [endMonth, setEndMonth] = useState(currentMonth());
   const [loading, setLoading] = useState(false);
@@ -44,6 +48,7 @@ function SalespersonReport() {
   const [sortKey, setSortKey] = useState<SortKey>("total_sales");
 
   const run = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     try {
       const startDate = `${startMonth}-01`;
@@ -53,6 +58,7 @@ function SalespersonReport() {
       const { data, error } = await supabase
         .from("v_salesperson_performance")
         .select("sales_person_name,month,invoice_count,total_sales,gross_profit,margin_pct")
+        .eq("company_id", profile?.company_id ?? "")
         .gte("month", startDate)
         .lt("month", endDate)
         .order("month", { ascending: false });
@@ -73,6 +79,9 @@ function SalespersonReport() {
   const sorted = useMemo(() => {
     return [...rows].sort((a, b) => Number(b[sortKey] ?? 0) - Number(a[sortKey] ?? 0));
   }, [rows, sortKey]);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-4">

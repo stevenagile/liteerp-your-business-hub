@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -39,6 +41,8 @@ function fmt(s: string | null) {
 }
 
 function AuditPage() {
+  const { allowed, checking } = usePermissionGuard("/audit");
+  const { profile } = useAuth();
   const navigate = useNavigate();
   const [guardLoading, setGuardLoading] = useState(true);
   const [canView, setCanView] = useState(false);
@@ -62,12 +66,14 @@ function AuditPage() {
   }, [navigate]);
 
   const load = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("agent_logs")
       .select(
         "id,created_at,agent_name,action,resource,resource_id,response_status,error_message,request_summary",
       )
+      .eq("company_id", profile?.company_id ?? "")
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) toast.error(error.message);
@@ -79,6 +85,9 @@ function AuditPage() {
     if (canView) load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView]);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   if (guardLoading) {
     return (

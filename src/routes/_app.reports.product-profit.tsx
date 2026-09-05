@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { ArrowDownAZ } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { ArrowDownAZ, Loader2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 
 export const Route = createFileRoute("/_app/reports/product-profit")({
   component: ProductProfitReport,
@@ -28,15 +30,19 @@ const pct = (n: number | null | undefined) =>
 type SortKey = "total_profit" | "avg_margin_pct";
 
 function ProductProfitReport() {
+  const { allowed, checking } = usePermissionGuard("/reports/product-profit");
+  const { profile } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>("total_profit");
 
   useEffect(() => {
     (async () => {
+      if (!profile?.company_id) return;
       const { data, error } = await supabase
         .from("v_product_profitability")
-        .select("*");
+        .select("*")
+        .eq("company_id", profile?.company_id ?? "");
       if (error) console.error(error);
       setRows((data as Row[]) ?? []);
       setLoading(false);
@@ -50,6 +56,9 @@ function ProductProfitReport() {
       ),
     [rows, sortKey],
   );
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-4">

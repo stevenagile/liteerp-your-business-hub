@@ -4,8 +4,10 @@ import { PrintReportButton } from "@/components/PrintReportButton";
 import { ReportPrintHeader } from "@/components/ReportPrintHeader";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import {
   Tabs,
@@ -42,14 +44,17 @@ const fmt = (n: number | null | undefined) =>
   Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 function useAging(view: string, partyKey: "customer_name" | "vendor_name") {
+  const { profile } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     (async () => {
+      if (!profile?.company_id) return;
       setLoading(true);
       const { data, error } = await supabase
         .from(view)
         .select(`${partyKey},doc_no,due_date,balance,overdue_days,aging_bucket`)
+        .eq("company_id", profile?.company_id ?? "")
         .order("overdue_days", { ascending: false });
       if (error) toast.error(error.message);
       const mapped = (data ?? []).map((r: Record<string, unknown>) => ({
@@ -129,11 +134,15 @@ function AgingTable({ rows, partyLabel }: { rows: Row[]; partyLabel: string }) {
 }
 
 function AgingReport() {
+  const { allowed, checking } = usePermissionGuard("/reports/aging");
   const ar = useAging("v_ar_aging", "customer_name");
   const ap = useAging("v_ap_aging", "vendor_name");
   const [tab, setTab] = useState<"ar" | "ap">("ar");
 
   const activeRows = tab === "ar" ? ar.rows : ap.rows;
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-4 print-area">

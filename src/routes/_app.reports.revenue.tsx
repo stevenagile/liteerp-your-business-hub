@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 export const Route = createFileRoute("/_app/reports/revenue")({
   component: RevenueReport,
@@ -30,20 +33,27 @@ const pct = (n: number | null | undefined) =>
   n == null ? "-" : `${Number(n).toFixed(2)}%`;
 
 function RevenueReport() {
+  const { allowed, checking } = usePermissionGuard("/reports/revenue");
+  const { profile } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
+      if (!profile?.company_id) return;
       const { data, error } = await supabase
         .from("v_monthly_revenue")
         .select("*")
+        .eq("company_id", profile?.company_id ?? "")
         .order("month", { ascending: false });
       if (error) console.error(error);
       setRows((data as Row[]) ?? []);
       setLoading(false);
     })();
   }, []);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-4">
