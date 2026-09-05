@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +49,8 @@ const fmt = (n: number | null | undefined) =>
   Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 function PurchaseDetailReport() {
+  const { allowed, checking } = usePermissionGuard("/reports/purchase-detail");
+  const { profile } = useAuth();
   const [vendors, setVendors] = useState<{ id: string; name: string }[]>([]);
   const [products, setProducts] = useState<{ id: string; code: string; name: string }[]>([]);
   const [start, setStart] = useState(firstOfMonth());
@@ -68,11 +72,13 @@ function PurchaseDetailReport() {
   }, []);
 
   const run = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     try {
       let q = supabase
         .from("v_purchase_detail")
         .select("doc_date,doc_no,contact_id,vendor_name,product_code,product_name,quantity,unit_price,amount")
+        .eq("company_id", profile?.company_id ?? "")
         .gte("doc_date", start)
         .lte("doc_date", end)
         .order("doc_date", { ascending: false });
@@ -94,6 +100,9 @@ function PurchaseDetailReport() {
   }, []);
 
   const total = useMemo(() => rows.reduce((s, r) => s + Number(r.amount ?? 0), 0), [rows]);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-4">

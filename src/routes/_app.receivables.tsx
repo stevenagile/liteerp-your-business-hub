@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import {
   Table,
@@ -56,15 +58,19 @@ function PaymentBadge({ status }: { status: string | null }) {
 }
 
 function ReceivablesPage() {
+  const { allowed, checking } = usePermissionGuard("/receivables");
+  const { profile } = useAuth();
   const [list, setList] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
+      if (!profile?.company_id) return;
       setLoading(true);
       const { data, error } = await supabase
         .from("v_receivables")
         .select("*")
+        .eq("company_id", profile?.company_id ?? "")
         .order("doc_date", { ascending: false });
       if (error) toast.error("讀取應收帳款失敗:" + error.message);
       else setList((data ?? []) as Row[]);
@@ -82,6 +88,9 @@ function ReceivablesPage() {
     }
     return { total, overdue };
   }, [list]);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">

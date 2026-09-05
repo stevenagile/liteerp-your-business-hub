@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, AlertTriangle, Boxes, CircleDollarSign } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
@@ -45,17 +47,21 @@ function fmt(n: number | null | undefined, digits = 0) {
 }
 
 function InventoryPage() {
+  const { allowed, checking } = usePermissionGuard("/inventory");
+  const { profile } = useAuth();
   const [list, setList] = useState<StockRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
+      if (!profile?.company_id) return;
       setLoading(true);
       const { data, error } = await supabase
         .from("v_stock")
         .select(
           "product_id, product_code, product_name, warehouse_id, warehouse_name, quantity, avg_cost, stock_value, selling_price, expected_margin_pct, safety_stock, is_low",
         )
+        .eq("company_id", profile?.company_id ?? "")
         .order("product_code", { ascending: true });
       if (error) {
         toast.error("讀取庫存失敗:" + error.message);
@@ -74,6 +80,9 @@ function InventoryPage() {
     );
     return { items, totalValue };
   }, [list]);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6 print-area">

@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, RefreshCw, Check, RotateCcw } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -51,7 +53,9 @@ function fmt(s: string) {
 }
 
 function LineOrdersPage() {
+  const { allowed, checking } = usePermissionGuard("/line-orders");
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [guardLoading, setGuardLoading] = useState(true);
   const [canView, setCanView] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -70,10 +74,11 @@ function LineOrdersPage() {
   }, [navigate]);
 
   const load = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     try {
       const status = tab === "pending" ? PENDING : tab === "committed" ? ["committed"] : undefined;
-      const r = await call("list", status ? { status } : {});
+      const r = await call("list", { ...(status ? { status } : {}), company_id: profile?.company_id ?? "" });
       setRows(r.intake ?? []);
       setCounts(r.counts ?? {});
     } catch (e) { toast.error(`讀取失敗：${(e as Error).message}`); }
@@ -97,6 +102,9 @@ function LineOrdersPage() {
     () => PENDING.reduce((s, k) => s + (counts[k] ?? 0), 0),
     [counts],
   );
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   if (guardLoading) {
     return <div className="flex h-64 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;

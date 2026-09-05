@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -48,6 +49,7 @@ type ExpenseRow = {
 };
 
 function ExpensesPage() {
+  const { allowed, checking } = usePermissionGuard("/expenses");
   const { user, profile } = useAuth();
   const canWrite = usePermission("finance", "write");
   const [list, setList] = useState<ExpenseRow[]>([]);
@@ -67,12 +69,14 @@ function ExpensesPage() {
   });
 
   const load = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("expenses")
       .select(
         "id, expense_date, amount, description, vendor_name, category_id, expense_categories(name)",
       )
+      .eq("company_id", profile?.company_id ?? "")
       .order("expense_date", { ascending: false });
     if (error) toast.error("讀取費用失敗:" + error.message);
     else setList((data ?? []) as unknown as ExpenseRow[]);
@@ -141,6 +145,9 @@ function ExpensesPage() {
     setDialogOpen(false);
     load();
   };
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">
