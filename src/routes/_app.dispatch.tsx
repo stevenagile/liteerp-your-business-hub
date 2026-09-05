@@ -158,6 +158,7 @@ function DispatchPage() {
       supabase
         .from("dispatch_sheet_runs")
         .select("id, generated_at")
+        .eq("company_id", profile?.company_id ?? "")
         .eq("delivery_date", date)
         .order("generated_at", { ascending: false })
         .limit(1),
@@ -234,7 +235,7 @@ function DispatchPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">派車單</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            依車種（大車／小車）與配送日列出當趟要送的訂單／銷貨單與備貨彙總。
+            依車種（大車／小車）與配送日列出當趨要送的訂單／銷貨單與備貨彙總。
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">

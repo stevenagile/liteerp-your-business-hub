@@ -101,15 +101,18 @@ function InventoryLedgerPage() {
 
   // load filter options once
   useEffect(() => {
+    if (!profile?.company_id) return;
     (async () => {
       const [{ data: pd }, { data: wh }] = await Promise.all([
         supabase
           .from("v_inventory_ledger")
           .select("product_code, product_name")
+          .eq("company_id", profile?.company_id ?? "")
           .order("product_code", { ascending: true }),
         supabase
           .from("v_inventory_ledger")
           .select("warehouse_name")
+          .eq("company_id", profile?.company_id ?? "")
           .order("warehouse_name", { ascending: true }),
       ]);
       const prods = Array.from(
@@ -126,7 +129,7 @@ function InventoryLedgerPage() {
       setProductOptions(prods);
       setWarehouseOptions(whs);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const load = async (targetPage = page) => {
     if (!profile?.company_id) return;
