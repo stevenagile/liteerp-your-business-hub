@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,6 +75,8 @@ function fmtNum(n: number | null | undefined, digits = 0) {
 }
 
 function InventoryLedgerPage() {
+  const { allowed, checking } = usePermissionGuard("/inventory/ledger");
+  const { profile } = useAuth();
   const [list, setList] = useState<LedgerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -125,6 +129,7 @@ function InventoryLedgerPage() {
   }, []);
 
   const load = async (targetPage = page) => {
+    if (!profile?.company_id) return;
     setLoading(true);
 
     let q = supabase
@@ -133,6 +138,7 @@ function InventoryLedgerPage() {
         "movement_date, product_code, product_name, warehouse_name, movement_type, quantity_change, balance_after, unit_cost, movement_value, source_doc_no, source_doc_type",
         { count: "exact" },
       )
+      .eq("company_id", profile?.company_id ?? "")
       .order("movement_date", { ascending: false });
 
     if (productCode) q = q.eq("product_code", productCode);
@@ -180,6 +186,9 @@ function InventoryLedgerPage() {
 
   const hasFilters =
     productCode || warehouse || dateFrom || dateTo || selectedTypes.length > 0;
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">

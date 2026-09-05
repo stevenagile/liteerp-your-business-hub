@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Loader2, Plus, RefreshCw, Trash2, KeyRound, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,6 +93,14 @@ function GovernancePage() {
   const [cliSkills, setCliSkills] = useState<Set<string>>(new Set());
   const [cliBusy, setCliBusy] = useState(false);
 
+  // 刪除審核者確認
+  const [removeMgrOpen, setRemoveMgrOpen] = useState(false);
+  const [removeMgrTarget, setRemoveMgrTarget] = useState<Manager | null>(null);
+
+  // 重產金鑰確認
+  const [regenOpen, setRegenOpen] = useState(false);
+  const [regenTarget, setRegenTarget] = useState<Client | null>(null);
+
   // 金鑰顯示
   const [keyShown, setKeyShown] = useState<string | null>(null);
 
@@ -154,9 +163,14 @@ function GovernancePage() {
     } catch (e) { toast.error((e as Error).message); }
   };
 
-  const removeManager = async (m: Manager) => {
-    if (!confirm(`移除審核者「${m.display_name || m.line_user_id}」？`)) return;
-    try { await gov("remove_manager", { line_user_id: m.line_user_id }); toast.success("已移除"); load(); }
+  const removeManager = (m: Manager) => {
+    setRemoveMgrTarget(m);
+    setRemoveMgrOpen(true);
+  };
+
+  const confirmRemoveManager = async () => {
+    if (!removeMgrTarget) return;
+    try { await gov("remove_manager", { line_user_id: removeMgrTarget.line_user_id }); toast.success("已移除"); load(); }
     catch (e) { toast.error((e as Error).message); }
   };
 
@@ -197,9 +211,14 @@ function GovernancePage() {
       setClients((p) => p.map((x) => (x.id === c.id ? { ...x, is_active: next } : x)));
     } catch (e) { toast.error((e as Error).message); }
   };
-  const regenKey = async (c: Client) => {
-    if (!confirm(`重新產生「${c.name}」的金鑰？舊金鑰會立即失效。`)) return;
-    try { const r = await gov("regenerate_client_key", { id: c.id }); setKeyShown(r.api_key as string); }
+  const regenKey = (c: Client) => {
+    setRegenTarget(c);
+    setRegenOpen(true);
+  };
+
+  const confirmRegenKey = async () => {
+    if (!regenTarget) return;
+    try { const r = await gov("regenerate_client_key", { id: regenTarget.id }); setKeyShown(r.api_key as string); }
     catch (e) { toast.error((e as Error).message); }
   };
 
@@ -369,6 +388,26 @@ function GovernancePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={removeMgrOpen}
+        onOpenChange={setRemoveMgrOpen}
+        title="確認移除"
+        description={`移除審核者「${removeMgrTarget?.display_name || removeMgrTarget?.line_user_id}」？`}
+        confirmLabel="移除"
+        variant="destructive"
+        onConfirm={confirmRemoveManager}
+      />
+
+      <ConfirmDialog
+        open={regenOpen}
+        onOpenChange={setRegenOpen}
+        title="確認重新產生金鑰"
+        description={`重新產生「${regenTarget?.name}」的金鑰？舊金鑰會立即失效。`}
+        confirmLabel="重新產生"
+        variant="destructive"
+        onConfirm={confirmRegenKey}
+      />
     </div>
   );
 }

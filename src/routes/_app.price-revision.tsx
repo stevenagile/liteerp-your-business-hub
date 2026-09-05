@@ -1,8 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Eye, Check, RotateCcw, Percent, Download } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,7 +72,9 @@ function exportPreviewExcel(rows: Row[], pct: string) {
 }
 
 function PriceRevisionPage() {
+  const { allowed, checking } = usePermissionGuard("/price-revision");
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [guardLoading, setGuardLoading] = useState(true);
   const [canView, setCanView] = useState(false);
 
@@ -89,6 +94,8 @@ function PriceRevisionPage() {
   const [previewRows, setPreviewRows] = useState<Row[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [reverseOpen, setReverseOpen] = useState(false);
+  const [reverseTarget, setReverseTarget] = useState<Rev | null>(null);
   const [history, setHistory] = useState<Rev[]>([]);
 
   useEffect(() => {
@@ -102,10 +109,11 @@ function PriceRevisionPage() {
   }, [navigate]);
 
   const loadAux = async () => {
+    if (!profile?.company_id) return;
     const [c, p, h] = await Promise.all([
       supabase.from("products").select("category").eq("is_active", true),
       supabase.from("products").select("id, code, name").eq("is_active", true).order("code"),
-      supabase.from("price_revisions").select("id, version_no, percent, scope, target, sell_mode, effective_date, status, applied_at, note").order("version_no", { ascending: false }),
+      supabase.from("price_revisions").select("id, version_no, percent, scope, target, sell_mode, effective_date, status, applied_at, note").eq("company_id", profile?.company_id ?? "").order("version_no", { ascending: false }),
     ]);
     setCategories([...new Set(((c.data ?? []) as { category: string | null }[]).map((x) => x.category).filter(Boolean) as string[])].sort());
     setProducts((p.data ?? []) as Prod[]);
@@ -148,9 +156,14 @@ function PriceRevisionPage() {
     loadAux();
   };
 
-  const doReverse = async (rev: Rev) => {
-    if (!confirm(`回滻版次 #${rev.version_no}（${rev.percent > 0 ? "+" : ""}${rev.percent}%）？會把價格還原。`)) return;
-    const { error } = await supabase.rpc("price_revision_reverse", { p_rev: rev.id });
+  const doReverse = (rev: Rev) => {
+    setReverseTarget(rev);
+    setReverseOpen(true);
+  };
+
+  const confirmReverse = async () => {
+    if (!reverseTarget) return;
+    const { error } = await supabase.rpc("price_revision_reverse", { p_rev: reverseTarget.id });
     if (error) return toast.error(error.message);
     toast.success("已回滻");
     loadAux();
@@ -166,6 +179,9 @@ function PriceRevisionPage() {
     const prods = new Set(previewRows.map((r) => r.product_id));
     return { products: prods.size, changes: previewRows.length };
   }, [previewRows]);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   if (guardLoading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!canView) return <div className="rounded-md border bg-card p-6 text-center text-sm text-muted-foreground">無權限，正在導回首頁…</div>;
@@ -356,6 +372,16 @@ function PriceRevisionPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ConfirmDialog
+        open={reverseOpen}
+        onOpenChange={setReverseOpen}
+        title="確認回滻"
+        description={`回滻版次 #${reverseTarget?.version_no}（${reverseTarget && reverseTarget.percent > 0 ? "+" : ""}${reverseTarget?.percent}%）？會把價格還原。`}
+        confirmLabel="回滻"
+        variant="destructive"
+        onConfirm={confirmReverse}
+      />
     </div>
   );
 }
