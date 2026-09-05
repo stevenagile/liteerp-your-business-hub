@@ -5,7 +5,7 @@ import {
   type ReactNode,
 } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, Plus, Trash2, Printer } from "lucide-react";
+import { CalendarIcon, Loader2, Plus, Trash2, Printer, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
@@ -53,6 +53,10 @@ const PURCHASE_TYPES: DocType[] = ["purchase_order", "purchase_receipt"];
 const isPurchaseType = (t: DocType) => PURCHASE_TYPES.includes(t);
 const isAdjustType = (t: DocType) => t === "inventory_adjust";
 
+/** 派車車種（與 delivery_rules.truck / doc_headers.truck_type 一致） */
+export const TRUCK_TYPES = ["大車", "小車"] as const;
+export type TruckType = (typeof TRUCK_TYPES)[number];
+
 export type DocLine = {
   id?: string;
   line_no?: number;
@@ -82,6 +86,9 @@ export type DocHeader = {
   company_id: string | null;
   sales_person_id: string | null;
   price_includes_tax: boolean;
+  /** 派車主欄位：大車／小車；null = 儲存時由後端觸發器依配送規則自動帶 */
+  truck_type: string | null;
+  /** 實體車輛（選配） */
   vehicle_id: string | null;
   delivery_date: string | null; // yyyy-MM-dd
   void_reason?: string | null;
@@ -102,6 +109,7 @@ export function emptyHeader(doc_type: DocType): DocHeader {
     company_id: null,
     sales_person_id: null,
     price_includes_tax: false,
+    truck_type: null,
     vehicle_id: null,
     delivery_date: null,
   };
@@ -147,7 +155,16 @@ type Vehicle = {
   id: string;
   name: string;
   plate_no: string | null;
+  truck_type: string | null;
   delivery_days: number[] | null;
+};
+/** next_dispatch RPC 回傳列 */
+type NextDispatch = {
+  delivery_date: string | null;
+  weekday: number | null;
+  truck: string | null;
+  vehicle_id: string | null;
+  vehicle_name: string | null;
 };
 
 type Props = {
@@ -172,6 +189,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
 
   const [header, setHeader] = useState<DocHeader>(emptyHeader(docType));
   const [lines, setLines] = useState<DocLine[]>([emptyLine()]);
@@ -188,7 +206,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     docType === "sales_order" ||
     docType === "quotation";
 
-  // 訂單與銷貨單都有派車(車輛+預計配送日);轉單而來的銷貨單由後端觸發器繼承來源訂單
+  // 訂單與銷貨單都有派車（車種 + 預計配送日，實體車輛選配）；轉單而來的銷貨單由後端觸發器繼承來源訂單
   const showDispatch = docType === "sales_order" || docType === "sales_invoice";
 
   // ---- 載入基礎資料 + 既有單據 ----
@@ -196,7 +214,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     const { data: h, error: he } = await supabase
       .from("doc_headers")
       .select(
-        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, price_includes_tax, vehicle_id, delivery_date, void_reason, voided_at",
+        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, price_includes_tax, truck_type, vehicle_id, delivery_date, void_reason, voided_at",
       )
       .eq("id", id)
       .maybeSingle();
@@ -250,7 +268,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
           showDispatch
             ? supabase
                 .from("vehicles")
-                .select("id, name, plate_no, delivery_days")
+                .select("id, name, plate_no, truck_type, delivery_days")
                 .eq("is_active", true)
                 .order("name")
             : Promise.resolve({ data: [] as Vehicle[] }),
@@ -313,6 +331,35 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     (docType === "sales_invoice" || docType === "purchase_receipt") &&
     header.status !== "draft";
 
+  // ---- 派車建議：依客戶配送規則帶「車種 + 預計配送日」（實體車輛若規則有綁也一併帶） ----
+  const applyDispatchSuggestion = async (contactId: string, opts?: { force?: boolean }) => {
+    setSuggesting(true);
+    const { data, error } = await supabase.rpc("next_dispatch", { p_contact_id: contactId });
+    setSuggesting(false);
+    if (error) {
+      toast.error("讀取配送規則失敗:" + error.message);
+      return;
+    }
+    const d = (Array.isArray(data) ? data[0] : data) as NextDispatch | undefined;
+    if (!d) {
+      if (opts?.force) toast.info("此客戶沒有設定配送星期或地區，無法自動帶車種。");
+      return;
+    }
+    setHeader((h) => ({
+      ...h,
+      truck_type: d.truck ?? (opts?.force ? null : h.truck_type),
+      delivery_date: d.delivery_date ?? h.delivery_date,
+      vehicle_id: d.vehicle_id ?? (opts?.force ? null : h.vehicle_id),
+    }));
+    if (opts?.force) {
+      toast.success(
+        d.truck
+          ? `已帶入：${d.truck}，${d.delivery_date ?? ""}`
+          : `已帶入配送日 ${d.delivery_date ?? ""}，但規則對不到車種，請手動選擇`,
+      );
+    }
+  };
+
   // ---- 客戶選擇 ----
   const selectedContact = contacts.find((c) => c.id === header.contact_id);
 
@@ -325,31 +372,27 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       // 草稿狀態下,選擇客戶後預設帶入該客戶的含稅設定(仍可手動改)
       price_includes_tax: c ? Boolean(c.price_includes_tax) : h.price_includes_tax,
     }));
-    // 訂單/銷貨單:依配送規則建議車輛與預計配送日(可手動改)
+    // 訂單/銷貨單:依配送規則建議車種與預計配送日(可手動改)
     if (showDispatch && id) {
-      supabase
-        .rpc("next_dispatch", { p_contact_id: id })
-        .then(({ data }) => {
-          const d = (Array.isArray(data) ? data[0] : data) as
-            | { delivery_date: string | null; vehicle_id: string | null }
-            | undefined;
-          if (d) {
-            setHeader((h) => ({
-              ...h,
-              vehicle_id: d.vehicle_id ?? h.vehicle_id,
-              delivery_date: d.delivery_date ?? h.delivery_date,
-            }));
-          }
-        });
+      applyDispatchSuggestion(id);
     }
   };
 
-  // ---- 派車車輛選擇:改車時依該車固定星期重算預計配送日 ----
+  // ---- 車種選擇（主欄位）----
+  const handleTruckTypeChange = (v: string) => {
+    setHeader((h) => ({ ...h, truck_type: v === "auto" ? null : v }));
+  };
+
+  // ---- 實體車輛選擇（選配）：改車時依該車固定星期重算預計配送日；車有車種則同步車種 ----
   const handleVehicleChange = async (v: string) => {
     const vid = v === "none" ? null : v;
-    setHeader((h) => ({ ...h, vehicle_id: vid }));
-    if (!vid) return;
     const veh = vehicles.find((x) => x.id === vid);
+    setHeader((h) => ({
+      ...h,
+      vehicle_id: vid,
+      truck_type: veh?.truck_type ?? h.truck_type,
+    }));
+    if (!vid) return;
     if (veh?.delivery_days && veh.delivery_days.length > 0) {
       const { data } = await supabase.rpc("next_delivery_date_for_days", {
         p_days: veh.delivery_days,
@@ -441,6 +484,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       ...(showSalesPerson ? { sales_person_id: header.sales_person_id } : {}),
       ...(showDispatch
         ? {
+            // truck_type / delivery_date 為 null 時，後端 before-insert 觸發器會依規則自動帶；有值則不覆蓋
+            truck_type: header.truck_type || null,
             vehicle_id: header.vehicle_id,
             delivery_date: header.delivery_date || null,
           }
@@ -667,26 +712,47 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </Field>
           )}
 
+          {/* ---- 派車：車種為主欄位 ---- */}
           {showDispatch && (
-            <Field label="派車車輛">
-              <Select
-                value={header.vehicle_id ?? "none"}
-                onValueChange={handleVehicleChange}
-                disabled={readOnly}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="自動（依配送規則）" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">自動（依配送規則）</SelectItem>
-                  {vehicles.map((v) => (
-                    <SelectItem key={v.id} value={v.id}>
-                      {v.name}
-                      {v.plate_no ? ` (${v.plate_no})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Field label="車種">
+              <div className="flex gap-1">
+                <Select
+                  value={header.truck_type ?? "auto"}
+                  onValueChange={handleTruckTypeChange}
+                  disabled={readOnly}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="自動（依配送規則）" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">自動（依配送規則）</SelectItem>
+                    {TRUCK_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!readOnly && header.contact_id && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="重新依配送規則帶入車種與配送日"
+                    disabled={suggesting}
+                    onClick={() =>
+                      header.contact_id &&
+                      applyDispatchSuggestion(header.contact_id, { force: true })
+                    }
+                  >
+                    {suggesting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </Field>
           )}
 
@@ -720,6 +786,31 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                   {header.price_includes_tax ? "明細單價已含稅" : "明細單價未稅"}
                 </span>
               </div>
+            </Field>
+          )}
+
+          {/* ---- 實體車輛：選配、次要位置 ---- */}
+          {showDispatch && (
+            <Field label="實體車輛／司機（選配）">
+              <Select
+                value={header.vehicle_id ?? "none"}
+                onValueChange={handleVehicleChange}
+                disabled={readOnly}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="不指定" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">不指定</SelectItem>
+                  {vehicles.map((v) => (
+                    <SelectItem key={v.id} value={v.id}>
+                      {v.name}
+                      {v.plate_no ? ` (${v.plate_no})` : ""}
+                      {v.truck_type ? ` · ${v.truck_type}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           )}
 
