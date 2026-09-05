@@ -1,18 +1,103 @@
 import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import * as Icons from "lucide-react";
 import {
+  ArrowDownCircle,
+  ArrowUpCircle,
+  BarChart3,
+  BookOpen,
+  Box,
   ChevronDown,
   ChevronRight,
   Circle,
+  Clock,
+  Contact,
+  Database,
+  DollarSign,
+  FileSpreadsheet,
+  FileText,
+  Flag,
+  Folder,
+  GitCommit,
+  HandCoins,
+  Key,
+  LayoutDashboard,
   Leaf,
+  List,
+  ListTree,
   LogOut,
+  MapPin,
   Menu as MenuIcon,
+  MessageSquare,
   Moon,
+  Navigation,
+  Package,
+  Percent,
+  PieChart,
+  Receipt,
+  Route,
+  ScrollText,
+  Settings,
+  Shield,
+  ShieldCheck,
+  ShoppingBag,
+  ShoppingCart,
+  Sliders,
   Sun,
+  TrendingUp,
+  Truck,
+  User,
+  UserCheck,
+  Users,
+  Warehouse,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/** Map of PascalCase icon names to their components (from DB icon field) */
+const ICON_MAP: Record<string, LucideIcon> = {
+  ArrowDownCircle,
+  ArrowUpCircle,
+  BarChart3,
+  BookOpen,
+  Box,
+  Clock,
+  Contact,
+  Database,
+  DollarSign,
+  FileSpreadsheet,
+  FileText,
+  Flag,
+  Folder,
+  GitCommit,
+  HandCoins,
+  Key,
+  LayoutDashboard,
+  List,
+  ListTree,
+  MapPin,
+  MessageSquare,
+  Navigation,
+  Package,
+  Percent,
+  PieChart,
+  Receipt,
+  Route,
+  ScrollText,
+  Settings,
+  Shield,
+  ShieldCheck,
+  ShoppingBag,
+  ShoppingCart,
+  Sliders,
+  TrendingUp,
+  Truck,
+  User,
+  UserCheck,
+  Users,
+  Warehouse,
+  Wrench,
+};
 
 export type MenuItem = {
   id: string | number;
@@ -55,8 +140,7 @@ function resolveIcon(name: string | null | undefined): LucideIcon | null {
     .filter(Boolean)
     .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
     .join("");
-  const Comp = (Icons as unknown as Record<string, LucideIcon>)[pascal];
-  return Comp ?? null;
+  return ICON_MAP[pascal] ?? null;
 }
 
 export function Sidebar({

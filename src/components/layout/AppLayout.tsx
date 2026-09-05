@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "@tanstack/react-router";
 import { Menu, UserCircle2, LogOut } from "lucide-react";
+import { PermissionProvider } from "@/context/PermissionContext";
 import { Sidebar, type MenuItem } from "./Sidebar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useAuth } from "@/context/AuthContext";
@@ -152,7 +153,9 @@ export function AppLayout() {
         </header>
 
         <main className="p-6">
-          <Outlet />
+          <PermissionProvider menu={menu} loading={menuLoading}>
+            <Outlet />
+          </PermissionProvider>
         </main>
       </div>
     </div>
