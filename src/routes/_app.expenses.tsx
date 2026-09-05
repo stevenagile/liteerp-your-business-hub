@@ -86,13 +86,15 @@ function ExpensesPage() {
   useEffect(() => {
     load();
     (async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("expense_categories")
         .select("id, code, name, is_fixed")
         .order("code");
+      if (profile?.company_id) q = q.eq("company_id", profile.company_id);
+      const { data } = await q;
       setCategories((data ?? []) as Category[]);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const total = useMemo(
     () => list.reduce((s, e) => s + (Number(e.amount) || 0), 0),

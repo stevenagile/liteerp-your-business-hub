@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { usePermission } from "@/hooks/usePermission";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +69,7 @@ function emptyProduct(): Product {
 
 function ProductsPage() {
   const { profile } = useAuth();
+  const { allowed, checking } = usePermissionGuard("/products");
   const companyId = profile?.company_id ?? null;
   const canWrite = usePermission("inventory", "write");
   const [list, setList] = useState<Product[]>([]);
@@ -112,6 +114,9 @@ function ProductsPage() {
         p.code?.toLowerCase().includes(kw),
     );
   }, [list, keyword]);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">
