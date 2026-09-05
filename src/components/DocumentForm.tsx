@@ -91,6 +91,8 @@ export type DocHeader = {
   /** 實體車輛（選配） */
   vehicle_id: string | null;
   delivery_date: string | null; // yyyy-MM-dd
+  /** 配送備註（印在出貨單上） */
+  delivery_note: string | null;
   void_reason?: string | null;
   voided_at?: string | null;
 };
@@ -112,6 +114,7 @@ export function emptyHeader(doc_type: DocType): DocHeader {
     truck_type: null,
     vehicle_id: null,
     delivery_date: null,
+    delivery_note: null,
   };
 }
 
@@ -214,7 +217,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     const { data: h, error: he } = await supabase
       .from("doc_headers")
       .select(
-        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, price_includes_tax, truck_type, vehicle_id, delivery_date, void_reason, voided_at",
+        "id, doc_type, doc_no, doc_date, contact_id, contact_name, warehouse_id, status, notes, company_id, sales_person_id, price_includes_tax, truck_type, vehicle_id, delivery_date, delivery_note, void_reason, voided_at",
       )
       .eq("id", id)
       .maybeSingle();
@@ -488,6 +491,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             truck_type: header.truck_type || null,
             vehicle_id: header.vehicle_id,
             delivery_date: header.delivery_date || null,
+            delivery_note: header.delivery_note?.trim() || null,
           }
         : {}),
       ...(isEdit
@@ -811,6 +815,20 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                   ))}
                 </SelectContent>
               </Select>
+            </Field>
+          )}
+
+          {/* ---- 配送備註（印在出貨單上）---- */}
+          {showDispatch && (
+            <Field label="配送備註" className="md:col-span-2">
+              <Input
+                value={header.delivery_note ?? ""}
+                onChange={(e) =>
+                  setHeader((h) => ({ ...h, delivery_note: e.target.value }))
+                }
+                disabled={readOnly}
+                placeholder="此單的配送注意事項（印在出貨單上）"
+              />
             </Field>
           )}
 

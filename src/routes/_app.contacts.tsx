@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Loader2, Plus, Pencil, Search, Upload } from "lucide-react";
+import { Loader2, Plus, Pencil, Search, Upload, Link2, QrCode } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,12 @@ type Contact = {
   region: string | null;
   /** 配送星期 ISO 1=一 … 7=日（派車規則用） */
   delivery_days: number[] | null;
+  /** 路順（出貨單排序用） */
+  route_seq: number | null;
+  /** 收現 */
+  collect_cash: boolean;
+  /** 配送備註 */
+  delivery_note: string | null;
   bind_code: string | null;
   payment_terms: number | null;
   price_level: number | null;
@@ -103,6 +110,14 @@ function parseDays(raw: unknown): number[] | null {
   return out.size ? [...out].sort((a, b) => a - b) : null;
 }
 
+/** 產生 LINE 一鍵綁定深連結 URL */
+function bindDeepLink(bindCode: string | null): string | null {
+  if (!bindCode) return null;
+  // LINE bot 連結搭配綁定碼作為起始訊息
+  const botId = "@fullemei"; // 富樂美 LINE 官方帳號
+  return `https://line.me/R/oaMessage/${encodeURIComponent(botId)}/?${encodeURIComponent(bindCode)}`;
+}
+
 function emptyContact(): Contact {
   return {
     id: "",
@@ -116,6 +131,9 @@ function emptyContact(): Contact {
     address: "",
     region: "",
     delivery_days: null,
+    route_seq: null,
+    collect_cash: false,
+    delivery_note: "",
     bind_code: "",
     payment_terms: 30,
     price_level: 1,
@@ -150,7 +168,7 @@ function ContactsPage() {
       supabase
         .from("contacts")
         .select(
-          "id, code, name, type, tax_id, contact_person, phone, email, address, region, delivery_days, bind_code, payment_terms, price_level, credit_limit, price_includes_tax, notes, company_id",
+          "id, code, name, type, tax_id, contact_person, phone, email, address, region, delivery_days, route_seq, collect_cash, delivery_note, bind_code, payment_terms, price_level, credit_limit, price_includes_tax, notes, company_id",
         )
         .eq("company_id", companyId)
         .order("code", { ascending: true }),
@@ -187,7 +205,7 @@ function ContactsPage() {
     });
   }, [list, tab, keyword]);
 
-  const colCount = canWrite ? 8 : 7;
+  const colCount = canWrite ? 9 : 8;
 
   return (
     <div className="space-y-6">
@@ -212,8 +230,20 @@ function ContactsPage() {
                 label: "配送星期",
                 value: (r: Record<string, unknown>) => formatDays(r.delivery_days as number[] | null),
               },
+              { key: "route_seq", label: "路順" },
+              {
+                key: "collect_cash",
+                label: "收現",
+                value: (r: Record<string, unknown>) => (r as { collect_cash: boolean }).collect_cash ? "Y" : "",
+              },
+              { key: "delivery_note", label: "配送備註" },
               { key: "phone", label: "電話" },
               { key: "bind_code", label: "綁定碼" },
+              {
+                key: "bind_link",
+                label: "LINE綁定連結",
+                value: (r: Record<string, unknown>) => bindDeepLink((r as { bind_code: string | null }).bind_code) ?? "",
+              },
             ]}
           />
           {canWrite && (
@@ -265,6 +295,7 @@ function ContactsPage() {
               <TableHead>名稱</TableHead>
               <TableHead className="w-24">類型</TableHead>
               <TableHead className="w-36">地區 / 配送</TableHead>
+              <TableHead className="w-20">路順/收現</TableHead>
               <TableHead className="w-40">電話</TableHead>
               <TableHead className="w-32">綁定碼</TableHead>
               <TableHead className="w-24 text-right">帳期(天)</TableHead>
@@ -313,11 +344,57 @@ function ContactsPage() {
                       </div>
                     )}
                   </TableCell>
+                  <TableCell>
+                    {c.type === "vendor" ? (
+                      <span className="text-muted-foreground">—</span>
+                    ) : (
+                      <div className="leading-tight text-xs">
+                        <div>{c.route_seq != null ? `#${c.route_seq}` : "—"}</div>
+                        {c.collect_cash && (
+                          <span className="text-warning-foreground font-medium">收現</span>
+                        )}
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {c.phone || "—"}
                   </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {c.bind_code || "—"}
+                  <TableCell>
+                    {c.bind_code ? (
+                      <div className="space-y-0.5">
+                        <span className="font-mono text-xs">{c.bind_code}</span>
+                        {bindDeepLink(c.bind_code) && (
+                          <div className="flex items-center gap-1">
+                            <a
+                              href={bindDeepLink(c.bind_code)!}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[10px] text-primary hover:underline"
+                              title="LINE 一鍵綁定連結"
+                            >
+                              <Link2 className="inline h-3 w-3" /> 綁定連結
+                            </a>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5"
+                              title="顯示 QR Code"
+                              onClick={() => {
+                                window.open(
+                                  `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(bindDeepLink(c.bind_code)!)}`,
+                                  "_blank",
+                                );
+                              }}
+                            >
+                              <QrCode className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     {c.payment_terms ?? "—"}
@@ -390,10 +467,11 @@ function ContactsPage() {
         onImport={async (validRows) => {
           if (!companyId) return { success: 0, failed: validRows.length, errors: ["找不到公司"] };
           const payload = validRows.map((r) => {
-            const { delivery_days, ...rest } = r.data as Record<string, unknown>;
+            const { delivery_days, collect_cash, ...rest } = r.data as Record<string, unknown>;
             return {
               ...rest,
               delivery_days: parseDays(delivery_days),
+              collect_cash: collect_cash === true || collect_cash === "true" || collect_cash === "Y" || collect_cash === "1",
               company_id: companyId,
             };
           });
@@ -427,6 +505,9 @@ const CONTACT_IMPORT_FIELDS: ImportField[] = [
   { key: "shipping_address", label: "送貨地址" },
   { key: "region", label: "配送地區", example: "溪湖" },
   { key: "delivery_days", label: "配送星期(1-7,逗號分隔)", example: "2,5" },
+  { key: "route_seq", label: "路順", type: "number", example: 1 },
+  { key: "collect_cash", label: "收現(Y/空白)", example: "" },
+  { key: "delivery_note", label: "配送備註", example: "走後門" },
   { key: "payment_terms", label: "帳期天數", type: "number", default: 30, example: 30 },
   { key: "price_level", label: "售價等級", type: "number", default: 1, example: 1 },
   { key: "credit_limit", label: "信用額度", type: "number", default: 0, example: 0 },
@@ -482,6 +563,9 @@ function ContactDialog({
       address: form.address || null,
       region: form.region?.trim() || null,
       delivery_days: form.delivery_days && form.delivery_days.length ? form.delivery_days : null,
+      route_seq: form.route_seq,
+      collect_cash: form.collect_cash,
+      delivery_note: form.delivery_note?.trim() || null,
       payment_terms: form.payment_terms ?? 30,
       price_level: form.price_level ?? 1,
       credit_limit: form.credit_limit ?? 0,
@@ -628,6 +712,41 @@ function ContactDialog({
                     })}
                   </div>
                 </Field>
+                <Field label="路順" hint="出貨單排序依據，數字越小越先送">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={form.route_seq ?? ""}
+                    placeholder="例：1"
+                    onChange={(e) =>
+                      setForm((f) => f && {
+                        ...f,
+                        route_seq: e.target.value === "" ? null : Number(e.target.value),
+                      })
+                    }
+                  />
+                </Field>
+                <div className="flex items-end gap-4">
+                  <div className="flex items-center gap-2 pb-1">
+                    <Checkbox
+                      id="collect_cash"
+                      checked={form.collect_cash}
+                      onCheckedChange={(v) =>
+                        setForm((f) => f && { ...f, collect_cash: Boolean(v) })
+                      }
+                    />
+                    <Label htmlFor="collect_cash" className="cursor-pointer">收現</Label>
+                  </div>
+                </div>
+                <Field label="配送備註" hint="印在出貨單上，例：走後門、週二才收" className="md:col-span-2">
+                  <Input
+                    value={form.delivery_note ?? ""}
+                    placeholder="例：走後門"
+                    onChange={(e) =>
+                      setForm((f) => f && { ...f, delivery_note: e.target.value })
+                    }
+                  />
+                </Field>
               </>
             )}
 
@@ -703,8 +822,38 @@ function ContactDialog({
               />
             </Field>
             {isEdit && form.bind_code && (
-              <div className="text-xs text-muted-foreground md:col-span-2">
-                LINE 綁定碼：<span className="font-mono">{form.bind_code}</span>（系統自動產生，不可修改）
+              <div className="rounded-md border bg-muted/30 p-3 text-xs md:col-span-2">
+                <div className="mb-1 font-medium">LINE 綁定碼</div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-sm">{form.bind_code}</span>
+                  {bindDeepLink(form.bind_code) && (
+                    <>
+                      <a
+                        href={bindDeepLink(form.bind_code)!}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-primary hover:underline"
+                      >
+                        <Link2 className="h-3 w-3" /> 一鍵綁定連結
+                      </a>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-6 text-[10px]"
+                        onClick={() => {
+                          window.open(
+                            `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(bindDeepLink(form.bind_code)!)}`,
+                            "_blank",
+                          );
+                        }}
+                      >
+                        <QrCode className="mr-1 h-3 w-3" /> QR Code
+                      </Button>
+                    </>
+                  )}
+                </div>
+                <div className="mt-1 text-muted-foreground">系統自動產生，不可修改。把連結或 QR Code 傳給客戶，客戶點開即可在 LINE 完成綁定。</div>
               </div>
             )}
           </div>

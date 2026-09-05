@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { format, addDays } from "date-fns";
-import { Loader2, Printer, RefreshCw, Truck } from "lucide-react";
+import { Loader2, Printer, RefreshCw, Truck, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,13 @@ type ManifestRow = {
   product_name: string | null;
   unit: string | null;
   quantity: number;
+  // S2/S3 新增欄位
+  route_seq: number | null;
+  collect_cash: boolean;
+  contact_delivery_note: string | null;
+  doc_delivery_note: string | null;
+  confirmed_at: string | null;
+  pack_per_box: number | null;
 };
 
 type TruckGroup = {
@@ -82,6 +89,11 @@ type TruckGroup = {
   label: string;
   unassigned: boolean;
   rows: ManifestRow[];
+};
+
+type SheetRun = {
+  id: string;
+  generated_at: string;
 };
 
 const TRUCK_ORDER: Record<string, number> = { 大車: 0, 小車: 1, unassigned: 9 };
@@ -103,6 +115,9 @@ function DispatchPage() {
   const [fullRecalc, setFullRecalc] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  // 最近一次出貨單產生時間（用來標記 late addition）
+  const [lastRun, setLastRun] = useState<SheetRun | null>(null);
+
   // 篩選同步到 URL（可分享 / 推播深連結）
   useEffect(() => {
     navigate({
@@ -118,23 +133,35 @@ function DispatchPage() {
 
   const load = async () => {
     setLoading(true);
-    let q = supabase
-      .from("v_dispatch_manifest")
-      .select("*")
-      .eq("delivery_date", date);
-    if (truck !== "all") q = q.eq("truck_type", truck);
-    if (docType !== "all") q = q.eq("doc_type", docType);
-    const { data, error } = await q
-      .order("truck_type", { nullsFirst: false })
-      .order("district")
-      .order("contact_name")
-      .order("order_no")
-      .order("line_no");
-    if (error) {
-      toast.error("讀取派車單失敗:" + error.message);
+    const [manifestResult, runResult] = await Promise.all([
+      (() => {
+        let q = supabase
+          .from("v_dispatch_manifest")
+          .select("*")
+          .eq("delivery_date", date);
+        if (truck !== "all") q = q.eq("truck_type", truck);
+        if (docType !== "all") q = q.eq("doc_type", docType);
+        return q
+          .order("truck_type", { nullsFirst: false })
+          .order("route_seq", { nullsFirst: true })
+          .order("district")
+          .order("contact_name")
+          .order("order_no")
+          .order("line_no");
+      })(),
+      supabase
+        .from("dispatch_sheet_runs")
+        .select("id, generated_at")
+        .eq("delivery_date", date)
+        .order("generated_at", { ascending: false })
+        .limit(1),
+    ]);
+    if (manifestResult.error) {
+      toast.error("讀取派車單失敗:" + manifestResult.error.message);
     } else {
-      setRows((data ?? []) as ManifestRow[]);
+      setRows((manifestResult.data ?? []) as ManifestRow[]);
     }
+    setLastRun((runResult.data?.[0] as SheetRun) ?? null);
     setLoading(false);
   };
 
@@ -236,6 +263,13 @@ function DispatchPage() {
               },
               { key: "vehicle_name", label: "車輛(選配)" },
               { key: "delivery_date", label: "配送日" },
+              { key: "route_seq", label: "路順" },
+              {
+                key: "collect_cash",
+                label: "收現",
+                value: (r: Record<string, unknown>) =>
+                  (r as { collect_cash: boolean }).collect_cash ? "◯" : "",
+              },
               {
                 key: "doc_type",
                 label: "單別",
@@ -251,6 +285,9 @@ function DispatchPage() {
               { key: "product_name", label: "品名" },
               { key: "unit", label: "單位" },
               { key: "quantity", label: "數量", type: "number" },
+              { key: "pack_per_box", label: "入數/箱" },
+              { key: "contact_delivery_note", label: "客戶備註" },
+              { key: "doc_delivery_note", label: "單據備註" },
             ]}
           />
           <Button variant="outline" onClick={() => window.print()}>
@@ -330,7 +367,7 @@ function DispatchPage() {
           {date} 沒有排定配送的{truck !== "all" ? truck : ""}單據。
         </div>
       ) : (
-        groups.map((g) => <TruckManifest key={g.key} group={g} date={date} />)
+        groups.map((g) => <TruckManifest key={g.key} group={g} date={date} lastRunAt={lastRun?.generated_at ?? null} />)
       )}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -355,12 +392,12 @@ function DispatchPage() {
   );
 }
 
-function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
+function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: string; lastRunAt: string | null }) {
   // 備貨彙總：同產品（品名+單位）跨客戶加總，方便倉庫一次備齊
   const productSummary = useMemo(() => {
     const map = new Map<
       string,
-      { code: string | null; name: string | null; unit: string | null; qty: number }
+      { code: string | null; name: string | null; unit: string | null; qty: number; packPerBox: number | null }
     >();
     for (const r of group.rows) {
       const key = `${r.product_id ?? r.product_code}|${r.unit ?? ""}`;
@@ -373,6 +410,7 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
           name: r.product_name,
           unit: r.unit,
           qty: Number(r.quantity) || 0,
+          packPerBox: r.pack_per_box,
         });
       }
     }
@@ -381,7 +419,7 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
     );
   }, [group.rows]);
 
-  // 各站明細：依單據分組（rows 已依 地區→客戶→單號→行號 排序）
+  // 各站明細：依路順→地區→客戶→單號→行號排序（view 已排好，這裡保留順序用 Map）
   const orders = useMemo(() => {
     const map = new Map<
       string,
@@ -391,6 +429,11 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
         contact_name: string | null;
         district: string | null;
         vehicle_name: string | null;
+        route_seq: number | null;
+        collect_cash: boolean;
+        contact_delivery_note: string | null;
+        doc_delivery_note: string | null;
+        confirmed_at: string | null;
         lines: ManifestRow[];
       }
     >();
@@ -402,6 +445,11 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
           contact_name: r.contact_name,
           district: r.district,
           vehicle_name: r.vehicle_name,
+          route_seq: r.route_seq,
+          collect_cash: r.collect_cash,
+          contact_delivery_note: r.contact_delivery_note,
+          doc_delivery_note: r.doc_delivery_note,
+          confirmed_at: r.confirmed_at,
           lines: [],
         });
       }
@@ -411,6 +459,7 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
   }, [group.rows]);
 
   const totalQty = productSummary.reduce((s, p) => s + p.qty, 0);
+  const cashStations = orders.filter((o) => o.collect_cash).length;
 
   return (
     <section
@@ -427,6 +476,7 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
         <div className="text-sm text-muted-foreground">配送日：{date}</div>
         <div className="ml-auto flex gap-4 text-sm text-muted-foreground">
           <span>{orders.length} 站</span>
+          {cashStations > 0 && <span className="text-warning-foreground">收現 {cashStations} 站</span>}
           <span>合計 {totalQty.toLocaleString()}</span>
         </div>
       </div>
@@ -443,6 +493,7 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
                 <TableHead className="w-24">品號</TableHead>
                 <TableHead>品名</TableHead>
                 <TableHead className="w-16">單位</TableHead>
+                <TableHead className="w-20 text-right">入數/箱</TableHead>
                 <TableHead className="w-24 text-right">總數量</TableHead>
               </TableRow>
             </TableHeader>
@@ -455,6 +506,9 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
                   <TableCell>{p.name ?? "—"}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {p.unit ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {p.packPerBox ?? "—"}
                   </TableCell>
                   <TableCell className="text-right font-semibold tabular-nums">
                     {p.qty.toLocaleString()}
@@ -473,40 +527,63 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">#</TableHead>
                 <TableHead>客戶 / 單據</TableHead>
                 <TableHead>品名</TableHead>
                 <TableHead className="w-24 text-right">數量</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((o, oi) =>
-                o.lines.map((l, li) => (
-                  <TableRow key={`${oi}-${li}`}>
+              {orders.map((o, oi) => {
+                const isLate = lastRunAt && o.confirmed_at && o.confirmed_at > lastRunAt;
+                return o.lines.map((l, li) => (
+                  <TableRow key={`${oi}-${li}`} className={isLate ? "bg-amber-50 dark:bg-amber-500/5" : ""}>
                     {li === 0 ? (
-                      <TableCell
-                        rowSpan={o.lines.length}
-                        className="align-top"
-                      >
-                        <div className="font-medium">
-                          {o.contact_name ?? "—"}
-                          {o.district && (
-                            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                              {o.district}
+                      <>
+                        <TableCell
+                          rowSpan={o.lines.length}
+                          className="align-top text-center text-xs text-muted-foreground"
+                        >
+                          {o.route_seq ?? "—"}
+                        </TableCell>
+                        <TableCell
+                          rowSpan={o.lines.length}
+                          className="align-top"
+                        >
+                          <div className="font-medium">
+                            {o.contact_name ?? "—"}
+                            {o.collect_cash && (
+                              <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-warning text-xs text-warning-foreground" title="收現">◯</span>
+                            )}
+                            {isLate && (
+                              <AlertTriangle className="ml-1 inline h-3.5 w-3.5 text-amber-500" title="出單後才確認（late addition）" />
+                            )}
+                            {o.district && (
+                              <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                                {o.district}
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-mono text-xs text-muted-foreground">
+                            {o.order_no ?? "—"}
+                            <span className="ml-1 rounded bg-muted px-1 py-0.5 font-sans text-[10px]">
+                              {o.doc_type === "sales_invoice" ? "銷貨" : "訂單"}
                             </span>
+                            {o.vehicle_name && (
+                              <span className="ml-1 font-sans text-[10px]">
+                                車：{o.vehicle_name}
+                              </span>
+                            )}
+                          </div>
+                          {(o.contact_delivery_note || o.doc_delivery_note) && (
+                            <div className="mt-0.5 text-xs text-muted-foreground italic">
+                              {o.contact_delivery_note && <span>客:{o.contact_delivery_note}</span>}
+                              {o.contact_delivery_note && o.doc_delivery_note && <span> / </span>}
+                              {o.doc_delivery_note && <span>單:{o.doc_delivery_note}</span>}
+                            </div>
                           )}
-                        </div>
-                        <div className="font-mono text-xs text-muted-foreground">
-                          {o.order_no ?? "—"}
-                          <span className="ml-1 rounded bg-muted px-1 py-0.5 font-sans text-[10px]">
-                            {o.doc_type === "sales_invoice" ? "銷貨" : "訂單"}
-                          </span>
-                          {o.vehicle_name && (
-                            <span className="ml-1 font-sans text-[10px]">
-                              車：{o.vehicle_name}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
+                        </TableCell>
+                      </>
                     ) : null}
                     <TableCell>{l.product_name ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">
@@ -516,8 +593,8 @@ function TruckManifest({ group, date }: { group: TruckGroup; date: string }) {
                       </span>
                     </TableCell>
                   </TableRow>
-                )),
-              )}
+                ));
+              })}
             </TableBody>
           </Table>
         </div>

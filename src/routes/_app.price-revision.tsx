@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Eye, Check, RotateCcw, Percent } from "lucide-react";
+import { Loader2, Eye, Check, RotateCcw, Percent, Download } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,37 @@ const FIELD_LABEL: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   draft: "草稿", scheduled: "排程中", applied: "已套用", reversed: "已回滻",
 };
+
+/* ── Excel 匯出（對照表） ── */
+function exportPreviewExcel(rows: Row[], pct: string) {
+  const header = ["編號", "品名", "欄位", "舊價", "新價", "差額"];
+  const tsv = [
+    header.join("\t"),
+    ...rows.map((r) => {
+      const diff = Number(r.new_value) - Number(r.old_value);
+      return [
+        r.code,
+        r.name,
+        FIELD_LABEL[r.field] ?? r.field,
+        Number(r.old_value),
+        Number(r.new_value),
+        diff >= 0 ? `+${diff}` : String(diff),
+      ].join("\t");
+    }),
+  ].join("\r\n");
+
+  const BOM = "﻿";
+  const blob = new Blob([BOM + tsv], { type: "text/tab-separated-values;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const tag = pct ? `${Number(pct) > 0 ? "+" : ""}${pct}pct` : "preview";
+  a.download = `調價對照表_${tag}_${new Date().toISOString().slice(0, 10)}.xls`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 function PriceRevisionPage() {
   const navigate = useNavigate();
@@ -249,9 +280,14 @@ function PriceRevisionPage() {
       {/* 預覽 */}
       {previewRows && previewRows.length > 0 && (
         <div className="rounded-md border bg-card">
-          <div className="border-b px-4 py-2.5 text-base font-medium">
-            預覽：{summary?.products} 個商品、{summary?.changes} 筆價格變動
-            {previewRows.length > 100 && <span className="ml-2 text-sm text-muted-foreground">（下方僅顯示前 100 筆）</span>}
+          <div className="flex items-center justify-between border-b px-4 py-2.5">
+            <div className="text-base font-medium">
+              預覽：{summary?.products} 個商品、{summary?.changes} 筆價格變動
+              {previewRows.length > 100 && <span className="ml-2 text-sm text-muted-foreground">（下方僅顯示前 100 筆）</span>}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => exportPreviewExcel(previewRows, percent)}>
+              <Download className="mr-1 h-3.5 w-3.5" />匯出對照表
+            </Button>
           </div>
           <div className="max-h-[28rem] overflow-y-auto">
             <Table>
