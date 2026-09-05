@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,6 +110,8 @@ function MenuStructurePage() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null);
   const [editing, setEditing] = useState<MenuItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState<FormState>({
@@ -276,10 +279,15 @@ function MenuStructurePage() {
     load();
   };
 
-  const removeItem = async (it: MenuItem) => {
+  const removeItem = (it: MenuItem) => {
     if (it.is_system) return;
-    if (!confirm(`確定刪除「${it.label}」？`)) return;
-    const { error } = await core().from("menu_items").delete().eq("id", it.id);
+    setDeleteTarget(it);
+    setDeleteOpen(true);
+  };
+
+  const confirmRemove = async () => {
+    if (!deleteTarget) return;
+    const { error } = await core().from("menu_items").delete().eq("id", deleteTarget.id);
     if (error) return toast.error(error.message);
     toast.success("已刪除");
     load();
@@ -520,6 +528,16 @@ function MenuStructurePage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="確認刪除"
+        description={`確定刪除「${deleteTarget?.label}」？`}
+        confirmLabel="刪除"
+        variant="destructive"
+        onConfirm={confirmRemove}
+      />
     </div>
   );
 }

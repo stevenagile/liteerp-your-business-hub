@@ -13,8 +13,10 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -208,6 +210,8 @@ const EXPORT_COLS: ExportColumn<Record<string, unknown>>[] = [
 
 // ─── Component ───
 function RouteSheetPage() {
+  const { allowed, checking } = usePermissionGuard("/route-sheet");
+  const { profile } = useAuth();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
 
@@ -244,10 +248,12 @@ function RouteSheetPage() {
 
   // ── Load data ──
   const load = useCallback(async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     let q = supabase
       .from("v_dispatch_manifest")
       .select("*")
+      .eq("company_id", profile?.company_id ?? "")
       .eq("delivery_date", date);
     if (truck !== "all") q = q.eq("truck_type", truck);
     const { data, error } = await q
@@ -262,7 +268,7 @@ function RouteSheetPage() {
       setRows((data ?? []) as ManifestRow[]);
     }
     setLoading(false);
-  }, [date, truck]);
+  }, [date, truck, profile?.company_id]);
 
   useEffect(() => {
     load();
@@ -400,6 +406,9 @@ function RouteSheetPage() {
   const handlePrint = () => {
     window.print();
   };
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   // ── Render ──
   return (
