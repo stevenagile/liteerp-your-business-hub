@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
-import Papa from "papaparse";
-import * as XLSX from "xlsx";
+// papaparse and xlsx are loaded on-demand via dynamic import to reduce initial bundle
 import { Download, Loader2, Upload, FileSpreadsheet, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -80,12 +79,13 @@ export function ImportDialog({
     if (fileRef.current) fileRef.current.value = "";
   };
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
+    const Papa = await import("papaparse");
     const headers = fields.map((f) => f.label + (f.required ? "*" : ""));
     const example = fields.map((f) => String(f.example ?? f.default ?? ""));
-    const csv = Papa.unparse([headers, example]);
+    const csv = Papa.default.unparse([headers, example]);
     // BOM for Excel
-    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -100,14 +100,16 @@ export function ImportDialog({
       let records: Record<string, string>[] = [];
       const ext = file.name.toLowerCase().split(".").pop();
       if (ext === "xlsx" || ext === "xls") {
+        const XLSX = await import("xlsx");
         const buf = await file.arrayBuffer();
         const wb = XLSX.read(buf, { type: "array" });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const arr: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
         records = rowsToRecords(arr);
       } else {
+        const Papa = await import("papaparse");
         const text = await file.text();
-        const parsed = Papa.parse<string[]>(text.replace(/^\ufeff/, ""), { skipEmptyLines: true });
+        const parsed = Papa.default.parse<string[]>(text.replace(/^﻿/, ""), { skipEmptyLines: true });
         records = rowsToRecords(parsed.data as string[][]);
       }
       const validated = await validateAll(records);
