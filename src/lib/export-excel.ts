@@ -1,5 +1,3 @@
-import * as XLSX from "xlsx";
-
 export type ExportColumn<T = Record<string, unknown>> = {
   key: keyof T | string;
   label: string;
@@ -20,12 +18,15 @@ function todayStamp(): string {
 /**
  * Export rows to .xlsx, filename pattern: {name}_YYYYMMDD.xlsx
  * Numeric columns are emitted as real numbers so Excel can sum them.
+ * xlsx library is loaded on-demand (dynamic import) to reduce initial bundle.
  */
-export function exportToExcel<T extends Record<string, unknown>>(
+export async function exportToExcel<T extends Record<string, unknown>>(
   rows: T[],
   columns: ExportColumn<T>[],
   reportName: string,
-): void {
+): Promise<void> {
+  const XLSX = await import("xlsx");
+
   const header = columns.map((c) => c.label);
   const data = rows.map((row) =>
     columns.map((c) => {
