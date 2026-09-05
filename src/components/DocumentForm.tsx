@@ -454,6 +454,11 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       toast.error("調整數量不可為 0");
       return;
     }
+    // FE-06: 驗證數量為正數
+    if (!isAdjust && validLines.some((l) => l.quantity == null || Number(l.quantity) <= 0)) {
+      toast.error("每個品項的數量必須大於 0");
+      return;
+    }
 
     setSaving(true);
 
