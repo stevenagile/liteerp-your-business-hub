@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +53,8 @@ const fmt = (n: number | null | undefined) =>
   Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 function SalesDetailReport() {
+  const { allowed, checking } = usePermissionGuard("/reports/sales-detail");
+  const { profile } = useAuth();
   const [contacts, setContacts] = useState<{ id: string; name: string }[]>([]);
   const [people, setPeople] = useState<{ id: string; display_name: string | null }[]>([]);
   const [products, setProducts] = useState<{ id: string; code: string; name: string }[]>([]);
@@ -77,6 +81,7 @@ function SalesDetailReport() {
   }, []);
 
   const run = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     try {
       let q = supabase
@@ -84,6 +89,7 @@ function SalesDetailReport() {
         .select(
           "doc_date,doc_no,contact_id,customer_name,sales_person_id,sales_person_name,product_code,product_name,quantity,unit_price,amount,unit_cost,gross_profit,margin_pct",
         )
+        .eq("company_id", profile?.company_id ?? "")
         .gte("doc_date", start)
         .lte("doc_date", end)
         .order("doc_date", { ascending: false });
@@ -114,6 +120,9 @@ function SalesDetailReport() {
     }
     return { amt, gp, margin: amt > 0 ? (gp / amt) * 100 : 0 };
   }, [rows]);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-4">

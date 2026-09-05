@@ -4,6 +4,7 @@ import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +65,8 @@ function WarehousesPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Warehouse | null>(null);
 
   const load = async () => {
     if (!companyId) {
@@ -142,13 +145,18 @@ function WarehousesPage() {
     load();
   };
 
-  const handleDelete = async (w: Warehouse) => {
+  const handleDelete = (w: Warehouse) => {
     if (!companyId) return;
-    if (!confirm(`確定要刪除倉庫「${w.name}」嗎？`)) return;
+    setDeleteTarget(w);
+    setDeleteOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!companyId || !deleteTarget) return;
     const { error } = await supabase
       .from("warehouses")
       .delete()
-      .eq("id", w.id)
+      .eq("id", deleteTarget.id)
       .eq("company_id", companyId);
     if (error) {
       toast.error("刪除失敗:" + error.message);
@@ -297,6 +305,16 @@ function WarehousesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="確認刪除"
+        description={`確定要刪除倉庫「${deleteTarget?.name}」嗎？`}
+        confirmLabel="刪除"
+        variant="destructive"
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

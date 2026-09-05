@@ -9,9 +9,11 @@ const DOC_STATUS_LABEL: Record<string, string> = {
 };
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePermission } from "@/hooks/usePermission";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +57,9 @@ type DocRow = {
 };
 
 function InventoryAdjustListPage() {
+  const { allowed, checking } = usePermissionGuard("/docs/inventory-adjust");
   const canWrite = usePermission("inventory", "write");
+  const { profile } = useAuth();
   const [list, setList] = useState<DocRow[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,11 +85,13 @@ function InventoryAdjustListPage() {
   }, []);
 
   const load = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     let q = supabase
       .from("doc_headers")
       .select("id, doc_no, doc_date, warehouse_id, status, notes")
       .eq("doc_type", "inventory_adjust")
+      .eq("company_id", profile?.company_id ?? "")
       .order("doc_date", { ascending: false })
       .order("doc_no", { ascending: false });
     if (status !== "all") q = q.eq("status", status);
@@ -110,6 +116,9 @@ function InventoryAdjustListPage() {
     setEditingId(id);
     setDialogOpen(true);
   };
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">

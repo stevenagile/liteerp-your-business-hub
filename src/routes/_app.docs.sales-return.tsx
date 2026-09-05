@@ -9,9 +9,11 @@ const DOC_STATUS_LABEL: Record<string, string> = {
 };
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Pencil } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePermission } from "@/hooks/usePermission";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,7 +56,9 @@ type DocRow = {
 };
 
 function SalesReturnListPage() {
+  const { allowed, checking } = usePermissionGuard("/docs/sales-return");
   const canWrite = usePermission("sales", "write");
+  const { profile } = useAuth();
   const [list, setList] = useState<DocRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("all");
@@ -64,6 +68,7 @@ function SalesReturnListPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const load = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     let q = supabase
       .from("doc_headers")
@@ -71,6 +76,7 @@ function SalesReturnListPage() {
         "id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no",
       )
       .eq("doc_type", "sales_return")
+      .eq("company_id", profile?.company_id ?? "")
       .order("doc_date", { ascending: false })
       .order("doc_no", { ascending: false });
     if (status !== "all") q = q.eq("status", status);
@@ -100,6 +106,9 @@ function SalesReturnListPage() {
     setEditingId(id);
     setDialogOpen(true);
   };
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">
