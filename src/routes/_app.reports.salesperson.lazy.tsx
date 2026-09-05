@@ -1,0 +1,154 @@
+import { createLazyFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowUpDown, Loader2 } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+
+export const Route = createLazyFileRoute("/_app/reports/salesperson")({
+  component: SalespersonReport,
+});
+type Row = {
+  sales_person_name: string | null;
+  month: string;
+  invoice_count: number | null;
+  total_sales: number | null;
+  gross_profit: number | null;
+  margin_pct: number | null;
+};
+
+const firstOfYear = () => `${new Date().getFullYear()}-01`;
+const currentMonth = () => new Date().toISOString().slice(0, 7);
+const fmt = (n: number | null | undefined) =>
+  Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+type SortKey = "total_sales" | "gross_profit";
+
+function SalespersonReport() {
+  const { allowed, checking } = usePermissionGuard("/reports/salesperson");
+  const { profile } = useAuth();
+  const [startMonth, setStartMonth] = useState(firstOfYear());
+  const [endMonth, setEndMonth] = useState(currentMonth());
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState<Row[]>([]);
+  const [sortKey, setSortKey] = useState<SortKey>("total_sales");
+
+  const run = async () => {
+    if (!profile?.company_id) return;
+    setLoading(true);
+    try {
+      const startDate = `${startMonth}-01`;
+      // end = first day of month after endMonth
+      const [y, m] = endMonth.split("-").map(Number);
+      const endDate = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("v_salesperson_performance")
+        .select("sales_person_name,month,invoice_count,total_sales,gross_profit,margin_pct")
+        .eq("company_id", profile?.company_id ?? "")
+        .gte("month", startDate)
+        .lt("month", endDate)
+        .order("month", { ascending: false });
+      if (error) throw error;
+      setRows((data ?? []) as Row[]);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const sorted = useMemo(() => {
+    return [...rows].sort((a, b) => Number(b[sortKey] ?? 0) - Number(a[sortKey] ?? 0));
+  }, [rows, sortKey]);
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
+
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-semibold">業務績效報表</h1>
+
+      <div className="flex flex-wrap items-end gap-3 rounded-md border bg-card p-4">
+        <div className="grid gap-1.5">
+          <Label>起月</Label>
+          <Input className="w-40" type="month" value={startMonth} onChange={(e) => setStartMonth(e.target.value)} />
+        </div>
+        <div className="grid gap-1.5">
+          <Label>迄月</Label>
+          <Input className="w-40" type="month" value={endMonth} onChange={(e) => setEndMonth(e.target.value)} />
+        </div>
+        <Button onClick={run} disabled={loading}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}查詢
+        </Button>
+        <ExportExcelButton
+          rows={sorted as unknown as Record<string, unknown>[]}
+          filename="業務績效"
+          columns={[
+            { key: "sales_person_name", label: "業務員" },
+            { key: "month", label: "月份", value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7) },
+            { key: "invoice_count", label: "張數", type: "number" },
+            { key: "total_sales", label: "總銷售額", type: "number" },
+            { key: "gross_profit", label: "總毛利", type: "number" },
+            { key: "margin_pct", label: "毛利率(%)", type: "number" },
+          ]}
+        />
+      </div>
+
+      <div className="rounded-md border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>業務員</TableHead>
+              <TableHead>月份</TableHead>
+              <TableHead className="text-right">張數</TableHead>
+              <TableHead className="text-right">
+                <button className="inline-flex items-center gap-1" onClick={() => setSortKey("total_sales")}>
+                  總銷售額 <ArrowUpDown className="h-3 w-3" />
+                </button>
+              </TableHead>
+              <TableHead className="text-right">
+                <button className="inline-flex items-center gap-1" onClick={() => setSortKey("gross_profit")}>
+                  總毛利 <ArrowUpDown className="h-3 w-3" />
+                </button>
+              </TableHead>
+              <TableHead className="text-right">毛利率</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sorted.length === 0 && (
+              <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground">無資料</TableCell></TableRow>
+            )}
+            {sorted.map((r, i) => (
+              <TableRow key={i}>
+                <TableCell>{r.sales_person_name ?? "—"}</TableCell>
+                <TableCell>{String(r.month).slice(0, 7)}</TableCell>
+                <TableCell className="text-right">{r.invoice_count ?? 0}</TableCell>
+                <TableCell className="text-right">{fmt(r.total_sales)}</TableCell>
+                <TableCell className="text-right">{fmt(r.gross_profit)}</TableCell>
+                <TableCell className="text-right">{Number(r.margin_pct ?? 0).toFixed(2)}%</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
