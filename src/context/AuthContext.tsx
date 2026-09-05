@@ -46,28 +46,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // FE-05: 修正 race condition — 在 profile 載入完成前保持 loading 狀態
+    let cancelled = false;
     // 1) 先註冊監聽
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, sess) => {
+      if (cancelled) return;
       setSession(sess);
       if (sess?.user) {
-        // 避免在 callback 內 await,延遲執行
-        setTimeout(() => loadProfile(sess.user.id), 0);
+        setLoading(true);
+        loadProfile(sess.user.id).finally(() => {
+          if (!cancelled) setLoading(false);
+        });
       } else {
         setProfile(null);
+        setLoading(false);
       }
     });
 
     // 2) 再取得目前 session
     supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
       setSession(data.session);
       if (data.session?.user) {
-        loadProfile(data.session.user.id).finally(() => setLoading(false));
+        loadProfile(data.session.user.id).finally(() => {
+          if (!cancelled) setLoading(false);
+        });
       } else {
         setLoading(false);
       }
     });
 
     return () => {
+      cancelled = true;
       sub.subscription.unsubscribe();
     };
   }, []);
