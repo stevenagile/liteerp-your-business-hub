@@ -22,13 +22,13 @@ export function ExportExcelButton<T extends Record<string, unknown>>({
   variant = "outline",
   className,
 }: Props<T>) {
-  const handleClick = () => {
+  const handleClick = async () => {
     if (!rows || rows.length === 0) {
       toast.info("目前無資料可匯出");
       return;
     }
     try {
-      exportToExcel(rows, columns, filename);
+      await exportToExcel(rows, columns, filename);
       toast.success("已匯出 Excel");
     } catch (e) {
       toast.error("匯出失敗：" + (e as Error).message);
