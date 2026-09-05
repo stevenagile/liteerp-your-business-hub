@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Loader2, Plus, Pencil, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdvancedSettingsPanel } from "@/components/AdvancedSettingsPanel";
 import { Button } from "@/components/ui/button";
@@ -34,15 +35,9 @@ export const Route = createFileRoute("/_app/settings/")({
 
 function SettingsPage() {
   const { profile, loading } = useAuth();
-  const navigate = useNavigate();
+  const { allowed, checking } = usePermissionGuard("/settings");
 
-  useEffect(() => {
-    if (!loading && profile && profile.role !== "admin") {
-      navigate({ to: "/" });
-    }
-  }, [loading, profile, navigate]);
-
-  if (loading) {
+  if (loading || checking) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -50,7 +45,7 @@ function SettingsPage() {
     );
   }
 
-  if (!profile || profile.role !== "admin") {
+  if (!profile || !allowed || profile.role !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <ShieldAlert className="h-10 w-10 text-warning" />
@@ -104,6 +99,8 @@ type CompanyRow = {
 };
 
 function CompanyForm() {
+  const { profile } = useAuth();
+  const companyId = profile?.company_id ?? "";
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<CompanyRow>({
@@ -120,6 +117,7 @@ function CompanyForm() {
       const { data, error } = await supabase
         .from("company")
         .select("id, name, tax_id, address, phone, email, tax_rate")
+        .eq("id", companyId)
         .limit(1)
         .maybeSingle();
       if (error) {
@@ -272,6 +270,8 @@ type Warehouse = {
 };
 
 function WarehousesPanel() {
+  const { profile } = useAuth();
+  const companyId = profile?.company_id ?? "";
   const [list, setList] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Warehouse | null>(null);
@@ -282,6 +282,7 @@ function WarehousesPanel() {
     const { data, error } = await supabase
       .from("warehouses")
       .select("id, code, name, address, is_default")
+      .eq("company_id", companyId)
       .order("code", { ascending: true });
     if (error) {
       toast.error("讀取倉庫失敗:" + error.message);
@@ -403,6 +404,8 @@ function WarehouseDialog({
   warehouse: Warehouse | null;
   onSaved: () => void;
 }) {
+  const { profile } = useAuth();
+  const companyId = profile?.company_id ?? "";
   const [form, setForm] = useState<Warehouse | null>(warehouse);
   const [saving, setSaving] = useState(false);
 
@@ -422,9 +425,10 @@ function WarehouseDialog({
       name: form.name,
       address: form.address,
       is_default: form.is_default,
+      company_id: companyId,
     };
     const query = isEdit
-      ? supabase.from("warehouses").update(payload).eq("id", form.id)
+      ? supabase.from("warehouses").update(payload).eq("id", form.id).eq("company_id", companyId)
       : supabase.from("warehouses").insert(payload);
     const { error } = await query;
     setSaving(false);

@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Loader2, Plus, Trash2, ShieldAlert, Info, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,22 +37,16 @@ type Contact = { id: string; name: string; type: string };
 
 function OpeningPage() {
   const { profile, loading } = useAuth();
-  const navigate = useNavigate();
+  const { allowed, checking } = usePermissionGuard("/settings/opening");
 
-  useEffect(() => {
-    if (!loading && profile && profile.role !== "admin") {
-      navigate({ to: "/" });
-    }
-  }, [loading, profile, navigate]);
-
-  if (loading) {
+  if (loading || checking) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
-  if (!profile || profile.role !== "admin") {
+  if (!profile || !allowed || profile.role !== "admin") {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <ShieldAlert className="h-10 w-10 text-warning" />
@@ -111,6 +106,8 @@ function newInvRow(): InvRow {
 }
 
 function OpeningInventory() {
+  const { profile } = useAuth();
+  const companyId = profile?.company_id ?? "";
   const [products, setProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [rows, setRows] = useState<InvRow[]>([newInvRow()]);
@@ -120,8 +117,8 @@ function OpeningInventory() {
   useEffect(() => {
     (async () => {
       const [{ data: p }, { data: w }] = await Promise.all([
-        supabase.from("products").select("id, code, name, cost_price").order("code"),
-        supabase.from("warehouses").select("id, code, name").order("code"),
+        supabase.from("products").select("id, code, name, cost_price").eq("company_id", companyId).order("code"),
+        supabase.from("warehouses").select("id, code, name").eq("company_id", companyId).order("code"),
       ]);
       setProducts((p ?? []) as Product[]);
       setWarehouses((w ?? []) as Warehouse[]);
@@ -327,6 +324,8 @@ type OpeningDoc = {
 };
 
 function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
+  const { profile } = useAuth();
+  const companyId = profile?.company_id ?? "";
   const isAR = kind === "ar";
   const docType = isAR ? "sales_invoice" : "purchase_receipt";
   const partyLabel = isAR ? "客戶" : "廠商";
@@ -350,6 +349,7 @@ function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
     const { data } = await supabase
       .from("contacts")
       .select("id,name,type")
+      .eq("company_id", companyId)
       .in("type", types)
       .order("name");
     setContacts((data ?? []) as Contact[]);
@@ -360,6 +360,7 @@ function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
     const { data, error } = await supabase
       .from("doc_headers")
       .select("id, doc_no, doc_date, due_date, total_amount, contact_id, notes")
+      .eq("company_id", companyId)
       .eq("doc_type", docType)
       .eq("is_opening", true)
       .order("doc_date", { ascending: false });

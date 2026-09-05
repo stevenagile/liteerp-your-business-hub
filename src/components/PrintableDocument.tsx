@@ -78,10 +78,12 @@ function lineAmount(l: Line) {
 export function PrintableDocument({
   docType,
   docId,
+  companyId,
   onBack,
 }: {
   docType: PrintDocType;
   docId: string;
+  companyId?: string;
   onBack?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
@@ -106,6 +108,7 @@ export function PrintableDocument({
                 "id, doc_type, doc_no, doc_date, contact_id, contact_name, notes, subtotal, tax_amount, total_amount",
               )
               .eq("id", docId)
+              .eq("company_id", companyId ?? "")
               .maybeSingle(),
             supabase
               .from("doc_lines")
@@ -117,6 +120,7 @@ export function PrintableDocument({
             supabase
               .from("company")
               .select("name, tax_id, address, phone, email, logo_url")
+              .eq("id", companyId ?? "")
               .limit(1)
               .maybeSingle(),
           ]);
@@ -131,6 +135,7 @@ export function PrintableDocument({
             .from("contacts")
             .select("name, tax_id, address, phone")
             .eq("id", contactId)
+            .eq("company_id", companyId ?? "")
             .maybeSingle();
           setContact((cc as Contact) ?? null);
         }
