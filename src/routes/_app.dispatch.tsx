@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { format, addDays } from "date-fns";
 import { Loader2, Printer, RefreshCw, Truck, AlertTriangle } from "lucide-react";
+import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -99,6 +101,8 @@ type SheetRun = {
 const TRUCK_ORDER: Record<string, number> = { 大車: 0, 小車: 1, unassigned: 9 };
 
 function DispatchPage() {
+  const { allowed, checking } = usePermissionGuard("/dispatch");
+  const { profile } = useAuth();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const today = format(new Date(), "yyyy-MM-dd");
@@ -132,12 +136,14 @@ function DispatchPage() {
   }, [date, truck, docType]);
 
   const load = async () => {
+    if (!profile?.company_id) return;
     setLoading(true);
     const [manifestResult, runResult] = await Promise.all([
       (() => {
         let q = supabase
           .from("v_dispatch_manifest")
           .select("*")
+          .eq("company_id", profile?.company_id ?? "")
           .eq("delivery_date", date);
         if (truck !== "all") q = q.eq("truck_type", truck);
         if (docType !== "all") q = q.eq("doc_type", docType);
@@ -218,6 +224,9 @@ function DispatchPage() {
       runReassign();
     }
   };
+
+  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (!allowed) return null;
 
   return (
     <div className="space-y-6">
