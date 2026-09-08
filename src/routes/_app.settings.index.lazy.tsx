@@ -135,7 +135,7 @@ function CompanyForm() {
       }
       setLoading(false);
     })();
-  }, []);
+  }, [companyId]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -293,7 +293,7 @@ function WarehousesPanel() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [companyId]);
 
   const openCreate = () => {
     setEditing({

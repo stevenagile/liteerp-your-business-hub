@@ -54,7 +54,7 @@ function PnlReport() {
       setRows((data as Row[]) ?? []);
       setLoading(false);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const cols: { key: keyof Row | "label"; label: string; isPct?: boolean; emphasis?: "gross" | "net" }[] = [
     { key: "revenue", label: "營收" },

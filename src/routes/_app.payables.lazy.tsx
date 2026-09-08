@@ -75,7 +75,7 @@ function PayablesPage() {
       else setList((data ?? []) as Row[]);
       setLoading(false);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const stats = useMemo(() => {
     let total = 0;

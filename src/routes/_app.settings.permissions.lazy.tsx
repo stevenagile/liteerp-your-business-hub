@@ -66,7 +66,8 @@ function PermissionsPage() {
     setBusy(true);
     const { data, error } = await supabase
       .from("role_permissions")
-      .select("id, role, module, can_read, can_write, can_confirm, can_void");
+      .select("id, role, module, can_read, can_write, can_confirm, can_void")
+      .eq("company_id", profile?.company_id ?? "");
     if (error) toast.error("讀取失敗:" + error.message);
     else setRows((data ?? []) as Perm[]);
     setBusy(false);

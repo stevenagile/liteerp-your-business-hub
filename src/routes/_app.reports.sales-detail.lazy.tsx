@@ -67,17 +67,18 @@ function SalesDetailReport() {
   const [rows, setRows] = useState<Row[]>([]);
 
   useEffect(() => {
+    if (!profile?.company_id) return;
     (async () => {
       const [{ data: cs }, { data: pp }, { data: pr }] = await Promise.all([
-        supabase.from("contacts").select("id,name").in("type", ["customer", "both"]).order("name"),
-        supabase.from("profiles").select("id,display_name").order("display_name"),
-        supabase.from("products").select("id,code,name").order("code"),
+        supabase.from("contacts").select("id,name").in("type", ["customer", "both"]).eq("company_id", profile?.company_id ?? "").order("name"),
+        supabase.from("profiles").select("id,display_name").eq("company_id", profile?.company_id ?? "").order("display_name"),
+        supabase.from("products").select("id,code,name").eq("company_id", profile?.company_id ?? "").order("code"),
       ]);
       setContacts((cs ?? []) as { id: string; name: string }[]);
       setPeople((pp ?? []) as { id: string; display_name: string | null }[]);
       setProducts((pr ?? []) as { id: string; code: string; name: string }[]);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const run = async () => {
     if (!profile?.company_id) return;
@@ -108,7 +109,7 @@ function SalesDetailReport() {
   useEffect(() => {
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [profile?.company_id]);
 
   const totals = useMemo(() => {
     let amt = 0,

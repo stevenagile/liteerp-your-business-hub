@@ -49,7 +49,7 @@ function RevenueReport() {
       setRows((data as Row[]) ?? []);
       setLoading(false);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
   if (!allowed) return null;

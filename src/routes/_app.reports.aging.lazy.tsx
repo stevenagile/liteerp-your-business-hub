@@ -67,7 +67,7 @@ function useAging(view: string, partyKey: "customer_name" | "vendor_name") {
       setRows(mapped);
       setLoading(false);
     })();
-  }, [view, partyKey]);
+  }, [view, partyKey, profile?.company_id]);
   return { rows, loading };
 }
 

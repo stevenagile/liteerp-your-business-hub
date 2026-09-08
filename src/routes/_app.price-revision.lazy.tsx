@@ -111,15 +111,15 @@ function PriceRevisionPage() {
   const loadAux = async () => {
     if (!profile?.company_id) return;
     const [c, p, h] = await Promise.all([
-      supabase.from("products").select("category").eq("is_active", true),
-      supabase.from("products").select("id, code, name").eq("is_active", true).order("code"),
+      supabase.from("products").select("category").eq("is_active", true).eq("company_id", profile?.company_id ?? ""),
+      supabase.from("products").select("id, code, name").eq("is_active", true).eq("company_id", profile?.company_id ?? "").order("code"),
       supabase.from("price_revisions").select("id, version_no, percent, scope, target, sell_mode, effective_date, status, applied_at, note").eq("company_id", profile?.company_id ?? "").order("version_no", { ascending: false }),
     ]);
     setCategories([...new Set(((c.data ?? []) as { category: string | null }[]).map((x) => x.category).filter(Boolean) as string[])].sort());
     setProducts((p.data ?? []) as Prod[]);
     setHistory((h.data ?? []) as Rev[]);
   };
-  useEffect(() => { if (canView) loadAux(); /* eslint-disable-next-line */ }, [canView]);
+  useEffect(() => { if (canView) loadAux(); /* eslint-disable-next-line */ }, [canView, profile?.company_id]);
 
   const scopeValue = () =>
     scope === "all" ? null : scope === "category" ? category : [...picked];

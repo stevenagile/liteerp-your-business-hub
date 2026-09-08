@@ -114,6 +114,7 @@ function OpeningInventory() {
   const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
+    if (!companyId) return;
     (async () => {
       const [{ data: p }, { data: w }] = await Promise.all([
         supabase.from("products").select("id, code, name, cost_price").eq("company_id", companyId).order("code"),
@@ -122,7 +123,7 @@ function OpeningInventory() {
       setProducts((p ?? []) as Product[]);
       setWarehouses((w ?? []) as Warehouse[]);
     })();
-  }, []);
+  }, [companyId]);
 
   const update = (key: string, patch: Partial<InvRow>) => {
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
@@ -372,7 +373,7 @@ function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
     loadContacts();
     loadList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kind]);
+  }, [kind, companyId]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();

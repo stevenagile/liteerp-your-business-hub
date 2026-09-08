@@ -41,7 +41,7 @@ function CustomerProfitReport() {
       setRows((data as Row[]) ?? []);
       setLoading(false);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const sorted = useMemo(
     () =>

@@ -60,15 +60,16 @@ function PurchaseDetailReport() {
   const [rows, setRows] = useState<Row[]>([]);
 
   useEffect(() => {
+    if (!profile?.company_id) return;
     (async () => {
       const [{ data: vs }, { data: pr }] = await Promise.all([
-        supabase.from("contacts").select("id,name").in("type", ["vendor", "both"]).order("name"),
-        supabase.from("products").select("id,code,name").order("code"),
+        supabase.from("contacts").select("id,name").in("type", ["vendor", "both"]).eq("company_id", profile?.company_id ?? "").order("name"),
+        supabase.from("products").select("id,code,name").eq("company_id", profile?.company_id ?? "").order("code"),
       ]);
       setVendors((vs ?? []) as { id: string; name: string }[]);
       setProducts((pr ?? []) as { id: string; code: string; name: string }[]);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const run = async () => {
     if (!profile?.company_id) return;
@@ -96,7 +97,7 @@ function PurchaseDetailReport() {
   useEffect(() => {
     run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [profile?.company_id]);
 
   const total = useMemo(() => rows.reduce((s, r) => s + Number(r.amount ?? 0), 0), [rows]);
 
