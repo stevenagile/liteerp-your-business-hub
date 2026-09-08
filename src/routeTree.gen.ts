@@ -9,320 +9,466 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
-import { Route as AppWarehousesRouteImport } from './routes/_app.warehouses'
-import { Route as AppVehiclesRouteImport } from './routes/_app.vehicles'
-import { Route as AppUsersRouteImport } from './routes/_app.users'
-import { Route as AppSettingsRouteImport } from './routes/_app.settings'
-import { Route as AppRolesRouteImport } from './routes/_app.roles'
-import { Route as AppReceivablesRouteImport } from './routes/_app.receivables'
-import { Route as AppProductsRouteImport } from './routes/_app.products'
-import { Route as AppPriceRevisionRouteImport } from './routes/_app.price-revision'
-import { Route as AppPayablesRouteImport } from './routes/_app.payables'
-import { Route as AppNotificationsRouteImport } from './routes/_app.notifications'
-import { Route as AppLineOrdersRouteImport } from './routes/_app.line-orders'
-import { Route as AppFoodsRouteImport } from './routes/_app.foods'
-import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
-import { Route as AppDispatchRouteImport } from './routes/_app.dispatch'
-import { Route as AppDeliveryRulesRouteImport } from './routes/_app.delivery-rules'
-import { Route as AppContactsRouteImport } from './routes/_app.contacts'
 import { Route as AppAuditRouteImport } from './routes/_app.audit'
-import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.index'
-import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.index'
-import { Route as AppStatementsVendorRouteImport } from './routes/_app.statements.vendor'
-import { Route as AppStatementsCustomerRouteImport } from './routes/_app.statements.customer'
-import { Route as AppSettlementVendorRouteImport } from './routes/_app.settlement.vendor'
-import { Route as AppSettlementCustomerRouteImport } from './routes/_app.settlement.customer'
-import { Route as AppSettingsUsersRouteImport } from './routes/_app.settings.users'
-import { Route as AppSettingsPermissionsRouteImport } from './routes/_app.settings.permissions'
-import { Route as AppSettingsParamsRouteImport } from './routes/_app.settings.params'
-import { Route as AppSettingsOpeningRouteImport } from './routes/_app.settings.opening'
-import { Route as AppSettingsMenuRouteImport } from './routes/_app.settings.menu'
-import { Route as AppSettingsGovernanceRouteImport } from './routes/_app.settings.governance'
-import { Route as AppSettingsAdvancedRouteImport } from './routes/_app.settings.advanced'
-import { Route as AppReportsSalespersonRouteImport } from './routes/_app.reports.salesperson'
-import { Route as AppReportsSalesDetailRouteImport } from './routes/_app.reports.sales-detail'
-import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.revenue'
-import { Route as AppReportsPurchaseDetailRouteImport } from './routes/_app.reports.purchase-detail'
-import { Route as AppReportsProductProfitRouteImport } from './routes/_app.reports.product-profit'
-import { Route as AppReportsPnlRouteImport } from './routes/_app.reports.pnl'
-import { Route as AppReportsCustomerProfitRouteImport } from './routes/_app.reports.customer-profit'
-import { Route as AppReportsAgingRouteImport } from './routes/_app.reports.aging'
-import { Route as AppInventoryLedgerRouteImport } from './routes/_app.inventory.ledger'
-import { Route as AppDocsSalesReturnRouteImport } from './routes/_app.docs.sales-return'
-import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
-import { Route as AppDocsSalesInvoiceRouteImport } from './routes/_app.docs.sales-invoice'
-import { Route as AppDocsQuotationRouteImport } from './routes/_app.docs.quotation'
-import { Route as AppDocsPurchaseReceiptRouteImport } from './routes/_app.docs.purchase-receipt'
-import { Route as AppDocsPurchaseOrderRouteImport } from './routes/_app.docs.purchase-order'
-import { Route as AppDocsManualRouteImport } from './routes/_app.docs.manual'
-import { Route as AppDocsInventoryAdjustRouteImport } from './routes/_app.docs.inventory-adjust'
+import { Route as AppContactsRouteImport } from './routes/_app.contacts'
+import { Route as AppDeliveryRulesRouteImport } from './routes/_app.delivery-rules'
+import { Route as AppDispatchRouteImport } from './routes/_app.dispatch'
+import { Route as AppExpensesRouteImport } from './routes/_app.expenses'
+import { Route as AppFoodsRouteImport } from './routes/_app.foods'
+import { Route as AppLineOrdersRouteImport } from './routes/_app.line-orders'
+import { Route as AppNotificationsRouteImport } from './routes/_app.notifications'
+import { Route as AppPayablesRouteImport } from './routes/_app.payables'
+import { Route as AppPriceRevisionRouteImport } from './routes/_app.price-revision'
+import { Route as AppProductsRouteImport } from './routes/_app.products'
+import { Route as AppReceivablesRouteImport } from './routes/_app.receivables'
+import { Route as AppRolesRouteImport } from './routes/_app.roles'
+import { Route as AppRouteSheetRouteImport } from './routes/_app.route-sheet'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppUsersRouteImport } from './routes/_app.users'
+import { Route as AppVehiclesRouteImport } from './routes/_app.vehicles'
+import { Route as AppWarehousesRouteImport } from './routes/_app.warehouses'
 import { Route as AppDocsChangelogRouteImport } from './routes/_app.docs.changelog'
+import { Route as AppDocsInventoryAdjustRouteImport } from './routes/_app.docs.inventory-adjust'
+import { Route as AppDocsManualRouteImport } from './routes/_app.docs.manual'
+import { Route as AppDocsPurchaseOrderRouteImport } from './routes/_app.docs.purchase-order'
+import { Route as AppDocsPurchaseReceiptRouteImport } from './routes/_app.docs.purchase-receipt'
+import { Route as AppDocsQuotationRouteImport } from './routes/_app.docs.quotation'
+import { Route as AppDocsSalesInvoiceRouteImport } from './routes/_app.docs.sales-invoice'
+import { Route as AppDocsSalesOrderRouteImport } from './routes/_app.docs.sales-order'
+import { Route as AppDocsSalesReturnRouteImport } from './routes/_app.docs.sales-return'
+import { Route as AppInventoryIndexRouteImport } from './routes/_app.inventory.index'
+import { Route as AppInventoryLedgerRouteImport } from './routes/_app.inventory.ledger'
+import { Route as AppReportsAgingRouteImport } from './routes/_app.reports.aging'
+import { Route as AppReportsCustomerProfitRouteImport } from './routes/_app.reports.customer-profit'
+import { Route as AppReportsPnlRouteImport } from './routes/_app.reports.pnl'
+import { Route as AppReportsProductProfitRouteImport } from './routes/_app.reports.product-profit'
+import { Route as AppReportsPurchaseDetailRouteImport } from './routes/_app.reports.purchase-detail'
+import { Route as AppReportsRevenueRouteImport } from './routes/_app.reports.revenue'
+import { Route as AppReportsSalesDetailRouteImport } from './routes/_app.reports.sales-detail'
+import { Route as AppReportsSalespersonRouteImport } from './routes/_app.reports.salesperson'
+import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.index'
+import { Route as AppSettingsAdvancedRouteImport } from './routes/_app.settings.advanced'
+import { Route as AppSettingsGovernanceRouteImport } from './routes/_app.settings.governance'
+import { Route as AppSettingsMenuRouteImport } from './routes/_app.settings.menu'
+import { Route as AppSettingsOpeningRouteImport } from './routes/_app.settings.opening'
+import { Route as AppSettingsParamsRouteImport } from './routes/_app.settings.params'
+import { Route as AppSettingsPermissionsRouteImport } from './routes/_app.settings.permissions'
+import { Route as AppSettingsUsersRouteImport } from './routes/_app.settings.users'
+import { Route as AppSettlementCustomerRouteImport } from './routes/_app.settlement.customer'
+import { Route as AppSettlementVendorRouteImport } from './routes/_app.settlement.vendor'
+import { Route as AppStatementsCustomerRouteImport } from './routes/_app.statements.customer'
+import { Route as AppStatementsVendorRouteImport } from './routes/_app.statements.vendor'
+import { Route as AppStudioIndexRouteImport } from './routes/_app.studio.index'
+import { Route as AppStudioAgentsRouteImport } from './routes/_app.studio.agents'
+import { Route as AppStudioAliasesRouteImport } from './routes/_app.studio.aliases'
+import { Route as AppStudioApprovalsRouteImport } from './routes/_app.studio.approvals'
+import { Route as AppStudioAuditRouteImport } from './routes/_app.studio.audit'
+import { Route as AppStudioKnowledgeRouteImport } from './routes/_app.studio.knowledge'
+import { Route as AppStudioLineManagersRouteImport } from './routes/_app.studio.line-managers'
+import { Route as AppStudioSkillsRouteImport } from './routes/_app.studio.skills'
 import { Route as AppPrintDocTypeIdRouteImport } from './routes/_app.print.$docType.$id'
 
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.index.lazy').then(d => d.Route))
-const AppWarehousesRoute = AppWarehousesRouteImport.update({
-  id: '/warehouses',
-  path: '/warehouses',
+} as any).lazy(() => import('./routes/_app.index.lazy').then((d) => d.Route))
+const AppAuditRoute = AppAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.warehouses.lazy').then(d => d.Route))
-const AppVehiclesRoute = AppVehiclesRouteImport.update({
-  id: '/vehicles',
-  path: '/vehicles',
+} as any).lazy(() => import('./routes/_app.audit.lazy').then((d) => d.Route))
+const AppContactsRoute = AppContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.vehicles.lazy').then(d => d.Route))
-const AppUsersRoute = AppUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
+} as any).lazy(() => import('./routes/_app.contacts.lazy').then((d) => d.Route))
+const AppDeliveryRulesRoute = AppDeliveryRulesRouteImport.update({
+  id: '/delivery-rules',
+  path: '/delivery-rules',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.users.lazy').then(d => d.Route))
+} as any).lazy(() =>
+  import('./routes/_app.delivery-rules.lazy').then((d) => d.Route),
+)
+const AppDispatchRoute = AppDispatchRouteImport.update({
+  id: '/dispatch',
+  path: '/dispatch',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() => import('./routes/_app.dispatch.lazy').then((d) => d.Route))
+const AppExpensesRoute = AppExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() => import('./routes/_app.expenses.lazy').then((d) => d.Route))
+const AppFoodsRoute = AppFoodsRouteImport.update({
+  id: '/foods',
+  path: '/foods',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() => import('./routes/_app.foods.lazy').then((d) => d.Route))
+const AppLineOrdersRoute = AppLineOrdersRouteImport.update({
+  id: '/line-orders',
+  path: '/line-orders',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.line-orders.lazy').then((d) => d.Route),
+)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.notifications.lazy').then((d) => d.Route),
+)
+const AppPayablesRoute = AppPayablesRouteImport.update({
+  id: '/payables',
+  path: '/payables',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() => import('./routes/_app.payables.lazy').then((d) => d.Route))
+const AppPriceRevisionRoute = AppPriceRevisionRouteImport.update({
+  id: '/price-revision',
+  path: '/price-revision',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.price-revision.lazy').then((d) => d.Route),
+)
+const AppProductsRoute = AppProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() => import('./routes/_app.products.lazy').then((d) => d.Route))
+const AppReceivablesRoute = AppReceivablesRouteImport.update({
+  id: '/receivables',
+  path: '/receivables',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.receivables.lazy').then((d) => d.Route),
+)
+const AppRolesRoute = AppRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() => import('./routes/_app.roles.lazy').then((d) => d.Route))
+const AppRouteSheetRoute = AppRouteSheetRouteImport.update({
+  id: '/route-sheet',
+  path: '/route-sheet',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.route-sheet.lazy').then((d) => d.Route),
+)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppRolesRoute = AppRolesRouteImport.update({
-  id: '/roles',
-  path: '/roles',
+const AppUsersRoute = AppUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.roles.lazy').then(d => d.Route))
-const AppReceivablesRoute = AppReceivablesRouteImport.update({
-  id: '/receivables',
-  path: '/receivables',
+} as any).lazy(() => import('./routes/_app.users.lazy').then((d) => d.Route))
+const AppVehiclesRoute = AppVehiclesRouteImport.update({
+  id: '/vehicles',
+  path: '/vehicles',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.receivables.lazy').then(d => d.Route))
-const AppProductsRoute = AppProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
+} as any).lazy(() => import('./routes/_app.vehicles.lazy').then((d) => d.Route))
+const AppWarehousesRoute = AppWarehousesRouteImport.update({
+  id: '/warehouses',
+  path: '/warehouses',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.products.lazy').then(d => d.Route))
-const AppPriceRevisionRoute = AppPriceRevisionRouteImport.update({
-  id: '/price-revision',
-  path: '/price-revision',
+} as any).lazy(() =>
+  import('./routes/_app.warehouses.lazy').then((d) => d.Route),
+)
+const AppDocsChangelogRoute = AppDocsChangelogRouteImport.update({
+  id: '/docs/changelog',
+  path: '/docs/changelog',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.price-revision.lazy').then(d => d.Route))
-const AppPayablesRoute = AppPayablesRouteImport.update({
-  id: '/payables',
-  path: '/payables',
+} as any).lazy(() =>
+  import('./routes/_app.docs.changelog.lazy').then((d) => d.Route),
+)
+const AppDocsInventoryAdjustRoute = AppDocsInventoryAdjustRouteImport.update({
+  id: '/docs/inventory-adjust',
+  path: '/docs/inventory-adjust',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.payables.lazy').then(d => d.Route))
-const AppNotificationsRoute = AppNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
+} as any).lazy(() =>
+  import('./routes/_app.docs.inventory-adjust.lazy').then((d) => d.Route),
+)
+const AppDocsManualRoute = AppDocsManualRouteImport.update({
+  id: '/docs/manual',
+  path: '/docs/manual',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.notifications.lazy').then(d => d.Route))
-const AppLineOrdersRoute = AppLineOrdersRouteImport.update({
-  id: '/line-orders',
-  path: '/line-orders',
+} as any).lazy(() =>
+  import('./routes/_app.docs.manual.lazy').then((d) => d.Route),
+)
+const AppDocsPurchaseOrderRoute = AppDocsPurchaseOrderRouteImport.update({
+  id: '/docs/purchase-order',
+  path: '/docs/purchase-order',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.line-orders.lazy').then(d => d.Route))
-const AppFoodsRoute = AppFoodsRouteImport.update({
-  id: '/foods',
-  path: '/foods',
+} as any).lazy(() =>
+  import('./routes/_app.docs.purchase-order.lazy').then((d) => d.Route),
+)
+const AppDocsPurchaseReceiptRoute = AppDocsPurchaseReceiptRouteImport.update({
+  id: '/docs/purchase-receipt',
+  path: '/docs/purchase-receipt',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.foods.lazy').then(d => d.Route))
-const AppExpensesRoute = AppExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
+} as any).lazy(() =>
+  import('./routes/_app.docs.purchase-receipt.lazy').then((d) => d.Route),
+)
+const AppDocsQuotationRoute = AppDocsQuotationRouteImport.update({
+  id: '/docs/quotation',
+  path: '/docs/quotation',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.expenses.lazy').then(d => d.Route))
-const AppDispatchRoute = AppDispatchRouteImport.update({
-  id: '/dispatch',
-  path: '/dispatch',
+} as any).lazy(() =>
+  import('./routes/_app.docs.quotation.lazy').then((d) => d.Route),
+)
+const AppDocsSalesInvoiceRoute = AppDocsSalesInvoiceRouteImport.update({
+  id: '/docs/sales-invoice',
+  path: '/docs/sales-invoice',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.dispatch.lazy').then(d => d.Route))
-const AppDeliveryRulesRoute = AppDeliveryRulesRouteImport.update({
-  id: '/delivery-rules',
-  path: '/delivery-rules',
+} as any).lazy(() =>
+  import('./routes/_app.docs.sales-invoice.lazy').then((d) => d.Route),
+)
+const AppDocsSalesOrderRoute = AppDocsSalesOrderRouteImport.update({
+  id: '/docs/sales-order',
+  path: '/docs/sales-order',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.delivery-rules.lazy').then(d => d.Route))
-const AppContactsRoute = AppContactsRouteImport.update({
-  id: '/contacts',
-  path: '/contacts',
+} as any).lazy(() =>
+  import('./routes/_app.docs.sales-order.lazy').then((d) => d.Route),
+)
+const AppDocsSalesReturnRoute = AppDocsSalesReturnRouteImport.update({
+  id: '/docs/sales-return',
+  path: '/docs/sales-return',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.contacts.lazy').then(d => d.Route))
-const AppAuditRoute = AppAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.audit.lazy').then(d => d.Route))
-const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppSettingsRoute,
-} as any).lazy(() => import('./routes/_app.settings.index.lazy').then(d => d.Route))
+} as any).lazy(() =>
+  import('./routes/_app.docs.sales-return.lazy').then((d) => d.Route),
+)
 const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/inventory/',
   path: '/inventory/',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.inventory.index.lazy').then(d => d.Route))
-const AppStatementsVendorRoute = AppStatementsVendorRouteImport.update({
-  id: '/statements/vendor',
-  path: '/statements/vendor',
+} as any).lazy(() =>
+  import('./routes/_app.inventory.index.lazy').then((d) => d.Route),
+)
+const AppInventoryLedgerRoute = AppInventoryLedgerRouteImport.update({
+  id: '/inventory/ledger',
+  path: '/inventory/ledger',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.statements.vendor.lazy').then(d => d.Route))
-const AppStatementsCustomerRoute = AppStatementsCustomerRouteImport.update({
-  id: '/statements/customer',
-  path: '/statements/customer',
+} as any).lazy(() =>
+  import('./routes/_app.inventory.ledger.lazy').then((d) => d.Route),
+)
+const AppReportsAgingRoute = AppReportsAgingRouteImport.update({
+  id: '/reports/aging',
+  path: '/reports/aging',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.statements.customer.lazy').then(d => d.Route))
-const AppSettlementVendorRoute = AppSettlementVendorRouteImport.update({
-  id: '/settlement/vendor',
-  path: '/settlement/vendor',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.settlement.vendor.lazy').then(d => d.Route))
-const AppSettlementCustomerRoute = AppSettlementCustomerRouteImport.update({
-  id: '/settlement/customer',
-  path: '/settlement/customer',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.settlement.customer.lazy').then(d => d.Route))
-const AppSettingsUsersRoute = AppSettingsUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppSettingsPermissionsRoute = AppSettingsPermissionsRouteImport.update({
-  id: '/permissions',
-  path: '/permissions',
-  getParentRoute: () => AppSettingsRoute,
-} as any).lazy(() => import('./routes/_app.settings.permissions.lazy').then(d => d.Route))
-const AppSettingsParamsRoute = AppSettingsParamsRouteImport.update({
-  id: '/params',
-  path: '/params',
-  getParentRoute: () => AppSettingsRoute,
-} as any).lazy(() => import('./routes/_app.settings.params.lazy').then(d => d.Route))
-const AppSettingsOpeningRoute = AppSettingsOpeningRouteImport.update({
-  id: '/opening',
-  path: '/opening',
-  getParentRoute: () => AppSettingsRoute,
-} as any).lazy(() => import('./routes/_app.settings.opening.lazy').then(d => d.Route))
-const AppSettingsMenuRoute = AppSettingsMenuRouteImport.update({
-  id: '/menu',
-  path: '/menu',
-  getParentRoute: () => AppSettingsRoute,
-} as any).lazy(() => import('./routes/_app.settings.menu.lazy').then(d => d.Route))
-const AppSettingsGovernanceRoute = AppSettingsGovernanceRouteImport.update({
-  id: '/governance',
-  path: '/governance',
-  getParentRoute: () => AppSettingsRoute,
-} as any).lazy(() => import('./routes/_app.settings.governance.lazy').then(d => d.Route))
-const AppSettingsAdvancedRoute = AppSettingsAdvancedRouteImport.update({
-  id: '/advanced',
-  path: '/advanced',
-  getParentRoute: () => AppSettingsRoute,
-} as any).lazy(() => import('./routes/_app.settings.advanced.lazy').then(d => d.Route))
-const AppReportsSalespersonRoute = AppReportsSalespersonRouteImport.update({
-  id: '/reports/salesperson',
-  path: '/reports/salesperson',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.reports.salesperson.lazy').then(d => d.Route))
-const AppReportsSalesDetailRoute = AppReportsSalesDetailRouteImport.update({
-  id: '/reports/sales-detail',
-  path: '/reports/sales-detail',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.reports.sales-detail.lazy').then(d => d.Route))
-const AppReportsRevenueRoute = AppReportsRevenueRouteImport.update({
-  id: '/reports/revenue',
-  path: '/reports/revenue',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.reports.revenue.lazy').then(d => d.Route))
-const AppReportsPurchaseDetailRoute =
-  AppReportsPurchaseDetailRouteImport.update({
-    id: '/reports/purchase-detail',
-    path: '/reports/purchase-detail',
-    getParentRoute: () => AppRoute,
-  } as any).lazy(() => import('./routes/_app.reports.purchase-detail.lazy').then(d => d.Route))
-const AppReportsProductProfitRoute = AppReportsProductProfitRouteImport.update({
-  id: '/reports/product-profit',
-  path: '/reports/product-profit',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.reports.product-profit.lazy').then(d => d.Route))
-const AppReportsPnlRoute = AppReportsPnlRouteImport.update({
-  id: '/reports/pnl',
-  path: '/reports/pnl',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.reports.pnl.lazy').then(d => d.Route))
+} as any).lazy(() =>
+  import('./routes/_app.reports.aging.lazy').then((d) => d.Route),
+)
 const AppReportsCustomerProfitRoute =
   AppReportsCustomerProfitRouteImport.update({
     id: '/reports/customer-profit',
     path: '/reports/customer-profit',
     getParentRoute: () => AppRoute,
-  } as any).lazy(() => import('./routes/_app.reports.customer-profit.lazy').then(d => d.Route))
-const AppReportsAgingRoute = AppReportsAgingRouteImport.update({
-  id: '/reports/aging',
-  path: '/reports/aging',
+  } as any).lazy(() =>
+    import('./routes/_app.reports.customer-profit.lazy').then((d) => d.Route),
+  )
+const AppReportsPnlRoute = AppReportsPnlRouteImport.update({
+  id: '/reports/pnl',
+  path: '/reports/pnl',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.reports.aging.lazy').then(d => d.Route))
-const AppInventoryLedgerRoute = AppInventoryLedgerRouteImport.update({
-  id: '/inventory/ledger',
-  path: '/inventory/ledger',
+} as any).lazy(() =>
+  import('./routes/_app.reports.pnl.lazy').then((d) => d.Route),
+)
+const AppReportsProductProfitRoute = AppReportsProductProfitRouteImport.update({
+  id: '/reports/product-profit',
+  path: '/reports/product-profit',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.inventory.ledger.lazy').then(d => d.Route))
-const AppDocsSalesReturnRoute = AppDocsSalesReturnRouteImport.update({
-  id: '/docs/sales-return',
-  path: '/docs/sales-return',
+} as any).lazy(() =>
+  import('./routes/_app.reports.product-profit.lazy').then((d) => d.Route),
+)
+const AppReportsPurchaseDetailRoute =
+  AppReportsPurchaseDetailRouteImport.update({
+    id: '/reports/purchase-detail',
+    path: '/reports/purchase-detail',
+    getParentRoute: () => AppRoute,
+  } as any).lazy(() =>
+    import('./routes/_app.reports.purchase-detail.lazy').then((d) => d.Route),
+  )
+const AppReportsRevenueRoute = AppReportsRevenueRouteImport.update({
+  id: '/reports/revenue',
+  path: '/reports/revenue',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.docs.sales-return.lazy').then(d => d.Route))
-const AppDocsSalesOrderRoute = AppDocsSalesOrderRouteImport.update({
-  id: '/docs/sales-order',
-  path: '/docs/sales-order',
+} as any).lazy(() =>
+  import('./routes/_app.reports.revenue.lazy').then((d) => d.Route),
+)
+const AppReportsSalesDetailRoute = AppReportsSalesDetailRouteImport.update({
+  id: '/reports/sales-detail',
+  path: '/reports/sales-detail',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.docs.sales-order.lazy').then(d => d.Route))
-const AppDocsSalesInvoiceRoute = AppDocsSalesInvoiceRouteImport.update({
-  id: '/docs/sales-invoice',
-  path: '/docs/sales-invoice',
+} as any).lazy(() =>
+  import('./routes/_app.reports.sales-detail.lazy').then((d) => d.Route),
+)
+const AppReportsSalespersonRoute = AppReportsSalespersonRouteImport.update({
+  id: '/reports/salesperson',
+  path: '/reports/salesperson',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.docs.sales-invoice.lazy').then(d => d.Route))
-const AppDocsQuotationRoute = AppDocsQuotationRouteImport.update({
-  id: '/docs/quotation',
-  path: '/docs/quotation',
+} as any).lazy(() =>
+  import('./routes/_app.reports.salesperson.lazy').then((d) => d.Route),
+)
+const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppSettingsRoute,
+} as any).lazy(() =>
+  import('./routes/_app.settings.index.lazy').then((d) => d.Route),
+)
+const AppSettingsAdvancedRoute = AppSettingsAdvancedRouteImport.update({
+  id: '/advanced',
+  path: '/advanced',
+  getParentRoute: () => AppSettingsRoute,
+} as any).lazy(() =>
+  import('./routes/_app.settings.advanced.lazy').then((d) => d.Route),
+)
+const AppSettingsGovernanceRoute = AppSettingsGovernanceRouteImport.update({
+  id: '/governance',
+  path: '/governance',
+  getParentRoute: () => AppSettingsRoute,
+} as any).lazy(() =>
+  import('./routes/_app.settings.governance.lazy').then((d) => d.Route),
+)
+const AppSettingsMenuRoute = AppSettingsMenuRouteImport.update({
+  id: '/menu',
+  path: '/menu',
+  getParentRoute: () => AppSettingsRoute,
+} as any).lazy(() =>
+  import('./routes/_app.settings.menu.lazy').then((d) => d.Route),
+)
+const AppSettingsOpeningRoute = AppSettingsOpeningRouteImport.update({
+  id: '/opening',
+  path: '/opening',
+  getParentRoute: () => AppSettingsRoute,
+} as any).lazy(() =>
+  import('./routes/_app.settings.opening.lazy').then((d) => d.Route),
+)
+const AppSettingsParamsRoute = AppSettingsParamsRouteImport.update({
+  id: '/params',
+  path: '/params',
+  getParentRoute: () => AppSettingsRoute,
+} as any).lazy(() =>
+  import('./routes/_app.settings.params.lazy').then((d) => d.Route),
+)
+const AppSettingsPermissionsRoute = AppSettingsPermissionsRouteImport.update({
+  id: '/permissions',
+  path: '/permissions',
+  getParentRoute: () => AppSettingsRoute,
+} as any).lazy(() =>
+  import('./routes/_app.settings.permissions.lazy').then((d) => d.Route),
+)
+const AppSettingsUsersRoute = AppSettingsUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettlementCustomerRoute = AppSettlementCustomerRouteImport.update({
+  id: '/settlement/customer',
+  path: '/settlement/customer',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.docs.quotation.lazy').then(d => d.Route))
-const AppDocsPurchaseReceiptRoute = AppDocsPurchaseReceiptRouteImport.update({
-  id: '/docs/purchase-receipt',
-  path: '/docs/purchase-receipt',
+} as any).lazy(() =>
+  import('./routes/_app.settlement.customer.lazy').then((d) => d.Route),
+)
+const AppSettlementVendorRoute = AppSettlementVendorRouteImport.update({
+  id: '/settlement/vendor',
+  path: '/settlement/vendor',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.docs.purchase-receipt.lazy').then(d => d.Route))
-const AppDocsPurchaseOrderRoute = AppDocsPurchaseOrderRouteImport.update({
-  id: '/docs/purchase-order',
-  path: '/docs/purchase-order',
+} as any).lazy(() =>
+  import('./routes/_app.settlement.vendor.lazy').then((d) => d.Route),
+)
+const AppStatementsCustomerRoute = AppStatementsCustomerRouteImport.update({
+  id: '/statements/customer',
+  path: '/statements/customer',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.docs.purchase-order.lazy').then(d => d.Route))
-const AppDocsManualRoute = AppDocsManualRouteImport.update({
-  id: '/docs/manual',
-  path: '/docs/manual',
+} as any).lazy(() =>
+  import('./routes/_app.statements.customer.lazy').then((d) => d.Route),
+)
+const AppStatementsVendorRoute = AppStatementsVendorRouteImport.update({
+  id: '/statements/vendor',
+  path: '/statements/vendor',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.docs.manual.lazy').then(d => d.Route))
-const AppDocsInventoryAdjustRoute = AppDocsInventoryAdjustRouteImport.update({
-  id: '/docs/inventory-adjust',
-  path: '/docs/inventory-adjust',
+} as any).lazy(() =>
+  import('./routes/_app.statements.vendor.lazy').then((d) => d.Route),
+)
+const AppStudioIndexRoute = AppStudioIndexRouteImport.update({
+  id: '/studio/',
+  path: '/studio/',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.docs.inventory-adjust.lazy').then(d => d.Route))
-const AppDocsChangelogRoute = AppDocsChangelogRouteImport.update({
-  id: '/docs/changelog',
-  path: '/docs/changelog',
+} as any).lazy(() =>
+  import('./routes/_app.studio.index.lazy').then((d) => d.Route),
+)
+const AppStudioAgentsRoute = AppStudioAgentsRouteImport.update({
+  id: '/studio/agents',
+  path: '/studio/agents',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.docs.changelog.lazy').then(d => d.Route))
+} as any).lazy(() =>
+  import('./routes/_app.studio.agents.lazy').then((d) => d.Route),
+)
+const AppStudioAliasesRoute = AppStudioAliasesRouteImport.update({
+  id: '/studio/aliases',
+  path: '/studio/aliases',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.studio.aliases.lazy').then((d) => d.Route),
+)
+const AppStudioApprovalsRoute = AppStudioApprovalsRouteImport.update({
+  id: '/studio/approvals',
+  path: '/studio/approvals',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.studio.approvals.lazy').then((d) => d.Route),
+)
+const AppStudioAuditRoute = AppStudioAuditRouteImport.update({
+  id: '/studio/audit',
+  path: '/studio/audit',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.studio.audit.lazy').then((d) => d.Route),
+)
+const AppStudioKnowledgeRoute = AppStudioKnowledgeRouteImport.update({
+  id: '/studio/knowledge',
+  path: '/studio/knowledge',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.studio.knowledge.lazy').then((d) => d.Route),
+)
+const AppStudioLineManagersRoute = AppStudioLineManagersRouteImport.update({
+  id: '/studio/line-managers',
+  path: '/studio/line-managers',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.studio.line-managers.lazy').then((d) => d.Route),
+)
+const AppStudioSkillsRoute = AppStudioSkillsRouteImport.update({
+  id: '/studio/skills',
+  path: '/studio/skills',
+  getParentRoute: () => AppRoute,
+} as any).lazy(() =>
+  import('./routes/_app.studio.skills.lazy').then((d) => d.Route),
+)
 const AppPrintDocTypeIdRoute = AppPrintDocTypeIdRouteImport.update({
   id: '/print/$docType/$id',
   path: '/print/$docType/$id',
   getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app.print.$docType.$id.lazy').then(d => d.Route))
+} as any).lazy(() =>
+  import('./routes/_app.print.$docType.$id.lazy').then((d) => d.Route),
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -340,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
   '/roles': typeof AppRolesRoute
+  '/route-sheet': typeof AppRouteSheetRoute
   '/settings': typeof AppSettingsRouteWithChildren
   '/users': typeof AppUsersRoute
   '/vehicles': typeof AppVehiclesRoute
@@ -373,8 +520,16 @@ export interface FileRoutesByFullPath {
   '/settlement/vendor': typeof AppSettlementVendorRoute
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
+  '/studio/agents': typeof AppStudioAgentsRoute
+  '/studio/aliases': typeof AppStudioAliasesRoute
+  '/studio/approvals': typeof AppStudioApprovalsRoute
+  '/studio/audit': typeof AppStudioAuditRoute
+  '/studio/knowledge': typeof AppStudioKnowledgeRoute
+  '/studio/line-managers': typeof AppStudioLineManagersRoute
+  '/studio/skills': typeof AppStudioSkillsRoute
   '/inventory/': typeof AppInventoryIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
+  '/studio/': typeof AppStudioIndexRoute
   '/print/$docType/$id': typeof AppPrintDocTypeIdRoute
 }
 export interface FileRoutesByTo {
@@ -392,6 +547,7 @@ export interface FileRoutesByTo {
   '/products': typeof AppProductsRoute
   '/receivables': typeof AppReceivablesRoute
   '/roles': typeof AppRolesRoute
+  '/route-sheet': typeof AppRouteSheetRoute
   '/users': typeof AppUsersRoute
   '/vehicles': typeof AppVehiclesRoute
   '/warehouses': typeof AppWarehousesRoute
@@ -425,8 +581,16 @@ export interface FileRoutesByTo {
   '/settlement/vendor': typeof AppSettlementVendorRoute
   '/statements/customer': typeof AppStatementsCustomerRoute
   '/statements/vendor': typeof AppStatementsVendorRoute
+  '/studio/agents': typeof AppStudioAgentsRoute
+  '/studio/aliases': typeof AppStudioAliasesRoute
+  '/studio/approvals': typeof AppStudioApprovalsRoute
+  '/studio/audit': typeof AppStudioAuditRoute
+  '/studio/knowledge': typeof AppStudioKnowledgeRoute
+  '/studio/line-managers': typeof AppStudioLineManagersRoute
+  '/studio/skills': typeof AppStudioSkillsRoute
   '/inventory': typeof AppInventoryIndexRoute
   '/settings': typeof AppSettingsIndexRoute
+  '/studio': typeof AppStudioIndexRoute
   '/print/$docType/$id': typeof AppPrintDocTypeIdRoute
 }
 export interface FileRoutesById {
@@ -446,6 +610,7 @@ export interface FileRoutesById {
   '/_app/products': typeof AppProductsRoute
   '/_app/receivables': typeof AppReceivablesRoute
   '/_app/roles': typeof AppRolesRoute
+  '/_app/route-sheet': typeof AppRouteSheetRoute
   '/_app/settings': typeof AppSettingsRouteWithChildren
   '/_app/users': typeof AppUsersRoute
   '/_app/vehicles': typeof AppVehiclesRoute
@@ -480,8 +645,16 @@ export interface FileRoutesById {
   '/_app/settlement/vendor': typeof AppSettlementVendorRoute
   '/_app/statements/customer': typeof AppStatementsCustomerRoute
   '/_app/statements/vendor': typeof AppStatementsVendorRoute
+  '/_app/studio/agents': typeof AppStudioAgentsRoute
+  '/_app/studio/aliases': typeof AppStudioAliasesRoute
+  '/_app/studio/approvals': typeof AppStudioApprovalsRoute
+  '/_app/studio/audit': typeof AppStudioAuditRoute
+  '/_app/studio/knowledge': typeof AppStudioKnowledgeRoute
+  '/_app/studio/line-managers': typeof AppStudioLineManagersRoute
+  '/_app/studio/skills': typeof AppStudioSkillsRoute
   '/_app/inventory/': typeof AppInventoryIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
+  '/_app/studio/': typeof AppStudioIndexRoute
   '/_app/print/$docType/$id': typeof AppPrintDocTypeIdRoute
 }
 export interface FileRouteTypes {
@@ -502,6 +675,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/receivables'
     | '/roles'
+    | '/route-sheet'
     | '/settings'
     | '/users'
     | '/vehicles'
@@ -535,8 +709,16 @@ export interface FileRouteTypes {
     | '/settlement/vendor'
     | '/statements/customer'
     | '/statements/vendor'
+    | '/studio/agents'
+    | '/studio/aliases'
+    | '/studio/approvals'
+    | '/studio/audit'
+    | '/studio/knowledge'
+    | '/studio/line-managers'
+    | '/studio/skills'
     | '/inventory/'
     | '/settings/'
+    | '/studio/'
     | '/print/$docType/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -554,6 +736,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/receivables'
     | '/roles'
+    | '/route-sheet'
     | '/users'
     | '/vehicles'
     | '/warehouses'
@@ -587,8 +770,16 @@ export interface FileRouteTypes {
     | '/settlement/vendor'
     | '/statements/customer'
     | '/statements/vendor'
+    | '/studio/agents'
+    | '/studio/aliases'
+    | '/studio/approvals'
+    | '/studio/audit'
+    | '/studio/knowledge'
+    | '/studio/line-managers'
+    | '/studio/skills'
     | '/inventory'
     | '/settings'
+    | '/studio'
     | '/print/$docType/$id'
   id:
     | '__root__'
@@ -607,6 +798,7 @@ export interface FileRouteTypes {
     | '/_app/products'
     | '/_app/receivables'
     | '/_app/roles'
+    | '/_app/route-sheet'
     | '/_app/settings'
     | '/_app/users'
     | '/_app/vehicles'
@@ -641,8 +833,16 @@ export interface FileRouteTypes {
     | '/_app/settlement/vendor'
     | '/_app/statements/customer'
     | '/_app/statements/vendor'
+    | '/_app/studio/agents'
+    | '/_app/studio/aliases'
+    | '/_app/studio/approvals'
+    | '/_app/studio/audit'
+    | '/_app/studio/knowledge'
+    | '/_app/studio/line-managers'
+    | '/_app/studio/skills'
     | '/_app/inventory/'
     | '/_app/settings/'
+    | '/_app/studio/'
     | '/_app/print/$docType/$id'
   fileRoutesById: FileRoutesById
 }
@@ -653,18 +853,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app': {
       id: '/_app'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -674,109 +874,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/warehouses': {
-      id: '/_app/warehouses'
-      path: '/warehouses'
-      fullPath: '/warehouses'
-      preLoaderRoute: typeof AppWarehousesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/vehicles': {
-      id: '/_app/vehicles'
-      path: '/vehicles'
-      fullPath: '/vehicles'
-      preLoaderRoute: typeof AppVehiclesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/users': {
-      id: '/_app/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof AppUsersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/settings': {
-      id: '/_app/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/roles': {
-      id: '/_app/roles'
-      path: '/roles'
-      fullPath: '/roles'
-      preLoaderRoute: typeof AppRolesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/receivables': {
-      id: '/_app/receivables'
-      path: '/receivables'
-      fullPath: '/receivables'
-      preLoaderRoute: typeof AppReceivablesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/products': {
-      id: '/_app/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof AppProductsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/price-revision': {
-      id: '/_app/price-revision'
-      path: '/price-revision'
-      fullPath: '/price-revision'
-      preLoaderRoute: typeof AppPriceRevisionRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/payables': {
-      id: '/_app/payables'
-      path: '/payables'
-      fullPath: '/payables'
-      preLoaderRoute: typeof AppPayablesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/notifications': {
-      id: '/_app/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof AppNotificationsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/line-orders': {
-      id: '/_app/line-orders'
-      path: '/line-orders'
-      fullPath: '/line-orders'
-      preLoaderRoute: typeof AppLineOrdersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/foods': {
-      id: '/_app/foods'
-      path: '/foods'
-      fullPath: '/foods'
-      preLoaderRoute: typeof AppFoodsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/expenses': {
-      id: '/_app/expenses'
-      path: '/expenses'
-      fullPath: '/expenses'
-      preLoaderRoute: typeof AppExpensesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/dispatch': {
-      id: '/_app/dispatch'
-      path: '/dispatch'
-      fullPath: '/dispatch'
-      preLoaderRoute: typeof AppDispatchRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/delivery-rules': {
-      id: '/_app/delivery-rules'
-      path: '/delivery-rules'
-      fullPath: '/delivery-rules'
-      preLoaderRoute: typeof AppDeliveryRulesRouteImport
+    '/_app/audit': {
+      id: '/_app/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AppAuditRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/contacts': {
@@ -786,214 +888,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppContactsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/audit': {
-      id: '/_app/audit'
-      path: '/audit'
-      fullPath: '/audit'
-      preLoaderRoute: typeof AppAuditRouteImport
+    '/_app/delivery-rules': {
+      id: '/_app/delivery-rules'
+      path: '/delivery-rules'
+      fullPath: '/delivery-rules'
+      preLoaderRoute: typeof AppDeliveryRulesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/settings/': {
-      id: '/_app/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AppSettingsIndexRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/_app/inventory/': {
-      id: '/_app/inventory/'
-      path: '/inventory'
-      fullPath: '/inventory/'
-      preLoaderRoute: typeof AppInventoryIndexRouteImport
+    '/_app/dispatch': {
+      id: '/_app/dispatch'
+      path: '/dispatch'
+      fullPath: '/dispatch'
+      preLoaderRoute: typeof AppDispatchRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/statements/vendor': {
-      id: '/_app/statements/vendor'
-      path: '/statements/vendor'
-      fullPath: '/statements/vendor'
-      preLoaderRoute: typeof AppStatementsVendorRouteImport
+    '/_app/expenses': {
+      id: '/_app/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof AppExpensesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/statements/customer': {
-      id: '/_app/statements/customer'
-      path: '/statements/customer'
-      fullPath: '/statements/customer'
-      preLoaderRoute: typeof AppStatementsCustomerRouteImport
+    '/_app/foods': {
+      id: '/_app/foods'
+      path: '/foods'
+      fullPath: '/foods'
+      preLoaderRoute: typeof AppFoodsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/settlement/vendor': {
-      id: '/_app/settlement/vendor'
-      path: '/settlement/vendor'
-      fullPath: '/settlement/vendor'
-      preLoaderRoute: typeof AppSettlementVendorRouteImport
+    '/_app/line-orders': {
+      id: '/_app/line-orders'
+      path: '/line-orders'
+      fullPath: '/line-orders'
+      preLoaderRoute: typeof AppLineOrdersRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/settlement/customer': {
-      id: '/_app/settlement/customer'
-      path: '/settlement/customer'
-      fullPath: '/settlement/customer'
-      preLoaderRoute: typeof AppSettlementCustomerRouteImport
+    '/_app/notifications': {
+      id: '/_app/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/settings/users': {
-      id: '/_app/settings/users'
+    '/_app/payables': {
+      id: '/_app/payables'
+      path: '/payables'
+      fullPath: '/payables'
+      preLoaderRoute: typeof AppPayablesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/price-revision': {
+      id: '/_app/price-revision'
+      path: '/price-revision'
+      fullPath: '/price-revision'
+      preLoaderRoute: typeof AppPriceRevisionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/products': {
+      id: '/_app/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AppProductsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/receivables': {
+      id: '/_app/receivables'
+      path: '/receivables'
+      fullPath: '/receivables'
+      preLoaderRoute: typeof AppReceivablesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/roles': {
+      id: '/_app/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof AppRolesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/route-sheet': {
+      id: '/_app/route-sheet'
+      path: '/route-sheet'
+      fullPath: '/route-sheet'
+      preLoaderRoute: typeof AppRouteSheetRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/users': {
+      id: '/_app/users'
       path: '/users'
-      fullPath: '/settings/users'
-      preLoaderRoute: typeof AppSettingsUsersRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/_app/settings/permissions': {
-      id: '/_app/settings/permissions'
-      path: '/permissions'
-      fullPath: '/settings/permissions'
-      preLoaderRoute: typeof AppSettingsPermissionsRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/_app/settings/params': {
-      id: '/_app/settings/params'
-      path: '/params'
-      fullPath: '/settings/params'
-      preLoaderRoute: typeof AppSettingsParamsRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/_app/settings/opening': {
-      id: '/_app/settings/opening'
-      path: '/opening'
-      fullPath: '/settings/opening'
-      preLoaderRoute: typeof AppSettingsOpeningRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/_app/settings/menu': {
-      id: '/_app/settings/menu'
-      path: '/menu'
-      fullPath: '/settings/menu'
-      preLoaderRoute: typeof AppSettingsMenuRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/_app/settings/governance': {
-      id: '/_app/settings/governance'
-      path: '/governance'
-      fullPath: '/settings/governance'
-      preLoaderRoute: typeof AppSettingsGovernanceRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/_app/settings/advanced': {
-      id: '/_app/settings/advanced'
-      path: '/advanced'
-      fullPath: '/settings/advanced'
-      preLoaderRoute: typeof AppSettingsAdvancedRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/_app/reports/salesperson': {
-      id: '/_app/reports/salesperson'
-      path: '/reports/salesperson'
-      fullPath: '/reports/salesperson'
-      preLoaderRoute: typeof AppReportsSalespersonRouteImport
+      fullPath: '/users'
+      preLoaderRoute: typeof AppUsersRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/reports/sales-detail': {
-      id: '/_app/reports/sales-detail'
-      path: '/reports/sales-detail'
-      fullPath: '/reports/sales-detail'
-      preLoaderRoute: typeof AppReportsSalesDetailRouteImport
+    '/_app/vehicles': {
+      id: '/_app/vehicles'
+      path: '/vehicles'
+      fullPath: '/vehicles'
+      preLoaderRoute: typeof AppVehiclesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/reports/revenue': {
-      id: '/_app/reports/revenue'
-      path: '/reports/revenue'
-      fullPath: '/reports/revenue'
-      preLoaderRoute: typeof AppReportsRevenueRouteImport
+    '/_app/warehouses': {
+      id: '/_app/warehouses'
+      path: '/warehouses'
+      fullPath: '/warehouses'
+      preLoaderRoute: typeof AppWarehousesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/reports/purchase-detail': {
-      id: '/_app/reports/purchase-detail'
-      path: '/reports/purchase-detail'
-      fullPath: '/reports/purchase-detail'
-      preLoaderRoute: typeof AppReportsPurchaseDetailRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/reports/product-profit': {
-      id: '/_app/reports/product-profit'
-      path: '/reports/product-profit'
-      fullPath: '/reports/product-profit'
-      preLoaderRoute: typeof AppReportsProductProfitRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/reports/pnl': {
-      id: '/_app/reports/pnl'
-      path: '/reports/pnl'
-      fullPath: '/reports/pnl'
-      preLoaderRoute: typeof AppReportsPnlRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/reports/customer-profit': {
-      id: '/_app/reports/customer-profit'
-      path: '/reports/customer-profit'
-      fullPath: '/reports/customer-profit'
-      preLoaderRoute: typeof AppReportsCustomerProfitRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/reports/aging': {
-      id: '/_app/reports/aging'
-      path: '/reports/aging'
-      fullPath: '/reports/aging'
-      preLoaderRoute: typeof AppReportsAgingRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/inventory/ledger': {
-      id: '/_app/inventory/ledger'
-      path: '/inventory/ledger'
-      fullPath: '/inventory/ledger'
-      preLoaderRoute: typeof AppInventoryLedgerRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/docs/sales-return': {
-      id: '/_app/docs/sales-return'
-      path: '/docs/sales-return'
-      fullPath: '/docs/sales-return'
-      preLoaderRoute: typeof AppDocsSalesReturnRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/docs/sales-order': {
-      id: '/_app/docs/sales-order'
-      path: '/docs/sales-order'
-      fullPath: '/docs/sales-order'
-      preLoaderRoute: typeof AppDocsSalesOrderRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/docs/sales-invoice': {
-      id: '/_app/docs/sales-invoice'
-      path: '/docs/sales-invoice'
-      fullPath: '/docs/sales-invoice'
-      preLoaderRoute: typeof AppDocsSalesInvoiceRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/docs/quotation': {
-      id: '/_app/docs/quotation'
-      path: '/docs/quotation'
-      fullPath: '/docs/quotation'
-      preLoaderRoute: typeof AppDocsQuotationRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/docs/purchase-receipt': {
-      id: '/_app/docs/purchase-receipt'
-      path: '/docs/purchase-receipt'
-      fullPath: '/docs/purchase-receipt'
-      preLoaderRoute: typeof AppDocsPurchaseReceiptRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/docs/purchase-order': {
-      id: '/_app/docs/purchase-order'
-      path: '/docs/purchase-order'
-      fullPath: '/docs/purchase-order'
-      preLoaderRoute: typeof AppDocsPurchaseOrderRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/docs/manual': {
-      id: '/_app/docs/manual'
-      path: '/docs/manual'
-      fullPath: '/docs/manual'
-      preLoaderRoute: typeof AppDocsManualRouteImport
+    '/_app/docs/changelog': {
+      id: '/_app/docs/changelog'
+      path: '/docs/changelog'
+      fullPath: '/docs/changelog'
+      preLoaderRoute: typeof AppDocsChangelogRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/docs/inventory-adjust': {
@@ -1003,11 +1014,263 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDocsInventoryAdjustRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/docs/changelog': {
-      id: '/_app/docs/changelog'
-      path: '/docs/changelog'
-      fullPath: '/docs/changelog'
-      preLoaderRoute: typeof AppDocsChangelogRouteImport
+    '/_app/docs/manual': {
+      id: '/_app/docs/manual'
+      path: '/docs/manual'
+      fullPath: '/docs/manual'
+      preLoaderRoute: typeof AppDocsManualRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/docs/purchase-order': {
+      id: '/_app/docs/purchase-order'
+      path: '/docs/purchase-order'
+      fullPath: '/docs/purchase-order'
+      preLoaderRoute: typeof AppDocsPurchaseOrderRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/docs/purchase-receipt': {
+      id: '/_app/docs/purchase-receipt'
+      path: '/docs/purchase-receipt'
+      fullPath: '/docs/purchase-receipt'
+      preLoaderRoute: typeof AppDocsPurchaseReceiptRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/docs/quotation': {
+      id: '/_app/docs/quotation'
+      path: '/docs/quotation'
+      fullPath: '/docs/quotation'
+      preLoaderRoute: typeof AppDocsQuotationRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/docs/sales-invoice': {
+      id: '/_app/docs/sales-invoice'
+      path: '/docs/sales-invoice'
+      fullPath: '/docs/sales-invoice'
+      preLoaderRoute: typeof AppDocsSalesInvoiceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/docs/sales-order': {
+      id: '/_app/docs/sales-order'
+      path: '/docs/sales-order'
+      fullPath: '/docs/sales-order'
+      preLoaderRoute: typeof AppDocsSalesOrderRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/docs/sales-return': {
+      id: '/_app/docs/sales-return'
+      path: '/docs/sales-return'
+      fullPath: '/docs/sales-return'
+      preLoaderRoute: typeof AppDocsSalesReturnRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/inventory/': {
+      id: '/_app/inventory/'
+      path: '/inventory'
+      fullPath: '/inventory/'
+      preLoaderRoute: typeof AppInventoryIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/inventory/ledger': {
+      id: '/_app/inventory/ledger'
+      path: '/inventory/ledger'
+      fullPath: '/inventory/ledger'
+      preLoaderRoute: typeof AppInventoryLedgerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/aging': {
+      id: '/_app/reports/aging'
+      path: '/reports/aging'
+      fullPath: '/reports/aging'
+      preLoaderRoute: typeof AppReportsAgingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/customer-profit': {
+      id: '/_app/reports/customer-profit'
+      path: '/reports/customer-profit'
+      fullPath: '/reports/customer-profit'
+      preLoaderRoute: typeof AppReportsCustomerProfitRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/pnl': {
+      id: '/_app/reports/pnl'
+      path: '/reports/pnl'
+      fullPath: '/reports/pnl'
+      preLoaderRoute: typeof AppReportsPnlRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/product-profit': {
+      id: '/_app/reports/product-profit'
+      path: '/reports/product-profit'
+      fullPath: '/reports/product-profit'
+      preLoaderRoute: typeof AppReportsProductProfitRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/purchase-detail': {
+      id: '/_app/reports/purchase-detail'
+      path: '/reports/purchase-detail'
+      fullPath: '/reports/purchase-detail'
+      preLoaderRoute: typeof AppReportsPurchaseDetailRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/revenue': {
+      id: '/_app/reports/revenue'
+      path: '/reports/revenue'
+      fullPath: '/reports/revenue'
+      preLoaderRoute: typeof AppReportsRevenueRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/sales-detail': {
+      id: '/_app/reports/sales-detail'
+      path: '/reports/sales-detail'
+      fullPath: '/reports/sales-detail'
+      preLoaderRoute: typeof AppReportsSalesDetailRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/salesperson': {
+      id: '/_app/reports/salesperson'
+      path: '/reports/salesperson'
+      fullPath: '/reports/salesperson'
+      preLoaderRoute: typeof AppReportsSalespersonRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings/': {
+      id: '/_app/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/advanced': {
+      id: '/_app/settings/advanced'
+      path: '/advanced'
+      fullPath: '/settings/advanced'
+      preLoaderRoute: typeof AppSettingsAdvancedRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/governance': {
+      id: '/_app/settings/governance'
+      path: '/governance'
+      fullPath: '/settings/governance'
+      preLoaderRoute: typeof AppSettingsGovernanceRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/menu': {
+      id: '/_app/settings/menu'
+      path: '/menu'
+      fullPath: '/settings/menu'
+      preLoaderRoute: typeof AppSettingsMenuRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/opening': {
+      id: '/_app/settings/opening'
+      path: '/opening'
+      fullPath: '/settings/opening'
+      preLoaderRoute: typeof AppSettingsOpeningRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/params': {
+      id: '/_app/settings/params'
+      path: '/params'
+      fullPath: '/settings/params'
+      preLoaderRoute: typeof AppSettingsParamsRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/permissions': {
+      id: '/_app/settings/permissions'
+      path: '/permissions'
+      fullPath: '/settings/permissions'
+      preLoaderRoute: typeof AppSettingsPermissionsRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settings/users': {
+      id: '/_app/settings/users'
+      path: '/users'
+      fullPath: '/settings/users'
+      preLoaderRoute: typeof AppSettingsUsersRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/_app/settlement/customer': {
+      id: '/_app/settlement/customer'
+      path: '/settlement/customer'
+      fullPath: '/settlement/customer'
+      preLoaderRoute: typeof AppSettlementCustomerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settlement/vendor': {
+      id: '/_app/settlement/vendor'
+      path: '/settlement/vendor'
+      fullPath: '/settlement/vendor'
+      preLoaderRoute: typeof AppSettlementVendorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/statements/customer': {
+      id: '/_app/statements/customer'
+      path: '/statements/customer'
+      fullPath: '/statements/customer'
+      preLoaderRoute: typeof AppStatementsCustomerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/statements/vendor': {
+      id: '/_app/statements/vendor'
+      path: '/statements/vendor'
+      fullPath: '/statements/vendor'
+      preLoaderRoute: typeof AppStatementsVendorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/studio/': {
+      id: '/_app/studio/'
+      path: '/studio'
+      fullPath: '/studio/'
+      preLoaderRoute: typeof AppStudioIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/studio/agents': {
+      id: '/_app/studio/agents'
+      path: '/studio/agents'
+      fullPath: '/studio/agents'
+      preLoaderRoute: typeof AppStudioAgentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/studio/aliases': {
+      id: '/_app/studio/aliases'
+      path: '/studio/aliases'
+      fullPath: '/studio/aliases'
+      preLoaderRoute: typeof AppStudioAliasesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/studio/approvals': {
+      id: '/_app/studio/approvals'
+      path: '/studio/approvals'
+      fullPath: '/studio/approvals'
+      preLoaderRoute: typeof AppStudioApprovalsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/studio/audit': {
+      id: '/_app/studio/audit'
+      path: '/studio/audit'
+      fullPath: '/studio/audit'
+      preLoaderRoute: typeof AppStudioAuditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/studio/knowledge': {
+      id: '/_app/studio/knowledge'
+      path: '/studio/knowledge'
+      fullPath: '/studio/knowledge'
+      preLoaderRoute: typeof AppStudioKnowledgeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/studio/line-managers': {
+      id: '/_app/studio/line-managers'
+      path: '/studio/line-managers'
+      fullPath: '/studio/line-managers'
+      preLoaderRoute: typeof AppStudioLineManagersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/studio/skills': {
+      id: '/_app/studio/skills'
+      path: '/studio/skills'
+      fullPath: '/studio/skills'
+      preLoaderRoute: typeof AppStudioSkillsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/print/$docType/$id': {
@@ -1060,6 +1323,7 @@ interface AppRouteChildren {
   AppProductsRoute: typeof AppProductsRoute
   AppReceivablesRoute: typeof AppReceivablesRoute
   AppRolesRoute: typeof AppRolesRoute
+  AppRouteSheetRoute: typeof AppRouteSheetRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppUsersRoute: typeof AppUsersRoute
   AppVehiclesRoute: typeof AppVehiclesRoute
@@ -1087,7 +1351,15 @@ interface AppRouteChildren {
   AppSettlementVendorRoute: typeof AppSettlementVendorRoute
   AppStatementsCustomerRoute: typeof AppStatementsCustomerRoute
   AppStatementsVendorRoute: typeof AppStatementsVendorRoute
+  AppStudioAgentsRoute: typeof AppStudioAgentsRoute
+  AppStudioAliasesRoute: typeof AppStudioAliasesRoute
+  AppStudioApprovalsRoute: typeof AppStudioApprovalsRoute
+  AppStudioAuditRoute: typeof AppStudioAuditRoute
+  AppStudioKnowledgeRoute: typeof AppStudioKnowledgeRoute
+  AppStudioLineManagersRoute: typeof AppStudioLineManagersRoute
+  AppStudioSkillsRoute: typeof AppStudioSkillsRoute
   AppInventoryIndexRoute: typeof AppInventoryIndexRoute
+  AppStudioIndexRoute: typeof AppStudioIndexRoute
   AppPrintDocTypeIdRoute: typeof AppPrintDocTypeIdRoute
 }
 
@@ -1105,6 +1377,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProductsRoute: AppProductsRoute,
   AppReceivablesRoute: AppReceivablesRoute,
   AppRolesRoute: AppRolesRoute,
+  AppRouteSheetRoute: AppRouteSheetRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppUsersRoute: AppUsersRoute,
   AppVehiclesRoute: AppVehiclesRoute,
@@ -1132,7 +1405,15 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettlementVendorRoute: AppSettlementVendorRoute,
   AppStatementsCustomerRoute: AppStatementsCustomerRoute,
   AppStatementsVendorRoute: AppStatementsVendorRoute,
+  AppStudioAgentsRoute: AppStudioAgentsRoute,
+  AppStudioAliasesRoute: AppStudioAliasesRoute,
+  AppStudioApprovalsRoute: AppStudioApprovalsRoute,
+  AppStudioAuditRoute: AppStudioAuditRoute,
+  AppStudioKnowledgeRoute: AppStudioKnowledgeRoute,
+  AppStudioLineManagersRoute: AppStudioLineManagersRoute,
+  AppStudioSkillsRoute: AppStudioSkillsRoute,
   AppInventoryIndexRoute: AppInventoryIndexRoute,
+  AppStudioIndexRoute: AppStudioIndexRoute,
   AppPrintDocTypeIdRoute: AppPrintDocTypeIdRoute,
 }
 
@@ -1145,3 +1426,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
