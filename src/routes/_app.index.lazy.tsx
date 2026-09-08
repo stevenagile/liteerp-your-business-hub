@@ -2,6 +2,7 @@ import { createLazyFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import {
   CircleCheck,
   CircleAlert,
@@ -64,19 +65,22 @@ const num = (n: number | null | undefined) =>
   n == null ? "0" : Number(n).toLocaleString();
 
 function Dashboard() {
+  const { profile } = useAuth();
+  const companyId = profile?.company_id;
   const [status, setStatus] = useState<Status>({ kind: "loading" });
   const [revenueRows, setRevenueRows] = useState<RevenueRow[]>([]);
   const [pnlRows, setPnlRows] = useState<PnlRow[]>([]);
   const [lowStockCount, setLowStockCount] = useState(0);
 
   useEffect(() => {
+    if (!companyId) return;
     let cancelled = false;
     (async () => {
       try {
         const { data, error } = await supabase
           .from("company")
           .select("name")
-          .limit(1)
+          .eq("id", companyId)
           .maybeSingle();
         if (cancelled) return;
         if (error || !data?.name) {
@@ -99,14 +103,16 @@ function Dashboard() {
           supabase
             .from("v_monthly_revenue")
             .select("month, revenue, outstanding")
+            .eq("company_id", companyId)
             .order("month", { ascending: false })
             .limit(12),
           supabase
             .from("v_monthly_pnl")
             .select("month, revenue, net_profit, gross_margin_pct, net_margin_pct")
+            .eq("company_id", companyId)
             .order("month", { ascending: false })
             .limit(12),
-          supabase.from("v_stock").select("is_low").eq("is_low", true),
+          supabase.from("v_stock").select("is_low").eq("company_id", companyId).eq("is_low", true),
         ]);
         if (cancelled) return;
         const firstErr = rev.error || pnl.error || stock.error;
@@ -125,7 +131,7 @@ function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [companyId]);
 
   const ym = currentYearMonth();
   const curRev = matchMonth(revenueRows, ym);

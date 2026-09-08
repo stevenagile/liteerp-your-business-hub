@@ -90,7 +90,7 @@ function SalesReturnListPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, dateFrom, dateTo]);
+  }, [status, dateFrom, dateTo, profile?.company_id]);
 
   const summary = useMemo(() => {
     const total = list.reduce((s, d) => s + (Number(d.total_amount) || 0), 0);

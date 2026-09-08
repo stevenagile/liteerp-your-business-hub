@@ -88,7 +88,7 @@ function LineOrdersPage() {
   useEffect(() => {
     if (canView) load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canView, tab]);
+  }, [canView, tab, profile?.company_id]);
 
   const act = async (id: string, action: "dismiss" | "reopen") => {
     try {

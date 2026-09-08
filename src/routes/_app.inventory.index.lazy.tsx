@@ -69,7 +69,7 @@ function InventoryPage() {
       }
       setLoading(false);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const stats = useMemo(() => {
     const items = new Set(list.map((r) => r.product_code)).size;

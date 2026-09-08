@@ -168,7 +168,7 @@ function InventoryLedgerPage() {
   useEffect(() => {
     load(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productCode, warehouse, dateFrom, dateTo, selectedTypes.join(",")]);
+  }, [productCode, warehouse, dateFrom, dateTo, selectedTypes.join(","), profile?.company_id]);
 
   const toggleType = (key: MovementKey) => {
     setSelectedTypes((prev) =>
