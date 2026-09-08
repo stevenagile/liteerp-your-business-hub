@@ -98,7 +98,7 @@ function PurchaseOrderListPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, dateFrom, dateTo]);
+  }, [status, dateFrom, dateTo, profile?.company_id]);
 
   const summary = useMemo(() => {
     const total = list.reduce(

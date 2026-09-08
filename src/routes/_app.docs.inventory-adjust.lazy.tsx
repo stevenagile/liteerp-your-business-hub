@@ -74,14 +74,16 @@ function InventoryAdjustListPage() {
   );
 
   useEffect(() => {
+    if (!profile?.company_id) return;
     (async () => {
       const { data } = await supabase
         .from("warehouses")
         .select("id, name")
+        .eq("company_id", profile?.company_id ?? "")
         .order("code");
       setWarehouses((data ?? []) as Warehouse[]);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const load = async () => {
     if (!profile?.company_id) return;
@@ -105,7 +107,7 @@ function InventoryAdjustListPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, dateFrom, dateTo]);
+  }, [status, dateFrom, dateTo, profile?.company_id]);
 
   const openCreate = () => {
     setEditingId(null);

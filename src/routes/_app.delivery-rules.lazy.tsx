@@ -103,7 +103,7 @@ function DeliveryRulesPage() {
         .eq("company_id", profile?.company_id ?? "")
         .order("weekday")
         .order("district"),
-      supabase.from("vehicles").select("id, name, is_active").order("name"),
+      supabase.from("vehicles").select("id, name, is_active").eq("company_id", profile?.company_id ?? "").order("name"),
     ]);
     if (error) {
       toast.error("讀取失敗:" + error.message);
@@ -117,7 +117,7 @@ function DeliveryRulesPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [profile?.company_id]);
 
   const filtered = useMemo(
     () =>

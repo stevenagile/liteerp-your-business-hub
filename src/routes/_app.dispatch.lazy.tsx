@@ -170,7 +170,7 @@ function DispatchPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, truck, docType]);
+  }, [date, truck, docType, profile?.company_id]);
 
   // 依車種分組；truck_type 為 null 者另成「未帶車種」組
   const groups = useMemo<TruckGroup[]>(() => {
