@@ -241,30 +241,36 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     let cancelled = false;
     (async () => {
       setLoading(true);
+      if (!profile?.company_id) { setLoading(false); return; }
+      const cid = profile.company_id;
       const [{ data: c }, { data: p }, { data: w }, { data: comp }, { data: sp }, { data: vh }] =
         await Promise.all([
           supabase
             .from("contacts")
             .select("id, code, name, type, price_level, price_includes_tax")
+            .eq("company_id", cid)
             .in("type", isPurchase ? ["vendor", "both"] : ["customer", "both"])
             .order("code"),
           supabase
             .from("products")
             .select("id, code, name, unit, price1, price2, price3, cost_price")
+            .eq("company_id", cid)
             .order("code"),
           supabase
             .from("warehouses")
             .select("id, code, name, is_default")
+            .eq("company_id", cid)
             .order("code"),
           supabase
             .from("company")
             .select("tax_rate")
-            .limit(1)
+            .eq("id", cid)
             .maybeSingle(),
           showSalesPerson
             ? supabase
                 .from("profiles")
                 .select("id, display_name, role")
+                .eq("company_id", cid)
                 .in("role", ["sales", "admin", "manager"])
                 .order("display_name")
             : Promise.resolve({ data: [] as { id: string; display_name: string | null }[] }),
@@ -272,6 +278,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             ? supabase
                 .from("vehicles")
                 .select("id, name, plate_no, truck_type, delivery_days")
+                .eq("company_id", cid)
                 .eq("is_active", true)
                 .order("name")
             : Promise.resolve({ data: [] as Vehicle[] }),
@@ -302,7 +309,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docId]);
+  }, [docId, profile?.company_id]);
 
 
   // ---- 試算 ----
@@ -531,12 +538,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       headerId = ins.id;
     }
 
-    // 重寫 lines:刪掉舊的再 insert
-    if (isEdit) {
-      await supabase.from("doc_lines").delete().eq("header_id", headerId);
-    }
+    // 原子性儲存 lines：透過 RPC 在同一個 transaction 內刪除舊行再插入新行
     const linesPayload = validLines.map((l, i) => ({
-      header_id: headerId,
       line_no: i + 1,
       product_id: l.product_id,
       product_code: l.product_code,
@@ -546,9 +549,10 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       unit_price: Number(l.unit_price) || 0,
       discount_pct: Number(l.discount_pct) || 0,
     }));
-    const { error: le } = await supabase
-      .from("doc_lines")
-      .insert(linesPayload);
+    const { error: le } = await supabase.rpc("save_doc_lines", {
+      p_header_id: headerId,
+      p_lines: linesPayload,
+    });
 
     setSaving(false);
     if (le) {

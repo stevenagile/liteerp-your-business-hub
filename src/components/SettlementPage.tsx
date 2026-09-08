@@ -62,11 +62,12 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
       const { data } = await supabase
         .from("contacts")
         .select("id,name,type")
+        .eq("company_id", profile?.company_id ?? "")
         .in("type", types)
         .order("name");
       setContacts((data ?? []) as Contact[]);
     })();
-  }, [isCustomer]);
+  }, [isCustomer, profile?.company_id]);
 
   const loadDocs = async (cid: string) => {
     if (!profile?.company_id) return;

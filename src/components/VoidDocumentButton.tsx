@@ -29,7 +29,8 @@ type Props = {
   stopPropagation?: boolean;
 };
 
-const VOIDABLE = new Set(["draft", "confirmed", "completed"]);
+const VOIDABLE = new Set(["draft", "confirmed"]);
+const VOIDABLE_WITH_WARNING = new Set(["completed"]);
 
 export function VoidDocumentButton({
   docId,
@@ -47,7 +48,8 @@ export function VoidDocumentButton({
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  if (!canVoid || !VOIDABLE.has(status)) return null;
+  const isCompleted = VOIDABLE_WITH_WARNING.has(status);
+  if (!canVoid || (!VOIDABLE.has(status) && !isCompleted)) return null;
 
   const handleConfirm = async () => {
     const trimmed = reason.trim();
@@ -94,7 +96,9 @@ export function VoidDocumentButton({
               確認作廢{docNo ? ` ${docNo}` : "此單據"}?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              作廢已確認單據會反向沖回庫存與流水帳,此動作無法復原。
+              {isCompleted
+                ? "此單據已完成，作廢將反向沖回庫存、成本及流水帳。此動作無法復原，請確認已知悉影響。"
+                : "作廢已確認單據會反向沖回庫存與流水帳,此動作無法復原。"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-1.5">

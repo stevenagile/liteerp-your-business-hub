@@ -86,17 +86,19 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
         supabase
           .from("contacts")
           .select("id,name,tax_id,address,phone,type")
+          .eq("company_id", profile?.company_id ?? "")
           .in("type", types)
           .order("name"),
         supabase
           .from("company")
           .select("name,tax_id,address,phone,email,logo_url")
+          .eq("id", profile?.company_id ?? "")
           .maybeSingle(),
       ]);
       setContacts((cs ?? []) as Contact[]);
       setCompany((co ?? null) as Company | null);
     })();
-  }, [isCustomer]);
+  }, [isCustomer, profile?.company_id]);
 
   const contact = useMemo(
     () => contacts.find((c) => c.id === contactId) ?? null,

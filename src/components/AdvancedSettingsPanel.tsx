@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +40,7 @@ const DEFAULTS: Required<SettingsShape> = {
 };
 
 export function AdvancedSettingsPanel() {
+  const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [companyId, setCompanyId] = useState<string | null>(null);
@@ -48,15 +50,16 @@ export function AdvancedSettingsPanel() {
   useEffect(() => {
     (async () => {
       const [companyRes, peopleRes] = await Promise.all([
-        supabase.from("company").select("id, settings").limit(1).maybeSingle(),
+        supabase.from("company").select("id, settings").eq("id", profile?.company_id ?? "").maybeSingle(),
         supabase
           .from("profiles")
           .select("id, display_name")
+          .eq("company_id", profile?.company_id ?? "")
           .eq("is_active", true)
           .order("display_name", { ascending: true }),
       ]);
       if (companyRes.error) {
-        toast.error("讀取進階參數失敗:" + companyRes.error.message);
+        toast.error("讀取進階參數失敗：" + companyRes.error.message);
       } else if (companyRes.data) {
         setCompanyId(companyRes.data.id);
         const raw = (companyRes.data as { settings?: SettingsShape | null })
@@ -71,7 +74,7 @@ export function AdvancedSettingsPanel() {
       }
       setLoading(false);
     })();
-  }, []);
+  }, [profile?.company_id]);
 
   const handleSave = async () => {
     if (!companyId) return;
@@ -94,7 +97,7 @@ export function AdvancedSettingsPanel() {
       .eq("id", companyId);
     setSaving(false);
     if (error) {
-      toast.error("儲存失敗:" + error.message);
+      toast.error("儲存失敗：" + error.message);
     } else {
       toast.success("進階參數已儲存");
     }

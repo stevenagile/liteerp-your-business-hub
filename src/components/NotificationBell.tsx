@@ -71,15 +71,18 @@ export function NotificationBell() {
   const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = async () => {
+    if (!companyId) return;
     const { data: list } = await supabase
       .from("notifications")
       .select("id,title,message,event_type,is_read,created_at,payload")
+      .eq("company_id", companyId)
       .order("created_at", { ascending: false })
       .limit(10);
     setItems((list ?? []) as Notification[]);
     const { count } = await supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
+      .eq("company_id", companyId)
       .eq("is_read", false);
     setUnread(count ?? 0);
   };
