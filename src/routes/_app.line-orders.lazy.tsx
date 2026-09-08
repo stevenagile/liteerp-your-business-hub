@@ -19,7 +19,7 @@ export const Route = createLazyFileRoute("/_app/line-orders")({
   component: LineOrdersPage,
 });
 const core = () => supabase.schema("core" as never);
-const URL = "https://atzovofxfahrptstnkke.supabase.co/functions/v1/line-orders";
+const URL = "https://cqmmbhxldwfaopenphmr.supabase.co/functions/v1/line-orders";
 
 async function call(action: string, payload: Record<string, unknown> = {}) {
   const { data: { session } } = await supabase.auth.getSession();
