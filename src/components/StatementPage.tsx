@@ -51,6 +51,14 @@ type Row = {
   credit: number | null;
 };
 
+type Statement = {
+  contact: Contact;
+  opening: number;
+  rows: Row[];
+};
+
+const ALL = "__all__";
+
 function firstOfMonth(): string {
   const d = new Date();
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
@@ -58,9 +66,24 @@ function firstOfMonth(): string {
 function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
+function currentMonth(): string {
+  return new Date().toISOString().slice(0, 7);
+}
 function fmt(n: number) {
   return n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
+
+const txnLabel = (t: string | null) => {
+  const map: Record<string, string> = {
+    sales_invoice: "銷貨",
+    sales_return: "銷退",
+    receipt: "收款",
+    purchase_receipt: "進貨",
+    purchase_return: "進退",
+    payment: "付款",
+  };
+  return map[t ?? ""] ?? (t ?? "—");
+};
 
 export function StatementPage({ kind }: { kind: StatementKind }) {
   const isCustomer = kind === "customer";
@@ -71,12 +94,12 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
   const { profile } = useAuth();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
-  const [contactId, setContactId] = useState<string>("");
+  const [contactId, setContactId] = useState<string>(ALL);
+  const [month, setMonth] = useState<string>(currentMonth());
   const [startDate, setStartDate] = useState<string>(firstOfMonth());
   const [endDate, setEndDate] = useState<string>(today());
   const [loading, setLoading] = useState(false);
-  const [rows, setRows] = useState<Row[]>([]);
-  const [opening, setOpening] = useState<number>(0);
+  const [statements, setStatements] = useState<Statement[]>([]);
   const [generated, setGenerated] = useState(false);
 
   useEffect(() => {
@@ -100,10 +123,16 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
     })();
   }, [isCustomer, profile?.company_id]);
 
-  const contact = useMemo(
-    () => contacts.find((c) => c.id === contactId) ?? null,
-    [contacts, contactId],
-  );
+  // 選月份 → 自動帶入起迄日
+  const applyMonth = (m: string) => {
+    setMonth(m);
+    if (!m) return;
+    const [y, mo] = m.split("-").map(Number);
+    const start = `${m}-01`;
+    const end = new Date(Date.UTC(y, mo, 0)).toISOString().slice(0, 10); // 該月最後一天
+    setStartDate(start);
+    setEndDate(end);
+  };
 
   const generate = async () => {
     if (!profile?.company_id) return;
@@ -111,31 +140,50 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
     if (!startDate || !endDate) return toast.error("請選擇期間");
     setLoading(true);
     try {
-      // 期初：起日之前所有 (debit - credit)
-      const { data: prior, error: e1 } = await supabase
-        .from(viewName)
-        .select("debit,credit")
-        .eq("company_id", profile?.company_id ?? "")
-        .eq("contact_id", contactId)
-        .lt("txn_date", startDate);
-      if (e1) throw e1;
-      const open = (prior ?? []).reduce(
-        (s: number, r: { debit: number | null; credit: number | null }) =>
-          s + Number(r.debit ?? 0) - Number(r.credit ?? 0),
-        0,
+      const targets = contactId === ALL ? contacts : contacts.filter((c) => c.id === contactId);
+      if (targets.length === 0) {
+        toast.error(`沒有任何${partyLabel}資料`);
+        return;
+      }
+      const cid = profile.company_id;
+      const results = await Promise.all(
+        targets.map(async (c) => {
+          const [{ data: prior, error: e1 }, { data: list, error: e2 }] = await Promise.all([
+            supabase
+              .from(viewName)
+              .select("debit,credit")
+              .eq("company_id", cid)
+              .eq("contact_id", c.id)
+              .lt("txn_date", startDate),
+            supabase
+              .from(viewName)
+              .select("txn_date,txn_type,doc_no,debit,credit")
+              .eq("company_id", cid)
+              .eq("contact_id", c.id)
+              .gte("txn_date", startDate)
+              .lte("txn_date", endDate)
+              .order("txn_date", { ascending: true }),
+          ]);
+          if (e1) throw e1;
+          if (e2) throw e2;
+          const opening = (prior ?? []).reduce(
+            (s: number, r: { debit: number | null; credit: number | null }) =>
+              s + Number(r.debit ?? 0) - Number(r.credit ?? 0),
+            0,
+          );
+          return { contact: c, opening, rows: (list ?? []) as Row[] };
+        }),
       );
-      // 期間明細
-      const { data: list, error: e2 } = await supabase
-        .from(viewName)
-        .select("txn_date,txn_type,doc_no,debit,credit")
-        .eq("company_id", profile?.company_id ?? "")
-        .eq("contact_id", contactId)
-        .gte("txn_date", startDate)
-        .lte("txn_date", endDate)
-        .order("txn_date", { ascending: true });
-      if (e2) throw e2;
-      setOpening(open);
-      setRows((list ?? []) as Row[]);
+      // 全部模式：只保留期間內有異動或期初有餘額的對象
+      const filtered =
+        contactId === ALL
+          ? results.filter((s) => s.rows.length > 0 || s.opening !== 0)
+          : results;
+      if (filtered.length === 0) {
+        toast.info("期間內沒有任何異動或餘額");
+        return;
+      }
+      setStatements(filtered);
       setGenerated(true);
     } catch (e) {
       toast.error((e as Error).message);
@@ -144,29 +192,16 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
     }
   };
 
-  // 逐筆累計餘額
-  const running = useMemo(() => {
-    let bal = opening;
-    return rows.map((r) => {
-      bal += Number(r.debit ?? 0) - Number(r.credit ?? 0);
-      return { ...r, balance: bal };
+  // 匯出用：把所有對象的明細攤平
+  const exportRows = useMemo(() => {
+    return statements.flatMap((s) => {
+      let bal = s.opening;
+      return s.rows.map((r) => {
+        bal += Number(r.debit ?? 0) - Number(r.credit ?? 0);
+        return { contact_name: s.contact.name, ...r, balance: bal };
+      });
     });
-  }, [rows, opening]);
-  const closing = running.length ? running[running.length - 1].balance : opening;
-  const totalDebit = rows.reduce((s, r) => s + Number(r.debit ?? 0), 0);
-  const totalCredit = rows.reduce((s, r) => s + Number(r.credit ?? 0), 0);
-
-  const txnLabel = (t: string | null) => {
-    const map: Record<string, string> = {
-      sales_invoice: "銷貨",
-      sales_return: "銷退",
-      receipt: "收款",
-      purchase_receipt: "進貨",
-      purchase_return: "進退",
-      payment: "付款",
-    };
-    return map[t ?? ""] ?? (t ?? "—");
-  };
+  }, [statements]);
 
   return (
     <div className="space-y-4">
@@ -181,11 +216,21 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
                 <SelectValue placeholder={`選擇${partyLabel}`} />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={ALL}>全部{partyLabel}</SelectItem>
                 {contacts.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>月份（快速帶入）</Label>
+            <Input
+              type="month"
+              value={month}
+              onChange={(e) => applyMonth(e.target.value)}
+              className="w-44"
+            />
           </div>
           <div className="grid gap-1.5">
             <Label>起日</Label>
@@ -202,9 +247,10 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
           {generated && (
             <>
               <ExportExcelButton
-                rows={running as unknown as Record<string, unknown>[]}
+                rows={exportRows as unknown as Record<string, unknown>[]}
                 filename={title}
                 columns={[
+                  { key: "contact_name", label: partyLabel },
                   { key: "txn_date", label: "日期" },
                   { key: "txn_type", label: "摘要", value: (r: Record<string, unknown>) => txnLabel(r.txn_type as string | null) },
                   { key: "doc_no", label: "單號" },
@@ -220,133 +266,187 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
             </>
           )}
         </div>
+        {generated && contactId === ALL && (
+          <p className="text-sm text-muted-foreground">
+            共產生 {statements.length} 張對帳單（已略過期間內無異動且無餘額的{partyLabel}），列印時每張自動分頁。
+          </p>
+        )}
       </div>
 
-      {generated && (
-        <div className="print-area mx-auto max-w-[210mm] rounded-md border bg-white p-8 text-black shadow-sm">
-          {/* 頁首 */}
-          <div className="flex items-start justify-between border-b pb-4">
-            <div className="flex items-center gap-3">
-              {company?.logo_url && (
-                <img src={company.logo_url} alt="logo" className="h-14 w-14 object-contain" />
-              )}
-              <div>
-                <div className="text-lg font-bold">{company?.name ?? "公司名稱"}</div>
-                {company?.tax_id && (
-                  <div className="text-xs text-gray-600">統一編號：{company.tax_id}</div>
-                )}
-                {company?.address && (
-                  <div className="text-xs text-gray-600">{company.address}</div>
-                )}
-                {company?.phone && (
-                  <div className="text-xs text-gray-600">電話：{company.phone}</div>
-                )}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold tracking-wider">{title}</div>
-              <div className="mt-1 text-xs text-gray-600">
-                對帳期間：{startDate} ~ {endDate}
-              </div>
-            </div>
-          </div>
+      {generated &&
+        statements.map((s, idx) => (
+          <StatementSheet
+            key={s.contact.id}
+            statement={s}
+            company={company}
+            title={title}
+            partyLabel={partyLabel}
+            isCustomer={isCustomer}
+            startDate={startDate}
+            endDate={endDate}
+            pageBreak={idx < statements.length - 1}
+          />
+        ))}
+    </div>
+  );
+}
 
-          {/* 對象資訊 */}
-          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <div className="text-xs text-gray-500">{partyLabel}</div>
-              <div className="font-medium">{contact?.name ?? "—"}</div>
-              {contact?.tax_id && <div className="text-xs text-gray-600">統編：{contact.tax_id}</div>}
-              {contact?.address && <div className="text-xs text-gray-600">{contact.address}</div>}
-              {contact?.phone && <div className="text-xs text-gray-600">電話：{contact.phone}</div>}
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-gray-500">期初餘額</div>
-              <div className="text-lg font-semibold">{fmt(opening)}</div>
-            </div>
-          </div>
+function StatementSheet({
+  statement,
+  company,
+  title,
+  partyLabel,
+  isCustomer,
+  startDate,
+  endDate,
+  pageBreak,
+}: {
+  statement: Statement;
+  company: Company | null;
+  title: string;
+  partyLabel: string;
+  isCustomer: boolean;
+  startDate: string;
+  endDate: string;
+  pageBreak: boolean;
+}) {
+  const { contact, opening, rows } = statement;
 
-          {/* 明細 */}
-          <div className="mt-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-28">日期</TableHead>
-                  <TableHead className="w-24">摘要</TableHead>
-                  <TableHead>單號</TableHead>
-                  <TableHead className="text-right w-32">借方</TableHead>
-                  <TableHead className="text-right w-32">貸方</TableHead>
-                  <TableHead className="text-right w-32">餘額</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell colSpan={5} className="text-xs text-gray-600">期初餘額</TableCell>
-                  <TableCell className="text-right font-medium">{fmt(opening)}</TableCell>
-                </TableRow>
-                {running.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-sm text-gray-500">
-                      期間內無異動
-                    </TableCell>
-                  </TableRow>
-                )}
-                {running.map((r, i) => (
-                  <TableRow key={i}>
-                    <TableCell>{r.txn_date}</TableCell>
-                    <TableCell>{txnLabel(r.txn_type)}</TableCell>
-                    <TableCell>{r.doc_no ?? "—"}</TableCell>
-                    <TableCell className="text-right">
-                      {Number(r.debit ?? 0) ? fmt(Number(r.debit)) : ""}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {Number(r.credit ?? 0) ? fmt(Number(r.credit)) : ""}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">{fmt(r.balance)}</TableCell>
-                  </TableRow>
-                ))}
-                <TableRow className="border-t-2">
-                  <TableCell colSpan={3} className="font-semibold">合計</TableCell>
-                  <TableCell className="text-right font-semibold">{fmt(totalDebit)}</TableCell>
-                  <TableCell className="text-right font-semibold">{fmt(totalCredit)}</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
+  let bal = opening;
+  const running = rows.map((r) => {
+    bal += Number(r.debit ?? 0) - Number(r.credit ?? 0);
+    return { ...r, balance: bal };
+  });
+  const closing = running.length ? running[running.length - 1].balance : opening;
+  const totalDebit = rows.reduce((s, r) => s + Number(r.debit ?? 0), 0);
+  const totalCredit = rows.reduce((s, r) => s + Number(r.credit ?? 0), 0);
 
-          {/* 期末餘額 */}
-          <div className="mt-6 flex justify-end">
-            <div className="w-72 rounded border bg-gray-50 p-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">期初餘額</span>
-                <span>{fmt(opening)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">本期借方</span>
-                <span>{fmt(totalDebit)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">本期貸方</span>
-                <span>{fmt(totalCredit)}</span>
-              </div>
-              <div className="mt-2 flex justify-between border-t pt-2 text-base font-bold">
-                <span>期末餘額</span>
-                <span>{fmt(closing)}</span>
-              </div>
-              <div className="mt-1 text-[11px] text-gray-500">
-                {isCustomer ? "（客戶尚欠本公司金額）" : "（本公司尚欠廠商金額）"}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-10 grid grid-cols-3 gap-6 border-t pt-4 text-center text-xs text-gray-600">
-            <div>製單：__________</div>
-            <div>覆核：__________</div>
-            <div>{partyLabel}簽收：__________</div>
+  return (
+    <div
+      className="print-area mx-auto max-w-[210mm] rounded-md border bg-white p-8 text-black shadow-sm"
+      style={pageBreak ? { breakAfter: "page" } : undefined}
+    >
+      {/* 頁首 */}
+      <div className="flex items-start justify-between border-b pb-4">
+        <div className="flex items-center gap-3">
+          {company?.logo_url && (
+            <img src={company.logo_url} alt="logo" className="h-14 w-14 object-contain" />
+          )}
+          <div>
+            <div className="text-lg font-bold">{company?.name ?? "公司名稱"}</div>
+            {company?.tax_id && (
+              <div className="text-xs text-gray-600">統一編號：{company.tax_id}</div>
+            )}
+            {company?.address && (
+              <div className="text-xs text-gray-600">{company.address}</div>
+            )}
+            {company?.phone && (
+              <div className="text-xs text-gray-600">電話：{company.phone}</div>
+            )}
           </div>
         </div>
-      )}
+        <div className="text-right">
+          <div className="text-2xl font-bold tracking-wider">{title}</div>
+          <div className="mt-1 text-xs text-gray-600">
+            對帳期間：{startDate} ~ {endDate}
+          </div>
+        </div>
+      </div>
+
+      {/* 對象資訊 */}
+      <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <div className="text-xs text-gray-500">{partyLabel}</div>
+          <div className="font-medium">{contact.name}</div>
+          {contact.tax_id && <div className="text-xs text-gray-600">統編：{contact.tax_id}</div>}
+          {contact.address && <div className="text-xs text-gray-600">{contact.address}</div>}
+          {contact.phone && <div className="text-xs text-gray-600">電話：{contact.phone}</div>}
+        </div>
+        <div className="text-right">
+          <div className="text-xs text-gray-500">期初餘額</div>
+          <div className="text-lg font-semibold">{fmt(opening)}</div>
+        </div>
+      </div>
+
+      {/* 明細 */}
+      <div className="mt-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-28">日期</TableHead>
+              <TableHead className="w-24">摘要</TableHead>
+              <TableHead>單號</TableHead>
+              <TableHead className="text-right w-32">借方</TableHead>
+              <TableHead className="text-right w-32">貸方</TableHead>
+              <TableHead className="text-right w-32">餘額</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={5} className="text-xs text-gray-600">期初餘額</TableCell>
+              <TableCell className="text-right font-medium">{fmt(opening)}</TableCell>
+            </TableRow>
+            {running.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-sm text-gray-500">
+                  期間內無異動
+                </TableCell>
+              </TableRow>
+            )}
+            {running.map((r, i) => (
+              <TableRow key={i}>
+                <TableCell>{r.txn_date}</TableCell>
+                <TableCell>{txnLabel(r.txn_type)}</TableCell>
+                <TableCell>{r.doc_no ?? "—"}</TableCell>
+                <TableCell className="text-right">
+                  {Number(r.debit ?? 0) ? fmt(Number(r.debit)) : ""}
+                </TableCell>
+                <TableCell className="text-right">
+                  {Number(r.credit ?? 0) ? fmt(Number(r.credit)) : ""}
+                </TableCell>
+                <TableCell className="text-right font-medium">{fmt(r.balance)}</TableCell>
+              </TableRow>
+            ))}
+            <TableRow className="border-t-2">
+              <TableCell colSpan={3} className="font-semibold">合計</TableCell>
+              <TableCell className="text-right font-semibold">{fmt(totalDebit)}</TableCell>
+              <TableCell className="text-right font-semibold">{fmt(totalCredit)}</TableCell>
+              <TableCell></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* 期末餘額 */}
+      <div className="mt-6 flex justify-end">
+        <div className="w-72 rounded border bg-gray-50 p-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">期初餘額</span>
+            <span>{fmt(opening)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">本期借方</span>
+            <span>{fmt(totalDebit)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">本期貸方</span>
+            <span>{fmt(totalCredit)}</span>
+          </div>
+          <div className="mt-2 flex justify-between border-t pt-2 text-base font-bold">
+            <span>期末餘額</span>
+            <span>{fmt(closing)}</span>
+          </div>
+          <div className="mt-1 text-[11px] text-gray-500">
+            {isCustomer ? "（客戶尚欠本公司金額）" : "（本公司尚欠廠商金額）"}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-10 grid grid-cols-3 gap-6 border-t pt-4 text-center text-xs text-gray-600">
+        <div>製單：__________</div>
+        <div>覆核：__________</div>
+        <div>{partyLabel}簽收：__________</div>
+      </div>
     </div>
   );
 }
