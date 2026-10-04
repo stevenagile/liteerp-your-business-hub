@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, Printer } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FileDown, Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import JSZip from "jszip";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
