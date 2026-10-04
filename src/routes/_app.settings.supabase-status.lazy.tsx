@@ -103,7 +103,18 @@ function SupabaseStatusPage() {
     const results: TableCheck[] = [];
     for (const t of REQUIRED_TABLES) {
       try {
-        const { error } = await supabase
+        // 動態檢查任意 schema/資料表，繞過型別限制
+        const client = supabase as unknown as {
+          schema: (s: string) => {
+            from: (t: string) => {
+              select: (
+                cols: string,
+                opts: { count: "exact"; head: boolean },
+              ) => Promise<{ error: { message: string } | null }>;
+            };
+          };
+        };
+        const { error } = await client
           .schema(t.schema)
           .from(t.table)
           .select("*", { count: "exact", head: true });
