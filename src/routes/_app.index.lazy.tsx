@@ -4,33 +4,19 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import {
-  CircleCheck,
-  CircleAlert,
-  Loader2,
-  TrendingUp,
-  TrendingDown,
-  Wallet,
-  AlertTriangle,
-  DollarSign,
-} from "lucide-react";
-import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
-  Legend,
+  Cell,
 } from "recharts";
 
 export const Route = createLazyFileRoute("/_app/")({
   component: Dashboard,
 });
-type Status =
-  | { kind: "loading" }
-  | { kind: "connected"; name: string }
-  | { kind: "disconnected"; reason?: string };
 
 type RevenueRow = {
   month: string;
@@ -40,17 +26,21 @@ type RevenueRow = {
 type PnlRow = {
   month: string;
   revenue: number | null;
-  net_profit: number | null;
   gross_margin_pct: number | null;
-  net_margin_pct: number | null;
 };
-type StockRow = { is_low: boolean | null };
+type InvRow = { quantity: number | null; avg_cost: number | null };
+type ArDocRow = {
+  contact_name: string | null;
+  total_amount: number | null;
+  paid_amount: number | null;
+  due_date: string | null;
+};
 
 const fmtMonth = (m: string) => {
   if (!m) return "";
   const d = new Date(m);
   if (isNaN(d.getTime())) return m.slice(0, 7).replace("-", "/");
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+  return `${d.getMonth() + 1}/${String(d.getFullYear()).slice(2)}`;
 };
 
 const currentYearMonth = () => {
@@ -67,39 +57,22 @@ const num = (n: number | null | undefined) =>
 function Dashboard() {
   const { profile } = useAuth();
   const companyId = profile?.company_id;
-  const [status, setStatus] = useState<Status>({ kind: "loading" });
   const [revenueRows, setRevenueRows] = useState<RevenueRow[]>([]);
   const [pnlRows, setPnlRows] = useState<PnlRow[]>([]);
   const [lowStockCount, setLowStockCount] = useState(0);
+  const [inventoryValue, setInventoryValue] = useState(0);
+  const [overdueAmount, setOverdueAmount] = useState(0);
+  const [topDebtors, setTopDebtors] = useState<
+    { name: string; amount: number }[]
+  >([]);
 
   useEffect(() => {
     if (!companyId) return;
     let cancelled = false;
     (async () => {
       try {
-        const { data, error } = await supabase
-          .from("company")
-          .select("name")
-          .eq("id", companyId)
-          .maybeSingle();
-        if (cancelled) return;
-        if (error || !data?.name) {
-          setStatus({ kind: "disconnected", reason: error?.message });
-        } else {
-          setStatus({ kind: "connected", name: data.name });
-        }
-      } catch (e) {
-        if (!cancelled)
-          setStatus({
-            kind: "disconnected",
-            reason: e instanceof Error ? e.message : String(e),
-          });
-      }
-    })();
-
-    (async () => {
-      try {
-        const [rev, pnl, stock] = await Promise.all([
+        const today = new Date().toISOString().slice(0, 10);
+        const [rev, pnl, stock, inv, ar] = await Promise.all([
           supabase
             .from("v_monthly_revenue")
             .select("month, revenue, outstanding")
@@ -108,18 +81,56 @@ function Dashboard() {
             .limit(12),
           supabase
             .from("v_monthly_pnl")
-            .select("month, revenue, net_profit, gross_margin_pct, net_margin_pct")
+            .select("month, revenue, gross_margin_pct")
             .eq("company_id", companyId)
             .order("month", { ascending: false })
             .limit(12),
-          supabase.from("v_stock").select("is_low").eq("company_id", companyId).eq("is_low", true),
+          supabase
+            .from("v_stock")
+            .select("is_low")
+            .eq("company_id", companyId)
+            .eq("is_low", true),
+          supabase
+            .from("inventory")
+            .select("quantity, avg_cost")
+            .eq("company_id", companyId),
+          supabase
+            .from("doc_headers")
+            .select("contact_name, total_amount, paid_amount, due_date")
+            .eq("company_id", companyId)
+            .eq("doc_type", "sales_invoice")
+            .in("status", ["confirmed", "completed"])
+            .neq("payment_status", "paid"),
         ]);
         if (cancelled) return;
-        const firstErr = rev.error || pnl.error || stock.error;
+        const firstErr = rev.error || pnl.error || stock.error || inv.error || ar.error;
         if (firstErr) toast.error("部分營運數據讀取失敗：" + firstErr.message);
         setRevenueRows((rev.data as RevenueRow[]) ?? []);
         setPnlRows((pnl.data as PnlRow[]) ?? []);
         setLowStockCount(stock.data?.length ?? 0);
+        setInventoryValue(
+          ((inv.data as InvRow[]) ?? []).reduce(
+            (s, r) => s + Number(r.quantity ?? 0) * Number(r.avg_cost ?? 0),
+            0,
+          ),
+        );
+        const arRows = (ar.data as ArDocRow[]) ?? [];
+        let overdue = 0;
+        const byCustomer = new Map<string, number>();
+        for (const d of arRows) {
+          const bal = Number(d.total_amount ?? 0) - Number(d.paid_amount ?? 0);
+          if (bal <= 0) continue;
+          if (d.due_date && d.due_date < today) overdue += bal;
+          const name = d.contact_name || "（未具名）";
+          byCustomer.set(name, (byCustomer.get(name) ?? 0) + bal);
+        }
+        setOverdueAmount(overdue);
+        setTopDebtors(
+          [...byCustomer.entries()]
+            .map(([name, amount]) => ({ name, amount }))
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 5),
+        );
       } catch (e) {
         if (!cancelled)
           toast.error(
@@ -127,7 +138,6 @@ function Dashboard() {
           );
       }
     })();
-
     return () => {
       cancelled = true;
     };
@@ -137,20 +147,23 @@ function Dashboard() {
   const curRev = matchMonth(revenueRows, ym);
   const curPnl = matchMonth(pnlRows, ym);
 
-  const monthlySales = curRev?.revenue ?? 0;
-  const netProfit = curPnl?.net_profit ?? 0;
-  const outstanding = curRev?.outstanding ?? 0;
-  const grossMarginPct = curPnl?.gross_margin_pct ?? 0;
-  const netMarginPct = curPnl?.net_margin_pct ?? 0;
+  const monthlySales = Number(curRev?.revenue ?? 0);
+  const outstanding = Number(curRev?.outstanding ?? 0);
+  const grossMarginPct = Number(curPnl?.gross_margin_pct ?? 0);
+  const grossProfit = (monthlySales * grossMarginPct) / 100;
 
-  const trendData = [...pnlRows]
-    .slice(0, 6)
-    .reverse()
-    .map((r) => ({
-      month: fmtMonth(r.month),
-      revenue: Number(r.revenue ?? 0),
-      net_profit: Number(r.net_profit ?? 0),
-    }));
+  // 與上月比較
+  const prevRev = revenueRows.find((r) => r.month && !r.month.startsWith(ym));
+  const momPct =
+    prevRev && Number(prevRev.revenue ?? 0) > 0
+      ? ((monthlySales - Number(prevRev.revenue)) / Number(prevRev.revenue)) * 100
+      : null;
+
+  const trendData = [...revenueRows].reverse().map((r) => ({
+    month: fmtMonth(r.month),
+    revenue: Number(r.revenue ?? 0),
+    isCurrent: r.month?.startsWith(ym) ?? false,
+  }));
 
   return (
     <div className="space-y-6">
@@ -161,77 +174,61 @@ function Dashboard() {
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card p-5 shadow-sm">
-        <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          後端連線狀態
-        </div>
-        <div className="mt-2 flex items-center gap-3">
-          {status.kind === "loading" && (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              <span className="text-base">檢查連線中…</span>
-            </>
-          )}
-          {status.kind === "connected" && (
-            <>
-              <CircleCheck className="h-5 w-5 text-success" />
-              <span className="text-base font-medium">
-                已連接：<span className="text-success">{status.name}</span>
-              </span>
-            </>
-          )}
-          {status.kind === "disconnected" && (
-            <>
-              <CircleAlert className="h-5 w-5 text-destructive" />
-              <span className="text-base font-medium text-destructive">
-                尚未連接 Supabase
-              </span>
-            </>
-          )}
-        </div>
-        {status.kind === "disconnected" && status.reason && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            錯誤訊息：{status.reason}
-          </p>
-        )}
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          label="本月銷售額"
-          value={`NT$ ${num(monthlySales)}`}
-          icon={<DollarSign className="h-5 w-5 text-success" />}
-          valueClass="text-success"
+          label="本月營收"
+          value={num(monthlySales)}
+          sub={
+            momPct != null ? (
+              <span className={momPct >= 0 ? "text-success" : "text-destructive"}>
+                {momPct >= 0 ? "↗" : "↘"} {momPct >= 0 ? "+" : ""}
+                {momPct.toFixed(1)}%
+              </span>
+            ) : undefined
+          }
         />
         <KpiCard
-          label="本月淨利"
-          value={`NT$ ${num(netProfit)}`}
-          icon={
-            netProfit < 0 ? (
-              <TrendingDown className="h-5 w-5 text-destructive" />
+          label="月毛利"
+          value={num(grossProfit)}
+          sub={
+            <span className="text-muted-foreground">
+              毛利率 <span className="font-semibold text-foreground">{grossMarginPct.toFixed(1)}%</span>
+            </span>
+          }
+        />
+        <KpiCard
+          label="客戶欠我們"
+          value={num(outstanding)}
+          valueClass={outstanding > 0 ? "text-destructive" : undefined}
+          sub={
+            overdueAmount > 0 ? (
+              <span className="text-destructive">
+                含逾期 <span className="font-semibold">{num(overdueAmount)}</span>
+              </span>
             ) : (
-              <TrendingUp className="h-5 w-5 text-success" />
+              <span className="text-muted-foreground">無逾期款項</span>
             )
           }
-          valueClass={netProfit < 0 ? "text-destructive" : "text-success"}
         />
         <KpiCard
-          label="未收款金額"
-          value={`NT$ ${num(outstanding)}`}
-          icon={<Wallet className={`h-5 w-5 ${outstanding > 0 ? "text-warning" : "text-muted-foreground"}`} />}
-          valueClass={outstanding > 0 ? "text-warning" : undefined}
-        />
-        <KpiCard
-          label="低庫存品項"
-          value={String(lowStockCount)}
-          icon={<AlertTriangle className={`h-5 w-5 ${lowStockCount > 0 ? "text-destructive" : "text-muted-foreground"}`} />}
-          valueClass={lowStockCount > 0 ? "text-destructive" : undefined}
+          label="庫存金額"
+          value={num(inventoryValue)}
+          sub={
+            lowStockCount > 0 ? (
+              <span className="text-warning">
+                {lowStockCount} 項原料即將耗盡
+              </span>
+            ) : (
+              <span className="text-muted-foreground">庫存水位正常</span>
+            )
+          }
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="rounded-lg border bg-card p-5 shadow-sm lg:col-span-2">
-          <div className="mb-4 text-sm font-semibold">近 6 個月 營收 vs 淨利</div>
+          <div className="mb-1 text-sm font-semibold">營收趨勢</div>
+          <div className="mb-4 text-xs text-muted-foreground">近 12 個月</div>
           <div className="h-72">
             {trendData.length === 0 ? (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -239,10 +236,10 @@ function Dashboard() {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" fontSize={13} />
-                  <YAxis fontSize={13} tickFormatter={(v) => Number(v).toLocaleString()} />
+                <BarChart data={trendData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
+                  <XAxis dataKey="month" fontSize={12} />
+                  <YAxis fontSize={12} tickFormatter={(v) => Number(v).toLocaleString()} />
                   <Tooltip
                     formatter={(v: number) => Number(v).toLocaleString()}
                     contentStyle={{
@@ -252,39 +249,40 @@ function Dashboard() {
                       fontSize: 13,
                     }}
                   />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    name="營收"
-                    stroke="hsl(var(--success))"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="net_profit"
-                    name="淨利"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
-                  />
-                </LineChart>
+                  <Bar dataKey="revenue" name="營收" radius={[4, 4, 0, 0]}>
+                    {trendData.map((d, i) => (
+                      <Cell
+                        key={i}
+                        fill={d.isCurrent ? "hsl(var(--destructive))" : "hsl(var(--primary))"}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             )}
+          </div>
+          <div className="mt-3 flex items-center justify-between border-t pt-3 text-sm">
+            <span className="text-muted-foreground">本月累計</span>
+            <span className="font-semibold">NT$ {num(monthlySales)}</span>
           </div>
         </div>
 
         <div className="rounded-lg border bg-card p-5 shadow-sm">
-          <div className="mb-4 text-sm font-semibold">本月利潤率</div>
-          <div className="space-y-6">
-            <MarginStat label="毛利率" value={grossMarginPct} accent="text-success" />
-            <MarginStat
-              label="淨利率"
-              value={netMarginPct}
-              accent={netMarginPct < 0 ? "text-destructive" : "text-primary"}
-            />
-          </div>
+          <div className="mb-4 text-sm font-semibold">客戶欠款（Top 5）</div>
+          {topDebtors.length === 0 ? (
+            <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">
+              目前沒有未收款項
+            </div>
+          ) : (
+            <ul className="divide-y">
+              {topDebtors.map((d) => (
+                <li key={d.name} className="flex items-center justify-between py-3">
+                  <span className="text-sm font-medium">{d.name}</span>
+                  <span className="text-sm font-semibold">{num(d.amount)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>
@@ -294,44 +292,23 @@ function Dashboard() {
 function KpiCard({
   label,
   value,
-  icon,
+  sub,
   valueClass,
 }: {
   label: string;
   value: string;
-  icon: React.ReactNode;
+  sub?: React.ReactNode;
   valueClass?: string;
 }) {
   return (
     <div className="rounded-lg border bg-card p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          {label}
-        </div>
-        {icon}
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
       </div>
       <div className={`mt-2 text-2xl font-semibold ${valueClass ?? ""}`}>
         {value}
       </div>
-    </div>
-  );
-}
-
-function MarginStat({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: number;
-  accent: string;
-}) {
-  return (
-    <div>
-      <div className="text-sm text-muted-foreground">{label}</div>
-      <div className={`mt-1 text-3xl font-bold ${accent}`}>
-        {Number(value ?? 0).toFixed(2)}%
-      </div>
+      {sub && <div className="mt-1 text-sm">{sub}</div>}
     </div>
   );
 }
