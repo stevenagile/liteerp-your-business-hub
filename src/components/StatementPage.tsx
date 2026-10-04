@@ -104,6 +104,8 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
   const [loading, setLoading] = useState(false);
   const [statements, setStatements] = useState<Statement[]>([]);
   const [generated, setGenerated] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
+  const sheetsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     (async () => {
