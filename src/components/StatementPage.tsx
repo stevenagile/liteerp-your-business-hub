@@ -208,6 +208,60 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
     });
   }, [statements]);
 
+  // 匯出 PDF：每個客戶/廠商各自一份 PDF；多份時打包成 ZIP
+  const exportPdf = async () => {
+    if (!sheetsRef.current || statements.length === 0) return;
+    setPdfExporting(true);
+    try {
+      const period = `${startDate}_${endDate}`;
+      const safeName = (n: string) => n.replace(/[\\/:*?"<>|]/g, "_");
+      const pdfs: { name: string; blob: Blob }[] = [];
+
+      for (const s of statements) {
+        const el = sheetsRef.current.querySelector<HTMLElement>(
+          `[data-statement-id="${s.contact.id}"]`,
+        );
+        if (!el) continue;
+        const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const imgW = pageW;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        // 超過一頁時自動分頁
+        let remaining = imgH;
+        let position = 0;
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
+        while (remaining > 0) {
+          pdf.addImage(imgData, "JPEG", 0, -position, imgW, imgH);
+          remaining -= pageH;
+          position += pageH;
+          if (remaining > 0) pdf.addPage();
+        }
+        const blob = pdf.output("blob");
+        pdfs.push({ name: `${safeName(s.contact.name)}_對帳單_${period}.pdf`, blob });
+      }
+
+      if (pdfs.length === 0) {
+        toast.error("找不到可匯出的對帳單");
+        return;
+      }
+      if (pdfs.length === 1) {
+        downloadBlob(pdfs[0].blob, pdfs[0].name);
+      } else {
+        const zip = new JSZip();
+        pdfs.forEach((p) => zip.file(p.name, p.blob));
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        downloadBlob(zipBlob, `${title}_${period}.zip`);
+      }
+      toast.success(`已匯出 ${pdfs.length} 份 PDF`);
+    } catch (e) {
+      toast.error(`匯出 PDF 失敗：${(e as Error).message}`);
+    } finally {
+      setPdfExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* 篩選列 — 列印時隱藏 */}
