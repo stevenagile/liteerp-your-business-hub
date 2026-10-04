@@ -326,9 +326,17 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
                   { key: "balance", label: "餘額", type: "number" },
                 ]}
               />
+              <Button variant="outline" onClick={exportPdf} disabled={pdfExporting}>
+                {pdfExporting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <FileDown className="mr-2 h-4 w-4" />
+                )}
+                匯出 PDF{contactId === ALL ? "（每人一份）" : ""}
+              </Button>
               <Button variant="outline" onClick={() => window.print()}>
                 <Printer className="mr-2 h-4 w-4" />
-                列印 / 存 PDF
+                列印
               </Button>
             </>
           )}
