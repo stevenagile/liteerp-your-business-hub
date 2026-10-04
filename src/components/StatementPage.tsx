@@ -348,20 +348,24 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
         )}
       </div>
 
-      {generated &&
-        statements.map((s, idx) => (
-          <StatementSheet
-            key={s.contact.id}
-            statement={s}
-            company={company}
-            title={title}
-            partyLabel={partyLabel}
-            isCustomer={isCustomer}
-            startDate={startDate}
-            endDate={endDate}
-            pageBreak={idx < statements.length - 1}
-          />
-        ))}
+      {generated && (
+        <div ref={sheetsRef} className="space-y-4">
+          {statements.map((s, idx) => (
+            <div key={s.contact.id} data-statement-id={s.contact.id}>
+              <StatementSheet
+                statement={s}
+                company={company}
+                title={title}
+                partyLabel={partyLabel}
+                isCustomer={isCustomer}
+                startDate={startDate}
+                endDate={endDate}
+                pageBreak={idx < statements.length - 1}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
