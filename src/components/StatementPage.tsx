@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { Loader2, Printer } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FileDown, Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import JSZip from "jszip";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -72,6 +75,14 @@ function currentMonth(): string {
 function fmt(n: number) {
   return n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 const txnLabel = (t: string | null) => {
   const map: Record<string, string> = {
@@ -101,6 +112,8 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
   const [loading, setLoading] = useState(false);
   const [statements, setStatements] = useState<Statement[]>([]);
   const [generated, setGenerated] = useState(false);
+  const [pdfExporting, setPdfExporting] = useState(false);
+  const sheetsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -203,6 +216,60 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
     });
   }, [statements]);
 
+  // 匯出 PDF：每個客戶/廠商各自一份 PDF；多份時打包成 ZIP
+  const exportPdf = async () => {
+    if (!sheetsRef.current || statements.length === 0) return;
+    setPdfExporting(true);
+    try {
+      const period = `${startDate}_${endDate}`;
+      const safeName = (n: string) => n.replace(/[\\/:*?"<>|]/g, "_");
+      const pdfs: { name: string; blob: Blob }[] = [];
+
+      for (const s of statements) {
+        const el = sheetsRef.current.querySelector<HTMLElement>(
+          `[data-statement-id="${s.contact.id}"]`,
+        );
+        if (!el) continue;
+        const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const imgW = pageW;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        // 超過一頁時自動分頁
+        let remaining = imgH;
+        let position = 0;
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
+        while (remaining > 0) {
+          pdf.addImage(imgData, "JPEG", 0, -position, imgW, imgH);
+          remaining -= pageH;
+          position += pageH;
+          if (remaining > 0) pdf.addPage();
+        }
+        const blob = pdf.output("blob");
+        pdfs.push({ name: `${safeName(s.contact.name)}_對帳單_${period}.pdf`, blob });
+      }
+
+      if (pdfs.length === 0) {
+        toast.error("找不到可匯出的對帳單");
+        return;
+      }
+      if (pdfs.length === 1) {
+        downloadBlob(pdfs[0].blob, pdfs[0].name);
+      } else {
+        const zip = new JSZip();
+        pdfs.forEach((p) => zip.file(p.name, p.blob));
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        downloadBlob(zipBlob, `${title}_${period}.zip`);
+      }
+      toast.success(`已匯出 ${pdfs.length} 份 PDF`);
+    } catch (e) {
+      toast.error(`匯出 PDF 失敗：${(e as Error).message}`);
+    } finally {
+      setPdfExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* 篩選列 — 列印時隱藏 */}
@@ -259,9 +326,17 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
                   { key: "balance", label: "餘額", type: "number" },
                 ]}
               />
+              <Button variant="outline" onClick={exportPdf} disabled={pdfExporting}>
+                {pdfExporting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <FileDown className="mr-2 h-4 w-4" />
+                )}
+                匯出 PDF{contactId === ALL ? "（每人一份）" : ""}
+              </Button>
               <Button variant="outline" onClick={() => window.print()}>
                 <Printer className="mr-2 h-4 w-4" />
-                列印 / 存 PDF
+                列印
               </Button>
             </>
           )}
@@ -273,20 +348,24 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
         )}
       </div>
 
-      {generated &&
-        statements.map((s, idx) => (
-          <StatementSheet
-            key={s.contact.id}
-            statement={s}
-            company={company}
-            title={title}
-            partyLabel={partyLabel}
-            isCustomer={isCustomer}
-            startDate={startDate}
-            endDate={endDate}
-            pageBreak={idx < statements.length - 1}
-          />
-        ))}
+      {generated && (
+        <div ref={sheetsRef} className="space-y-4">
+          {statements.map((s, idx) => (
+            <div key={s.contact.id} data-statement-id={s.contact.id}>
+              <StatementSheet
+                statement={s}
+                company={company}
+                title={title}
+                partyLabel={partyLabel}
+                isCustomer={isCustomer}
+                startDate={startDate}
+                endDate={endDate}
+                pageBreak={idx < statements.length - 1}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
