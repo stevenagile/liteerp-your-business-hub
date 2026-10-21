@@ -84,8 +84,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
       { name: "twitter:title", content: "LiteERP · 進銷存 ERP 系統" },
       { name: "twitter:description", content: "LiteERP — 為台灣中小企業打造的進銷存 ERP 系統。" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/802ee92a-d473-4586-855b-fd3938df32fa/id-preview-2e49be6d--ba43f144-14c5-4f6e-a044-644441f0ea00.lovable.app-1779185682355.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/802ee92a-d473-4586-855b-fd3938df32fa/id-preview-2e49be6d--ba43f144-14c5-4f6e-a044-644441f0ea00.lovable.app-1779185682355.png" },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/802ee92a-d473-4586-855b-fd3938df32fa/id-preview-2e49be6d--ba43f144-14c5-4f6e-a044-644441f0ea00.lovable.app-1779185682355.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/802ee92a-d473-4586-855b-fd3938df32fa/id-preview-2e49be6d--ba43f144-14c5-4f6e-a044-644441f0ea00.lovable.app-1779185682355.png",
+      },
     ],
     links: [
       {
@@ -102,7 +110,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="zh-TW">
       <head>
         <HeadContent />
       </head>
