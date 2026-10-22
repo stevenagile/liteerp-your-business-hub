@@ -1,6 +1,14 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
 // papaparse and xlsx are loaded on-demand via dynamic import to reduce initial bundle
-import { Download, Loader2, Upload, FileSpreadsheet, X, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Download,
+  Loader2,
+  Upload,
+  FileSpreadsheet,
+  X,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -109,7 +117,9 @@ export function ImportDialog({
       } else {
         const Papa = await import("papaparse");
         const text = await file.text();
-        const parsed = Papa.default.parse<string[]>(text.replace(/^﻿/, ""), { skipEmptyLines: true });
+        const parsed = Papa.default.parse<string[]>(text.replace(/^﻿/, ""), {
+          skipEmptyLines: true,
+        });
         records = rowsToRecords(parsed.data as string[][]);
       }
       const validated = await validateAll(records);
@@ -123,7 +133,11 @@ export function ImportDialog({
 
   const rowsToRecords = (arr: string[][]): Record<string, string>[] => {
     if (arr.length === 0) return [];
-    const header = arr[0].map((h) => String(h ?? "").replace(/\*$/, "").trim());
+    const header = arr[0].map((h) =>
+      String(h ?? "")
+        .replace(/\*$/, "")
+        .trim(),
+    );
     // map header label -> field.key
     const headerKeyMap: Record<number, string> = {};
     header.forEach((h, i) => {
@@ -204,7 +218,9 @@ export function ImportDialog({
     }
     setSubmitting(false);
     if (totalFailed > 0) {
-      toast.error(`匯入完成：成功 ${totalSuccess} 筆、失敗 ${totalFailed} 筆${allErrors[0] ? "：" + allErrors[0] : ""}`);
+      toast.error(
+        `匯入完成：成功 ${totalSuccess} 筆、失敗 ${totalFailed} 筆${allErrors[0] ? "：" + allErrors[0] : ""}`,
+      );
     } else {
       toast.success(`匯入完成：${totalSuccess} 筆`);
     }
@@ -262,9 +278,9 @@ export function ImportDialog({
             <div className="ml-auto text-sm text-muted-foreground">
               {rows.length > 0 ? (
                 <>
-                  共 <b className="text-foreground">{stats.total}</b> 筆，
-                  可匯入 <b className="text-success">{stats.ok}</b> 筆，
-                  錯誤 <b className="text-destructive">{stats.bad}</b> 筆
+                  共 <b className="text-foreground">{stats.total}</b> 筆， 可匯入{" "}
+                  <b className="text-success">{stats.ok}</b> 筆， 錯誤{" "}
+                  <b className="text-destructive">{stats.bad}</b> 筆
                 </>
               ) : (
                 <>請先下載範本，照欄位填寫後上傳。</>

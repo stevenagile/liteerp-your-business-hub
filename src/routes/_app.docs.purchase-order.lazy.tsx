@@ -19,12 +19,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -76,9 +71,7 @@ function PurchaseOrderListPage() {
     setLoading(true);
     let q = supabase
       .from("doc_headers")
-      .select(
-        "id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no",
-      )
+      .select("id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no")
       .eq("doc_type", "purchase_order")
       .eq("company_id", profile?.company_id ?? "")
       .order("doc_date", { ascending: false })
@@ -101,10 +94,7 @@ function PurchaseOrderListPage() {
   }, [status, dateFrom, dateTo, profile?.company_id]);
 
   const summary = useMemo(() => {
-    const total = list.reduce(
-      (s, d) => s + (Number(d.total_amount) || 0),
-      0,
-    );
+    const total = list.reduce((s, d) => s + (Number(d.total_amount) || 0), 0);
     return { count: list.length, total };
   }, [list]);
 
@@ -117,7 +107,12 @@ function PurchaseOrderListPage() {
     setDialogOpen(true);
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -126,8 +121,7 @@ function PurchaseOrderListPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">採購單</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            管理向廠商下達之採購單。共 {summary.count} 筆,總金額{" "}
-            {summary.total.toLocaleString()}。
+            管理向廠商下達之採購單。共 {summary.count} 筆,總金額 {summary.total.toLocaleString()}。
           </p>
         </div>
         {canWrite && (
@@ -194,7 +188,13 @@ function PurchaseOrderListPage() {
               { key: "doc_date", label: "日期" },
               { key: "contact_name", label: "廠商" },
               { key: "total_amount", label: "總金額", type: "number" },
-              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              {
+                key: "status",
+                label: "狀態",
+                value: (r: Record<string, unknown>) =>
+                  DOC_STATUS_LABEL[(r as { status: string }).status] ??
+                  (r as { status: string }).status,
+              },
               { key: "source_doc_no", label: "來源" },
             ]}
           />
@@ -223,10 +223,7 @@ function PurchaseOrderListPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
                   尚無採購單
                 </TableCell>
               </TableRow>
@@ -239,9 +236,7 @@ function PurchaseOrderListPage() {
                 >
                   <TableCell className="font-mono">{d.doc_no ?? "—"}</TableCell>
                   <TableCell>{d.doc_date}</TableCell>
-                  <TableCell className="font-medium">
-                    {d.contact_name ?? "—"}
-                  </TableCell>
+                  <TableCell className="font-medium">{d.contact_name ?? "—"}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {Number(d.total_amount ?? 0).toLocaleString()}
                   </TableCell>
@@ -306,7 +301,13 @@ function PurchaseOrderListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯採購單" : "檢視採購單") : "新增採購單"}</DialogTitle>
+            <DialogTitle>
+              {editingId
+                ? list.find((d) => d.id === editingId)?.status === "draft"
+                  ? "編輯採購單"
+                  : "檢視採購單"
+                : "新增採購單"}
+            </DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm

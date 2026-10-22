@@ -116,9 +116,15 @@ function ApprovalsPage() {
         p_request_id: req.id,
         p_decision_note: note,
       });
-      if (error) { toast.error(`Approve 失敗:${error.message}`); void load(); return; }
+      if (error) {
+        toast.error(`Approve 失敗:${error.message}`);
+        void load();
+        return;
+      }
       if (data && typeof data === "object" && "error" in (data as object)) {
-        toast.error(`Approve 失敗:${(data as { error: string }).error}`); void load(); return;
+        toast.error(`Approve 失敗:${(data as { error: string }).error}`);
+        void load();
+        return;
       }
 
       removeItem(req.id);
@@ -144,7 +150,11 @@ function ApprovalsPage() {
         toast.warning(`⚠️ 已 approve 但執行失敗:${e instanceof Error ? e.message : String(e)}`);
       }
     } finally {
-      setBusy((b) => { const next = { ...b }; delete next[req.id]; return next; });
+      setBusy((b) => {
+        const next = { ...b };
+        delete next[req.id];
+        return next;
+      });
     }
   };
 
@@ -157,14 +167,22 @@ function ApprovalsPage() {
         p_request_id: req.id,
         p_decision_note: note,
       });
-      if (error) { toast.error(`Reject 失敗:${error.message}`); return; }
+      if (error) {
+        toast.error(`Reject 失敗:${error.message}`);
+        return;
+      }
       if (data && typeof data === "object" && "error" in (data as object)) {
-        toast.error(`Reject 失敗:${(data as { error: string }).error}`); return;
+        toast.error(`Reject 失敗:${(data as { error: string }).error}`);
+        return;
       }
       removeItem(req.id);
       toast.success("已拒絕");
     } finally {
-      setBusy((b) => { const next = { ...b }; delete next[req.id]; return next; });
+      setBusy((b) => {
+        const next = { ...b };
+        delete next[req.id];
+        return next;
+      });
     }
   };
 
@@ -176,13 +194,15 @@ function ApprovalsPage() {
           <p className="text-sm text-muted-foreground">Approval Inbox</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
-          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />Refresh
+          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+          Refresh
         </Button>
       </div>
 
       {loading && items.length === 0 ? (
         <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />載入中...
+          <Loader2 className="h-4 w-4 animate-spin" />
+          載入中...
         </div>
       ) : items.length === 0 ? (
         <Card className="flex flex-col items-center justify-center gap-2 py-16 text-center">
@@ -193,11 +213,20 @@ function ApprovalsPage() {
       ) : (
         <div className="space-y-4">
           {items.map((req) => {
-            const remaining = Math.max(0, Math.floor((new Date(req.expires_at).getTime() - now) / 1000));
+            const remaining = Math.max(
+              0,
+              Math.floor((new Date(req.expires_at).getTime() - now) / 1000),
+            );
             const isUrgent = remaining < 3600;
             const isBusy = !!busy[req.id];
             return (
-              <Card key={req.id} className={cn("relative p-5 transition-opacity", isBusy && "pointer-events-none opacity-60")}>
+              <Card
+                key={req.id}
+                className={cn(
+                  "relative p-5 transition-opacity",
+                  isBusy && "pointer-events-none opacity-60",
+                )}
+              >
                 {isBusy && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -208,7 +237,12 @@ function ApprovalsPage() {
                     <div className="text-lg font-bold">{req.skill_name}</div>
                     <Badge className={riskBadgeClass(req.risk_level)}>{req.risk_level}</Badge>
                   </div>
-                  <div className={cn("text-xs font-medium", isUrgent ? "text-red-600" : "text-muted-foreground")}>
+                  <div
+                    className={cn(
+                      "text-xs font-medium",
+                      isUrgent ? "text-red-600" : "text-muted-foreground",
+                    )}
+                  >
                     {formatRemaining(remaining)}
                   </div>
                 </div>
@@ -220,7 +254,10 @@ function ApprovalsPage() {
                   <div>
                     <div className="text-xs text-muted-foreground">請求時間</div>
                     <div className="font-medium">
-                      {formatDistanceToNow(new Date(req.requested_at), { addSuffix: true, locale: zhTW })}
+                      {formatDistanceToNow(new Date(req.requested_at), {
+                        addSuffix: true,
+                        locale: zhTW,
+                      })}
                     </div>
                   </div>
                   <div className="col-span-2">
@@ -231,9 +268,14 @@ function ApprovalsPage() {
                           <tbody>
                             {Object.entries(req.inputs).map(([k, v]) => (
                               <tr key={k} className="border-b last:border-b-0">
-                                <td className="w-1/3 px-3 py-1.5 align-top font-mono text-muted-foreground">{k}</td>
+                                <td className="w-1/3 px-3 py-1.5 align-top font-mono text-muted-foreground">
+                                  {k}
+                                </td>
                                 <td className="truncate px-3 py-1.5 font-mono">
-                                  <div className="truncate" title={typeof v === "string" ? v : JSON.stringify(v)}>
+                                  <div
+                                    className="truncate"
+                                    title={typeof v === "string" ? v : JSON.stringify(v)}
+                                  >
                                     {typeof v === "string" ? v : JSON.stringify(v)}
                                   </div>
                                 </td>
@@ -256,14 +298,29 @@ function ApprovalsPage() {
                   )}
                 </div>
                 <div className="mt-4 space-y-3">
-                  <Textarea placeholder="備註(選填)" maxLength={200}
-                    value={notes[req.id] ?? ""} onChange={(e) => setNotes((n) => ({ ...n, [req.id]: e.target.value }))}
-                    className="min-h-[60px]" />
+                  <Textarea
+                    placeholder="備註(選填)"
+                    maxLength={200}
+                    value={notes[req.id] ?? ""}
+                    onChange={(e) => setNotes((n) => ({ ...n, [req.id]: e.target.value }))}
+                    className="min-h-[60px]"
+                  />
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" className="border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700"
-                      onClick={() => void handleReject(req)} disabled={isBusy}>Reject</Button>
-                    <Button className="bg-green-600 text-white hover:bg-green-700"
-                      onClick={() => void handleApprove(req)} disabled={isBusy}>Approve</Button>
+                    <Button
+                      variant="outline"
+                      className="border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => void handleReject(req)}
+                      disabled={isBusy}
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      className="bg-green-600 text-white hover:bg-green-700"
+                      onClick={() => void handleApprove(req)}
+                      disabled={isBusy}
+                    >
+                      Approve
+                    </Button>
                   </div>
                 </div>
               </Card>
