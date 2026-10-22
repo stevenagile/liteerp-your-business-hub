@@ -25,12 +25,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -82,10 +77,7 @@ function PaymentBadge({ status }: { status: string | null }) {
   };
   return (
     <span
-      className={cn(
-        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium",
-        s.cls,
-      )}
+      className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", s.cls)}
     >
       {s.label}
     </span>
@@ -137,10 +129,7 @@ function SalesInvoiceListPage() {
   }, [status, dateFrom, dateTo, profile?.company_id]);
 
   const summary = useMemo(() => {
-    const total = list.reduce(
-      (s, d) => s + (Number(d.total_amount) || 0),
-      0,
-    );
+    const total = list.reduce((s, d) => s + (Number(d.total_amount) || 0), 0);
     return { count: list.length, total };
   }, [list]);
 
@@ -153,7 +142,12 @@ function SalesInvoiceListPage() {
     setDialogOpen(true);
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -232,8 +226,20 @@ function SalesInvoiceListPage() {
               { key: "contact_name", label: "客戶" },
               { key: "total_amount", label: "總金額", type: "number" },
               { key: "paid_amount", label: "已收", type: "number" },
-              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
-              { key: "payment_status", label: "收款狀態", value: (r: Record<string, unknown>) => PAY_STATUS_LABEL[(r as { payment_status: string | null }).payment_status ?? ""] ?? "—" },
+              {
+                key: "status",
+                label: "狀態",
+                value: (r: Record<string, unknown>) =>
+                  DOC_STATUS_LABEL[(r as { status: string }).status] ??
+                  (r as { status: string }).status,
+              },
+              {
+                key: "payment_status",
+                label: "收款狀態",
+                value: (r: Record<string, unknown>) =>
+                  PAY_STATUS_LABEL[(r as { payment_status: string | null }).payment_status ?? ""] ??
+                  "—",
+              },
               { key: "source_doc_no", label: "來源訂單" },
             ]}
           />
@@ -264,10 +270,7 @@ function SalesInvoiceListPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground">
                   尚無銷貨單
                 </TableCell>
               </TableRow>
@@ -280,9 +283,7 @@ function SalesInvoiceListPage() {
                 >
                   <TableCell className="font-mono">{d.doc_no ?? "—"}</TableCell>
                   <TableCell>{d.doc_date}</TableCell>
-                  <TableCell className="font-medium">
-                    {d.contact_name ?? "—"}
-                  </TableCell>
+                  <TableCell className="font-medium">{d.contact_name ?? "—"}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {Number(d.total_amount ?? 0).toLocaleString()}
                   </TableCell>
@@ -297,36 +298,32 @@ function SalesInvoiceListPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      {canPay &&
-                        d.status === "confirmed" &&
-                        d.payment_status !== "paid" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setPayTarget(d);
-                            }}
-                          >
-                            <Wallet className="mr-1 h-3.5 w-3.5" />
-                            收款
-                          </Button>
-                        )}
-                      {canWrite &&
-                        (d.status === "confirmed" ||
-                          d.status === "completed") && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setReturnTarget(d);
-                            }}
-                          >
-                            <Undo2 className="mr-1 h-3.5 w-3.5" />
-                            退貨
-                          </Button>
-                        )}
+                      {canPay && d.status === "confirmed" && d.payment_status !== "paid" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setPayTarget(d);
+                          }}
+                        >
+                          <Wallet className="mr-1 h-3.5 w-3.5" />
+                          收款
+                        </Button>
+                      )}
+                      {canWrite && (d.status === "confirmed" || d.status === "completed") && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setReturnTarget(d);
+                          }}
+                        >
+                          <Undo2 className="mr-1 h-3.5 w-3.5" />
+                          退貨
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" asChild title="列印">
                         <a
                           href={`/print/sales_invoice/${d.id}`}
@@ -367,7 +364,13 @@ function SalesInvoiceListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯銷貨單" : "檢視銷貨單") : "新增銷貨單"}</DialogTitle>
+            <DialogTitle>
+              {editingId
+                ? list.find((d) => d.id === editingId)?.status === "draft"
+                  ? "編輯銷貨單"
+                  : "檢視銷貨單"
+                : "新增銷貨單"}
+            </DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm

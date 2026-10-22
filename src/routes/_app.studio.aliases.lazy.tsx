@@ -11,7 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +44,11 @@ interface AliasRow {
 function formatIssues(issues: unknown): string {
   if (issues == null) return "—";
   if (typeof issues === "string") return issues;
-  try { return JSON.stringify(issues); } catch { return String(issues); }
+  try {
+    return JSON.stringify(issues);
+  } catch {
+    return String(issues);
+  }
 }
 
 function AliasTeachingPage() {
@@ -51,8 +60,12 @@ function AliasTeachingPage() {
   const [loadingAliases, setLoadingAliases] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
-  const [productMap, setProductMap] = useState<Record<string, { code?: string; name?: string }>>({});
-  const [contactMap, setContactMap] = useState<Record<string, { code?: string; name?: string }>>({});
+  const [productMap, setProductMap] = useState<Record<string, { code?: string; name?: string }>>(
+    {},
+  );
+  const [contactMap, setContactMap] = useState<Record<string, { code?: string; name?: string }>>(
+    {},
+  );
 
   const loadNames = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("lookup-names");
@@ -62,9 +75,13 @@ function AliasTeachingPage() {
       contacts?: Array<{ id: string; code?: string; name?: string }>;
     } | null;
     const pm: Record<string, { code?: string; name?: string }> = {};
-    (res?.products ?? []).forEach((p) => { pm[p.id] = { code: p.code, name: p.name }; });
+    (res?.products ?? []).forEach((p) => {
+      pm[p.id] = { code: p.code, name: p.name };
+    });
     const cm: Record<string, { code?: string; name?: string }> = {};
-    (res?.contacts ?? []).forEach((c) => { cm[c.id] = { code: c.code, name: c.name }; });
+    (res?.contacts ?? []).forEach((c) => {
+      cm[c.id] = { code: c.code, name: c.name };
+    });
     setProductMap(pm);
     setContactMap(cm);
   }, []);
@@ -99,7 +116,10 @@ function AliasTeachingPage() {
       .order("created_at", { ascending: false })
       .limit(100);
     setLoadingToLearn(false);
-    if (error) { toast.error(`待教清單載入失敗:${error.message}`); return; }
+    if (error) {
+      toast.error(`待教清單載入失敗:${error.message}`);
+      return;
+    }
     setToLearn((data as ToLearnRow[]) ?? []);
   }, [companyId]);
 
@@ -114,7 +134,10 @@ function AliasTeachingPage() {
       .order("last_used_at", { ascending: false, nullsFirst: false })
       .limit(200);
     setLoadingAliases(false);
-    if (error) { toast.error(`已學清單載入失敗:${error.message}`); return; }
+    if (error) {
+      toast.error(`已學清單載入失敗:${error.message}`);
+      return;
+    }
     setAliases((data as AliasRow[]) ?? []);
   }, [companyId]);
 
@@ -131,10 +154,12 @@ function AliasTeachingPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!form.alias_text.trim() || !form.product_code.trim()) {
-      toast.error("請填寫慣用語與產品代碼"); return;
+      toast.error("請填寫慣用語與產品代碼");
+      return;
     }
     if (!form.global && !form.contact_id.trim()) {
-      toast.error("請填寫客戶 contact_id,或勾選「全域」"); return;
+      toast.error("請填寫客戶 contact_id,或勾選「全域」");
+      return;
     }
     setSubmitting(true);
     const impliedQtyNum = form.implied_qty.trim() ? Number(form.implied_qty) : null;
@@ -149,7 +174,10 @@ function AliasTeachingPage() {
     });
     setSubmitting(false);
 
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     const res = data as { ok?: boolean; message?: string; error?: string } | null;
     if (res?.ok) {
       toast.success(res.message ?? "已新增");
@@ -170,7 +198,10 @@ function AliasTeachingPage() {
       .update({ disabled: !row.disabled })
       .eq("id", row.id);
     setTogglingId(null);
-    if (error) { toast.error(`更新失敗:${error.message}`); return; }
+    if (error) {
+      toast.error(`更新失敗:${error.message}`);
+      return;
+    }
     toast.success(!row.disabled ? "已停用" : "已啟用");
     void loadAliases();
   };
@@ -190,10 +221,18 @@ function AliasTeachingPage() {
         <div className="flex items-center justify-between border-b px-4 py-3">
           <div>
             <h2 className="text-base font-semibold">① 待教清單</h2>
-            <p className="text-xs text-muted-foreground">來自 v_terms_to_learn,共 {toLearn.length} 筆</p>
+            <p className="text-xs text-muted-foreground">
+              來自 v_terms_to_learn,共 {toLearn.length} 筆
+            </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => void loadToLearn()} disabled={loadingToLearn}>
-            <RefreshCw className={cn("h-4 w-4", loadingToLearn && "animate-spin")} />重新整理
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void loadToLearn()}
+            disabled={loadingToLearn}
+          >
+            <RefreshCw className={cn("h-4 w-4", loadingToLearn && "animate-spin")} />
+            重新整理
           </Button>
         </div>
         {loadingToLearn && toLearn.length === 0 ? (
@@ -218,10 +257,20 @@ function AliasTeachingPage() {
                 <TableRow key={`${r.contact_id}-${r.created_at}-${idx}`}>
                   <TableCell className="font-mono text-xs">{r.contact_id ?? "—"}</TableCell>
                   <TableCell className="text-sm">{r.raw_message ?? "—"}</TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{formatIssues(r.issues)}</TableCell>
-                  <TableCell className="font-mono text-xs">{new Date(r.created_at).toLocaleString()}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {formatIssues(r.issues)}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {new Date(r.created_at).toLocaleString()}
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="secondary" onClick={() => handleTeachThis(r.contact_id)}>教這個</Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleTeachThis(r.contact_id)}
+                    >
+                      教這個
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -233,38 +282,67 @@ function AliasTeachingPage() {
       {/* ② 教學表單 */}
       <Card className="p-4">
         <h2 className="mb-1 text-base font-semibold">② 教學表單</h2>
-        <p className="mb-4 text-xs text-muted-foreground">填入慣用語對應的產品。勾選「全域」則對所有客戶生效</p>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <p className="mb-4 text-xs text-muted-foreground">
+          填入慣用語對應的產品。勾選「全域」則對所有客戶生效
+        </p>
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">客戶 contact_id</label>
-            <Input placeholder="例如 60912345678" value={form.contact_id}
-              onChange={(e) => setForm((f) => ({ ...f, contact_id: e.target.value }))} disabled={form.global} />
+            <Input
+              placeholder="例如 60912345678"
+              value={form.contact_id}
+              onChange={(e) => setForm((f) => ({ ...f, contact_id: e.target.value }))}
+              disabled={form.global}
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">慣用語</label>
-            <Input placeholder="例如 大瓶" value={form.alias_text}
-              onChange={(e) => setForm((f) => ({ ...f, alias_text: e.target.value }))} />
+            <Input
+              placeholder="例如 大瓶"
+              value={form.alias_text}
+              onChange={(e) => setForm((f) => ({ ...f, alias_text: e.target.value }))}
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">產品代碼</label>
-            <Input placeholder="例如 P0001" value={form.product_code}
-              onChange={(e) => setForm((f) => ({ ...f, product_code: e.target.value }))} />
+            <Input
+              placeholder="例如 P0001"
+              value={form.product_code}
+              onChange={(e) => setForm((f) => ({ ...f, product_code: e.target.value }))}
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">隱含數量(選填)</label>
-            <Input type="number" placeholder="例如 2" value={form.implied_qty}
-              onChange={(e) => setForm((f) => ({ ...f, implied_qty: e.target.value }))} />
+            <Input
+              type="number"
+              placeholder="例如 2"
+              value={form.implied_qty}
+              onChange={(e) => setForm((f) => ({ ...f, implied_qty: e.target.value }))}
+            />
           </div>
           <div className="flex items-end gap-2">
             <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={form.global}
-                onCheckedChange={(v) => setForm((f) => ({ ...f, global: Boolean(v), contact_id: v ? "" : f.contact_id }))} />
+              <Checkbox
+                checked={form.global}
+                onCheckedChange={(v) =>
+                  setForm((f) => ({ ...f, global: Boolean(v), contact_id: v ? "" : f.contact_id }))
+                }
+              />
               全域(對所有客戶生效)
             </label>
           </div>
           <div className="flex items-end">
             <Button type="submit" disabled={submitting} className="w-full">
-              {submitting ? (<><Loader2 className="h-4 w-4 animate-spin" /> 教中...</>) : "教"}
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> 教中...
+                </>
+              ) : (
+                "教"
+              )}
             </Button>
           </div>
         </form>
@@ -277,8 +355,14 @@ function AliasTeachingPage() {
             <h2 className="text-base font-semibold">③ 已學清單</h2>
             <p className="text-xs text-muted-foreground">共 {aliases.length} 筆</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => void loadAliases()} disabled={loadingAliases}>
-            <RefreshCw className={cn("h-4 w-4", loadingAliases && "animate-spin")} />重新整理
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void loadAliases()}
+            disabled={loadingAliases}
+          >
+            <RefreshCw className={cn("h-4 w-4", loadingAliases && "animate-spin")} />
+            重新整理
           </Button>
         </div>
         {loadingAliases && aliases.length === 0 ? (
@@ -305,23 +389,44 @@ function AliasTeachingPage() {
                 <TableRow key={r.id} className={cn(idx % 2 === 1 && "bg-muted/30")}>
                   <TableCell className="text-sm font-medium">{r.alias_text}</TableCell>
                   <TableCell className="text-xs">{renderProduct(r.product_id)}</TableCell>
-                  <TableCell className="text-right font-mono text-xs">{r.confirm_count ?? 0}</TableCell>
+                  <TableCell className="text-right font-mono text-xs">
+                    {r.confirm_count ?? 0}
+                  </TableCell>
                   <TableCell className="text-xs">
                     {r.contact_id ? (
-                      renderContact(r.contact_id) || <span className="font-mono">{r.contact_id.slice(0, 8)}</span>
+                      renderContact(r.contact_id) || (
+                        <span className="font-mono">{r.contact_id.slice(0, 8)}</span>
+                      )
                     ) : (
                       <Badge variant="secondary">全域</Badge>
                     )}
                   </TableCell>
                   <TableCell>
-                    {r.disabled
-                      ? <Badge className="bg-slate-400 text-white hover:bg-slate-400">已停用</Badge>
-                      : <Badge className="bg-emerald-500 text-white hover:bg-emerald-500">啟用中</Badge>}
+                    {r.disabled ? (
+                      <Badge className="bg-slate-400 text-white hover:bg-slate-400">已停用</Badge>
+                    ) : (
+                      <Badge className="bg-emerald-500 text-white hover:bg-emerald-500">
+                        啟用中
+                      </Badge>
+                    )}
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{r.last_used_at ? new Date(r.last_used_at).toLocaleString() : "—"}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {r.last_used_at ? new Date(r.last_used_at).toLocaleString() : "—"}
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="outline" disabled={togglingId === r.id} onClick={() => void toggleDisabled(r)}>
-                      {togglingId === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : r.disabled ? "啟用" : "停用"}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={togglingId === r.id}
+                      onClick={() => void toggleDisabled(r)}
+                    >
+                      {togglingId === r.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : r.disabled ? (
+                        "啟用"
+                      ) : (
+                        "停用"
+                      )}
                     </Button>
                   </TableCell>
                 </TableRow>
