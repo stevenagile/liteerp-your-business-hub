@@ -4,11 +4,7 @@ import { Bell, Package, AlertTriangle, BarChart3, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export type Notification = {
   id: string;
@@ -118,9 +114,7 @@ export function NotificationBell() {
 
   const markRead = async (n: Notification) => {
     if (n.is_read) return;
-    setItems((prev) =>
-      prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)),
-    );
+    setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)));
     setUnread((u) => Math.max(0, u - 1));
     await supabase.from("notifications").update({ is_read: true }).eq("id", n.id);
   };
@@ -148,9 +142,7 @@ export function NotificationBell() {
         </div>
         <div className="max-h-96 overflow-y-auto">
           {items.length === 0 && (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              目前沒有通知
-            </div>
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">目前沒有通知</div>
           )}
           {items.map((n) => {
             const meta = eventTypeMeta(n.event_type);
@@ -162,7 +154,12 @@ export function NotificationBell() {
                   !n.is_read && "bg-blue-50/60",
                 )}
               >
-                <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full", meta.bg)}>
+                <div
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                    meta.bg,
+                  )}
+                >
                   <meta.Icon className={cn("h-4 w-4", meta.color)} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -186,21 +183,11 @@ export function NotificationBell() {
               setOpen(false);
             };
             return href ? (
-              <Link
-                key={n.id}
-                to={href}
-                onClick={onClick}
-                className="block"
-              >
+              <Link key={n.id} to={href} onClick={onClick} className="block">
                 {content}
               </Link>
             ) : (
-              <button
-                key={n.id}
-                type="button"
-                onClick={onClick}
-                className="block w-full"
-              >
+              <button key={n.id} type="button" onClick={onClick} className="block w-full">
                 {content}
               </button>
             );

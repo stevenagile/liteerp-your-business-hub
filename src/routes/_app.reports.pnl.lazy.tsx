@@ -31,10 +31,8 @@ const fmtMonth = (m: string) => {
   if (isNaN(d.getTime())) return m.slice(0, 7).replace("-", "/");
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
-const num = (n: number | null | undefined) =>
-  n == null ? "-" : Number(n).toLocaleString();
-const pct = (n: number | null | undefined) =>
-  n == null ? "-" : `${Number(n).toFixed(2)}%`;
+const num = (n: number | null | undefined) => (n == null ? "-" : Number(n).toLocaleString());
+const pct = (n: number | null | undefined) => (n == null ? "-" : `${Number(n).toFixed(2)}%`);
 
 function PnlReport() {
   const { allowed, checking } = usePermissionGuard("/reports/pnl");
@@ -56,7 +54,12 @@ function PnlReport() {
     })();
   }, [profile?.company_id]);
 
-  const cols: { key: keyof Row | "label"; label: string; isPct?: boolean; emphasis?: "gross" | "net" }[] = [
+  const cols: {
+    key: keyof Row | "label";
+    label: string;
+    isPct?: boolean;
+    emphasis?: "gross" | "net";
+  }[] = [
     { key: "revenue", label: "營收" },
     { key: "cogs", label: "銷貨成本" },
     { key: "gross_profit", label: "毛利", emphasis: "gross" },
@@ -68,7 +71,12 @@ function PnlReport() {
     { key: "net_margin_pct", label: "淨利率", isPct: true },
   ];
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -84,7 +92,11 @@ function PnlReport() {
             rows={rows as unknown as Record<string, unknown>[]}
             filename="月損益表"
             columns={[
-              { key: "month", label: "月份", value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7) },
+              {
+                key: "month",
+                label: "月份",
+                value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7),
+              },
               { key: "revenue", label: "營收", type: "number" },
               { key: "cogs", label: "銷貨成本", type: "number" },
               { key: "gross_profit", label: "毛利", type: "number" },
@@ -105,20 +117,28 @@ function PnlReport() {
             <tr>
               <th className="px-4 py-3 text-left">月份</th>
               {cols.map((c) => (
-                <th key={c.label} className="px-4 py-3 text-right">{c.label}</th>
+                <th key={c.label} className="px-4 py-3 text-right">
+                  {c.label}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={cols.length + 1} className="px-4 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={cols.length + 1}
+                  className="px-4 py-8 text-center text-muted-foreground"
+                >
                   載入中...
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={cols.length + 1} className="px-4 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={cols.length + 1}
+                  className="px-4 py-8 text-center text-muted-foreground"
+                >
                   尚無資料
                 </td>
               </tr>
@@ -128,10 +148,7 @@ function PnlReport() {
                 return (
                   <tr
                     key={r.month}
-                    className={cn(
-                      "border-t",
-                      negative && "bg-destructive/5 text-destructive",
-                    )}
+                    className={cn("border-t", negative && "bg-destructive/5 text-destructive")}
                   >
                     <td className="px-4 py-2.5 font-medium">{fmtMonth(r.month)}</td>
                     {cols.map((c) => {

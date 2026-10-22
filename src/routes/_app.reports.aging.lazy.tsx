@@ -9,12 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -86,10 +81,13 @@ function AgingTable({ rows, partyLabel }: { rows: Row[]; partyLabel: string }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {BUCKETS.map((b) => (
-          <div key={b} className={cn(
-            "rounded-md border bg-card p-3",
-            b === "90天以上" && "border-destructive/40 bg-destructive/5",
-          )}>
+          <div
+            key={b}
+            className={cn(
+              "rounded-md border bg-card p-3",
+              b === "90天以上" && "border-destructive/40 bg-destructive/5",
+            )}
+          >
             <div className="text-xs text-muted-foreground">{b}</div>
             <div className="text-xl font-bold">{fmt(summary[b])}</div>
           </div>
@@ -110,7 +108,11 @@ function AgingTable({ rows, partyLabel }: { rows: Row[]; partyLabel: string }) {
           </TableHeader>
           <TableBody>
             {rows.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground">無資料</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
+                  無資料
+                </TableCell>
+              </TableRow>
             )}
             {rows.map((r, i) => {
               const isOld = r.aging_bucket === "90天以上";
@@ -140,7 +142,12 @@ function AgingReport() {
 
   const activeRows = tab === "ar" ? ar.rows : ap.rows;
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -171,14 +178,18 @@ function AgingReport() {
         </TabsList>
         <TabsContent value="ar" className="mt-4">
           {ar.loading ? (
-            <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            <div className="flex justify-center p-8">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
           ) : (
             <AgingTable rows={ar.rows} partyLabel="客戶" />
           )}
         </TabsContent>
         <TabsContent value="ap" className="mt-4">
           {ap.loading ? (
-            <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            <div className="flex justify-center p-8">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
           ) : (
             <AgingTable rows={ap.rows} partyLabel="廠商" />
           )}

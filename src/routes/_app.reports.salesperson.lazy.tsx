@@ -79,7 +79,12 @@ function SalespersonReport() {
     return [...rows].sort((a, b) => Number(b[sortKey] ?? 0) - Number(a[sortKey] ?? 0));
   }, [rows, sortKey]);
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -89,11 +94,21 @@ function SalespersonReport() {
       <div className="flex flex-wrap items-end gap-3 rounded-md border bg-card p-4">
         <div className="grid gap-1.5">
           <Label>起月</Label>
-          <Input className="w-40" type="month" value={startMonth} onChange={(e) => setStartMonth(e.target.value)} />
+          <Input
+            className="w-40"
+            type="month"
+            value={startMonth}
+            onChange={(e) => setStartMonth(e.target.value)}
+          />
         </div>
         <div className="grid gap-1.5">
           <Label>迄月</Label>
-          <Input className="w-40" type="month" value={endMonth} onChange={(e) => setEndMonth(e.target.value)} />
+          <Input
+            className="w-40"
+            type="month"
+            value={endMonth}
+            onChange={(e) => setEndMonth(e.target.value)}
+          />
         </div>
         <Button onClick={run} disabled={loading}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}查詢
@@ -103,7 +118,11 @@ function SalespersonReport() {
           filename="業務績效"
           columns={[
             { key: "sales_person_name", label: "業務員" },
-            { key: "month", label: "月份", value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7) },
+            {
+              key: "month",
+              label: "月份",
+              value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7),
+            },
             { key: "invoice_count", label: "張數", type: "number" },
             { key: "total_sales", label: "總銷售額", type: "number" },
             { key: "gross_profit", label: "總毛利", type: "number" },
@@ -120,12 +139,18 @@ function SalespersonReport() {
               <TableHead>月份</TableHead>
               <TableHead className="text-right">張數</TableHead>
               <TableHead className="text-right">
-                <button className="inline-flex items-center gap-1" onClick={() => setSortKey("total_sales")}>
+                <button
+                  className="inline-flex items-center gap-1"
+                  onClick={() => setSortKey("total_sales")}
+                >
                   總銷售額 <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
               <TableHead className="text-right">
-                <button className="inline-flex items-center gap-1" onClick={() => setSortKey("gross_profit")}>
+                <button
+                  className="inline-flex items-center gap-1"
+                  onClick={() => setSortKey("gross_profit")}
+                >
                   總毛利 <ArrowUpDown className="h-3 w-3" />
                 </button>
               </TableHead>
@@ -134,7 +159,11 @@ function SalespersonReport() {
           </TableHeader>
           <TableBody>
             {sorted.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground">無資料</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
+                  無資料
+                </TableCell>
+              </TableRow>
             )}
             {sorted.map((r, i) => (
               <TableRow key={i}>
@@ -143,7 +172,9 @@ function SalespersonReport() {
                 <TableCell className="text-right">{r.invoice_count ?? 0}</TableCell>
                 <TableCell className="text-right">{fmt(r.total_sales)}</TableCell>
                 <TableCell className="text-right">{fmt(r.gross_profit)}</TableCell>
-                <TableCell className="text-right">{Number(r.margin_pct ?? 0).toFixed(2)}%</TableCell>
+                <TableCell className="text-right">
+                  {Number(r.margin_pct ?? 0).toFixed(2)}%
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
