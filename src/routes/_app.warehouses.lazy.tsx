@@ -170,9 +170,7 @@ function WarehousesPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">倉庫管理</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            管理庫存所在倉庫，可設定一個預設倉。
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">管理庫存所在倉庫，可設定一個預設倉。</p>
         </div>
         <Button onClick={openCreate}>
           <Plus className="mr-1 h-4 w-4" />
@@ -277,7 +275,9 @@ function WarehousesPage() {
             <div className="flex items-center justify-between rounded-md border p-3">
               <div>
                 <Label>預設倉庫</Label>
-                <p className="text-xs text-muted-foreground">設為預設後，建立單據時自動帶入此倉。</p>
+                <p className="text-xs text-muted-foreground">
+                  設為預設後，建立單據時自動帶入此倉。
+                </p>
               </div>
               <Switch
                 checked={form.is_default}
@@ -296,7 +296,9 @@ function WarehousesPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>取消</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              取消
+            </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               儲存

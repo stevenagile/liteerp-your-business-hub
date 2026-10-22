@@ -85,20 +85,14 @@ function ExpensesPage() {
   useEffect(() => {
     load();
     (async () => {
-      let q = supabase
-        .from("expense_categories")
-        .select("id, code, name, is_fixed")
-        .order("code");
+      let q = supabase.from("expense_categories").select("id, code, name, is_fixed").order("code");
       if (profile?.company_id) q = q.eq("company_id", profile.company_id);
       const { data } = await q;
       setCategories((data ?? []) as Category[]);
     })();
   }, [profile?.company_id]);
 
-  const total = useMemo(
-    () => list.reduce((s, e) => s + (Number(e.amount) || 0), 0),
-    [list],
-  );
+  const total = useMemo(() => list.reduce((s, e) => s + (Number(e.amount) || 0), 0), [list]);
 
   const openCreate = () => {
     setForm({
@@ -147,7 +141,12 @@ function ExpensesPage() {
     load();
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -156,8 +155,7 @@ function ExpensesPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">費用管理</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            記錄營運費用支出。共 {list.length} 筆，合計{" "}
-            {total.toLocaleString()}。
+            記錄營運費用支出。共 {list.length} 筆，合計 {total.toLocaleString()}。
           </p>
         </div>
         {canWrite && (
@@ -188,10 +186,7 @@ function ExpensesPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={5} className="h-24 text-center text-sm text-muted-foreground">
                   尚無費用紀錄
                 </TableCell>
               </TableRow>
@@ -225,9 +220,7 @@ function ExpensesPage() {
               <Input
                 type="date"
                 value={form.expense_date}
-                onChange={(e) =>
-                  setForm({ ...form, expense_date: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, expense_date: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
@@ -262,9 +255,7 @@ function ExpensesPage() {
               <Label>廠商/付給誰</Label>
               <Input
                 value={form.vendor_name}
-                onChange={(e) =>
-                  setForm({ ...form, vendor_name: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, vendor_name: e.target.value })}
                 placeholder="選填"
               />
             </div>
@@ -273,9 +264,7 @@ function ExpensesPage() {
               <Textarea
                 rows={2}
                 value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="選填"
               />
             </div>
@@ -283,19 +272,13 @@ function ExpensesPage() {
               <Label>收據連結</Label>
               <Input
                 value={form.receipt_url}
-                onChange={(e) =>
-                  setForm({ ...form, receipt_url: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, receipt_url: e.target.value })}
                 placeholder="選填(URL)"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDialogOpen(false)}
-              disabled={saving}
-            >
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
               取消
             </Button>
             <Button onClick={submit} disabled={saving}>

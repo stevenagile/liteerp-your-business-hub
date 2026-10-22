@@ -163,9 +163,8 @@ export function Sidebar({
   const tree = buildTree(menu);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const [isDark, setIsDark] = useState<boolean>(() =>
-    typeof document !== "undefined" &&
-    document.documentElement.classList.contains("dark"),
+  const [isDark, setIsDark] = useState<boolean>(
+    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
   );
 
   useEffect(() => {
@@ -203,15 +202,9 @@ export function Sidebar({
         <div className="px-2 pt-3 pb-2 text-xs font-medium text-sidebar-foreground/55">
           主要功能
         </div>
-        {loading && (
-          <div className="px-3 py-2 text-sm text-sidebar-foreground/70">
-            載入選單中…
-          </div>
-        )}
+        {loading && <div className="px-3 py-2 text-sm text-sidebar-foreground/70">載入選單中…</div>}
         {!loading && tree.length === 0 && (
-          <div className="px-3 py-2 text-sm text-sidebar-foreground/70">
-            無可顯示的選單
-          </div>
+          <div className="px-3 py-2 text-sm text-sidebar-foreground/70">無可顯示的選單</div>
         )}
         <ul className="space-y-1">
           {tree.map((n) => (
@@ -229,11 +222,7 @@ export function Sidebar({
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
             aria-label="切換主題"
           >
-            {isDark ? (
-              <Moon className="h-5 w-5" />
-            ) : (
-              <Sun className="h-5 w-5" />
-            )}
+            {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
           </button>
           <button
             type="button"
@@ -259,24 +248,13 @@ export function Sidebar({
   );
 }
 
-function MenuNode({
-  node,
-  depth,
-  pathname,
-}: {
-  node: Node;
-  depth: number;
-  pathname: string;
-}) {
+function MenuNode({ node, depth, pathname }: { node: Node; depth: number; pathname: string }) {
   const Icon = resolveIcon(node.icon) ?? (depth === 0 ? null : Circle);
   const isGroup = node.route == null;
   const hasChildren = node.children.length > 0;
   const containsActive = (n: Node): boolean =>
-    (n.route != null && n.route === pathname) ||
-    n.children.some(containsActive);
-  const [open, setOpen] = useState<boolean>(
-    isGroup ? containsActive(node) : false,
-  );
+    (n.route != null && n.route === pathname) || n.children.some(containsActive);
+  const [open, setOpen] = useState<boolean>(isGroup ? containsActive(node) : false);
 
   const padLeft = `${0.75 + depth * 0.875}rem`;
 
@@ -305,12 +283,7 @@ function MenuNode({
         {hasChildren && open && (
           <ul className="mt-1 space-y-1">
             {node.children.map((c) => (
-              <MenuNode
-                key={c.id}
-                node={c}
-                depth={depth + 1}
-                pathname={pathname}
-              />
+              <MenuNode key={c.id} node={c} depth={depth + 1} pathname={pathname} />
             ))}
           </ul>
         )}
@@ -324,9 +297,7 @@ function MenuNode({
       <Link
         to={node.route!}
         style={
-          active
-            ? { paddingLeft: padLeft, backgroundColor: "#5C8A4D" }
-            : { paddingLeft: padLeft }
+          active ? { paddingLeft: padLeft, backgroundColor: "#5C8A4D" } : { paddingLeft: padLeft }
         }
         className={cn(
           "flex items-center gap-3 rounded-full py-2.5 pr-4 text-[15px] transition-colors",
@@ -335,20 +306,13 @@ function MenuNode({
             : "text-sidebar-foreground/85 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
         )}
       >
-        {Icon && (
-          <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
-        )}
+        {Icon && <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />}
         <span className="truncate">{node.label}</span>
       </Link>
       {hasChildren && (
         <ul className="mt-1 space-y-1">
           {node.children.map((c) => (
-            <MenuNode
-              key={c.id}
-              node={c}
-              depth={depth + 1}
-              pathname={pathname}
-            />
+            <MenuNode key={c.id} node={c} depth={depth + 1} pathname={pathname} />
           ))}
         </ul>
       )}
