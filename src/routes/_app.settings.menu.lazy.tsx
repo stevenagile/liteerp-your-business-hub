@@ -1,16 +1,7 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import {
-  Loader2,
-  Plus,
-  Pencil,
-  Trash2,
-  Lock,
-  ChevronUp,
-  ChevronDown,
-  Info,
-} from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Lock, ChevronUp, ChevronDown, Info } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -149,10 +140,7 @@ function MenuStructurePage() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await core()
-      .from("menu_items")
-      .select("*")
-      .order("sort_order");
+    const { data, error } = await core().from("menu_items").select("*").order("sort_order");
     if (error) toast.error(error.message);
     else setItems((data ?? []) as MenuItem[]);
     setLoading(false);
@@ -171,7 +159,7 @@ function MenuStructurePage() {
       label: "",
       route: "",
       icon: "",
-      sort_order: (items.reduce((m, i) => Math.max(m, i.sort_order ?? 0), 0) + 10),
+      sort_order: items.reduce((m, i) => Math.max(m, i.sort_order ?? 0), 0) + 10,
     });
     setCreateOpen(true);
   };
@@ -236,25 +224,15 @@ function MenuStructurePage() {
   };
 
   const toggleActive = async (it: MenuItem, next: boolean) => {
-    const { error } = await core()
-      .from("menu_items")
-      .update({ is_active: next })
-      .eq("id", it.id);
+    const { error } = await core().from("menu_items").update({ is_active: next }).eq("id", it.id);
     if (error) return toast.error(error.message);
-    setItems((prev) =>
-      prev.map((i) => (i.id === it.id ? { ...i, is_active: next } : i)),
-    );
+    setItems((prev) => prev.map((i) => (i.id === it.id ? { ...i, is_active: next } : i)));
   };
 
   const updateSort = async (it: MenuItem, next: number) => {
-    const { error } = await core()
-      .from("menu_items")
-      .update({ sort_order: next })
-      .eq("id", it.id);
+    const { error } = await core().from("menu_items").update({ sort_order: next }).eq("id", it.id);
     if (error) return toast.error(error.message);
-    setItems((prev) =>
-      prev.map((i) => (i.id === it.id ? { ...i, sort_order: next } : i)),
-    );
+    setItems((prev) => prev.map((i) => (i.id === it.id ? { ...i, sort_order: next } : i)));
   };
 
   const move = async (it: MenuItem, dir: -1 | 1) => {
@@ -333,7 +311,8 @@ function MenuStructurePage() {
             • <code>route</code> 對應的頁面需另行建立（路由檔），否則點擊會 404。
           </div>
           <div>
-            • 新增自訂選單後，需到「角色權限」頁替對應角色開啟 <code>can_view</code>，選單才會出現在側邊欄。
+            • 新增自訂選單後，需到「角色權限」頁替對應角色開啟 <code>can_view</code>
+            ，選單才會出現在側邊欄。
           </div>
           <div>• 停用 (is_active=false) 後，該項不會出現在任何人的 get_my_menu。</div>
         </div>
@@ -376,17 +355,13 @@ function MenuStructurePage() {
                       <span className={n.route ? "" : "font-medium text-muted-foreground"}>
                         {n.label}
                       </span>
-                      <span className="text-xs text-muted-foreground/70">
-                        ({n.id})
-                      </span>
+                      <span className="text-xs text-muted-foreground/70">({n.id})</span>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {n.route || "—"}
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {n.icon || "—"}
-                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{n.icon || "—"}</TableCell>
                   <TableCell>
                     <div className="flex items-center justify-center gap-1">
                       <Button
@@ -407,9 +382,7 @@ function MenuStructurePage() {
                         onChange={(e) => {
                           const v = Number(e.target.value);
                           setItems((prev) =>
-                            prev.map((i) =>
-                              i.id === n.id ? { ...i, sort_order: v } : i,
-                            ),
+                            prev.map((i) => (i.id === n.id ? { ...i, sort_order: v } : i)),
                           );
                         }}
                         onBlur={(e) => updateSort(n, Number(e.target.value) || 0)}
@@ -583,10 +556,7 @@ function FormFields({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label>父節點</Label>
-          <Select
-            value={form.parent_id}
-            onValueChange={(v) => setForm({ ...form, parent_id: v })}
-          >
+          <Select value={form.parent_id} onValueChange={(v) => setForm({ ...form, parent_id: v })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -605,9 +575,7 @@ function FormFields({
           <Input
             type="number"
             value={form.sort_order}
-            onChange={(e) =>
-              setForm({ ...form, sort_order: Number(e.target.value) || 0 })
-            }
+            onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) || 0 })}
           />
         </div>
       </div>

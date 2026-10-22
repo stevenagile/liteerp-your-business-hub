@@ -117,8 +117,16 @@ function OpeningInventory() {
     if (!companyId) return;
     (async () => {
       const [{ data: p }, { data: w }] = await Promise.all([
-        supabase.from("products").select("id, code, name, cost_price").eq("company_id", companyId).order("code"),
-        supabase.from("warehouses").select("id, code, name").eq("company_id", companyId).order("code"),
+        supabase
+          .from("products")
+          .select("id, code, name, cost_price")
+          .eq("company_id", companyId)
+          .order("code"),
+        supabase
+          .from("warehouses")
+          .select("id, code, name")
+          .eq("company_id", companyId)
+          .order("code"),
       ]);
       setProducts((p ?? []) as Product[]);
       setWarehouses((w ?? []) as Warehouse[]);
@@ -186,7 +194,9 @@ function OpeningInventory() {
                       });
                     }}
                   >
-                    <SelectTrigger><SelectValue placeholder="選擇產品" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="選擇產品" />
+                    </SelectTrigger>
                     <SelectContent>
                       {products.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
@@ -201,7 +211,9 @@ function OpeningInventory() {
                     value={r.warehouse_id}
                     onValueChange={(v) => update(r.key, { warehouse_id: v })}
                   >
-                    <SelectTrigger><SelectValue placeholder="倉庫" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="倉庫" />
+                    </SelectTrigger>
                     <SelectContent>
                       {warehouses.map((w) => (
                         <SelectItem key={w.id} value={w.id}>
@@ -407,18 +419,26 @@ function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
       <form onSubmit={submit} className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
         <div className="text-sm font-medium">新增期初{verb}</div>
         <div className="space-y-1.5">
-          <Label>{partyLabel} <span className="text-destructive">*</span></Label>
+          <Label>
+            {partyLabel} <span className="text-destructive">*</span>
+          </Label>
           <Select value={contactId} onValueChange={setContactId}>
-            <SelectTrigger><SelectValue placeholder={`選擇${partyLabel}`} /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder={`選擇${partyLabel}`} />
+            </SelectTrigger>
             <SelectContent>
               {contacts.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>金額 <span className="text-destructive">*</span></Label>
+          <Label>
+            金額 <span className="text-destructive">*</span>
+          </Label>
           <Input
             type="number"
             step="1"
@@ -429,8 +449,15 @@ function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label>單據日期 <span className="text-destructive">*</span></Label>
-          <Input type="date" value={docDate} onChange={(e) => setDocDate(e.target.value)} required />
+          <Label>
+            單據日期 <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            type="date"
+            value={docDate}
+            onChange={(e) => setDocDate(e.target.value)}
+            required
+          />
         </div>
         <div className="space-y-1.5">
           <Label>到期日</Label>
