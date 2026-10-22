@@ -36,13 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import type { ExportColumn } from "@/lib/export-excel";
 
@@ -128,10 +122,7 @@ function aggregateStops(rows: ManifestRow[]): Stop[] {
       const unitSuffix = r.unit ? `(${r.unit})` : "";
       return `${name}${unitSuffix} ×${r.quantity}`;
     });
-    const notes = [
-      contact.contact_delivery_note,
-      contact.doc_delivery_note,
-    ]
+    const notes = [contact.contact_delivery_note, contact.doc_delivery_note]
       .filter(Boolean)
       .join("；");
 
@@ -161,18 +152,13 @@ function groupByDistrict(stops: Stop[]): DistrictGroup[] {
     .sort(([a], [b]) => a.localeCompare(b, "zh-Hant"))
     .map(([district, stops]) => ({
       district,
-      stops: stops.sort(
-        (a, b) => (a.route_seq ?? 9999) - (b.route_seq ?? 9999),
-      ),
+      stops: stops.sort((a, b) => (a.route_seq ?? 9999) - (b.route_seq ?? 9999)),
       collapsed: false,
     }));
 }
 
 function buildProductSummary(rows: ManifestRow[]): ProductSummary[] {
-  const map = new Map<
-    string,
-    { qty: number; unit: string; packPerBox: number | null }
-  >();
+  const map = new Map<string, { qty: number; unit: string; packPerBox: number | null }>();
   for (const r of rows) {
     const name = r.product_name ?? r.product_code ?? "—";
     if (!map.has(name)) {
@@ -184,10 +170,7 @@ function buildProductSummary(rows: ManifestRow[]): ProductSummary[] {
     name,
     totalQty: v.qty,
     unit: v.unit,
-    boxes:
-      v.packPerBox && v.packPerBox > 0
-        ? `約 ${Math.ceil(v.qty / v.packPerBox)} 箱`
-        : "—",
+    boxes: v.packPerBox && v.packPerBox > 0 ? `約 ${Math.ceil(v.qty / v.packPerBox)} 箱` : "—",
   }));
 }
 
@@ -277,25 +260,16 @@ function RouteSheetPage() {
   const productSummary = useMemo(() => buildProductSummary(rows), [rows]);
 
   // ── Stats ──
-  const totalStops = useMemo(
-    () => groups.reduce((sum, g) => sum + g.stops.length, 0),
-    [groups],
-  );
+  const totalStops = useMemo(() => groups.reduce((sum, g) => sum + g.stops.length, 0), [groups]);
   const cashStops = useMemo(
-    () =>
-      groups.reduce(
-        (sum, g) => sum + g.stops.filter((s) => s.collect_cash).length,
-        0,
-      ),
+    () => groups.reduce((sum, g) => sum + g.stops.filter((s) => s.collect_cash).length, 0),
     [groups],
   );
 
   // ── Toggle district collapse ──
   const toggleCollapse = (district: string) => {
     setGroups((prev) =>
-      prev.map((g) =>
-        g.district === district ? { ...g, collapsed: !g.collapsed } : g,
-      ),
+      prev.map((g) => (g.district === district ? { ...g, collapsed: !g.collapsed } : g)),
     );
   };
 
@@ -304,11 +278,7 @@ function RouteSheetPage() {
     dragRef.current = { district, fromIdx: idx };
   };
 
-  const handleDragOver = (
-    e: React.DragEvent,
-    district: string,
-    idx: number,
-  ) => {
+  const handleDragOver = (e: React.DragEvent, district: string, idx: number) => {
     e.preventDefault();
     if (dragRef.current?.district !== district) return;
     setDragOver({ district, idx });
@@ -400,7 +370,12 @@ function RouteSheetPage() {
     window.print();
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   // ── Render ──
@@ -426,10 +401,7 @@ function RouteSheetPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">車種</Label>
-            <Select
-              value={truck}
-              onValueChange={(v) => setTruck(v as "all" | "大車" | "小車")}
-            >
+            <Select value={truck} onValueChange={(v) => setTruck(v as "all" | "大車" | "小車")}>
               <SelectTrigger className="w-28">
                 <SelectValue />
               </SelectTrigger>
@@ -441,9 +413,7 @@ function RouteSheetPage() {
             </Select>
           </div>
           <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-            <RefreshCw
-              className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             重新整理
           </Button>
         </div>
@@ -472,11 +442,7 @@ function RouteSheetPage() {
 
       {/* Action bar */}
       <div className="flex flex-wrap gap-2 no-print">
-        <Button
-          size="sm"
-          onClick={saveRouteSeq}
-          disabled={saving || loading}
-        >
+        <Button size="sm" onClick={saveRouteSeq} disabled={saving || loading}>
           {saving ? (
             <Loader2 className="mr-1 h-4 w-4 animate-spin" />
           ) : (
@@ -509,9 +475,7 @@ function RouteSheetPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <MapPin className="mb-3 h-12 w-12 text-muted-foreground/40" />
-            <p className="text-muted-foreground">
-              {date} 沒有出貨資料
-            </p>
+            <p className="text-muted-foreground">{date} 沒有出貨資料</p>
             <Button
               variant="link"
               className="mt-2"
@@ -554,9 +518,7 @@ function RouteSheetPage() {
                     </Badge>
                   )}
                 </div>
-                <CardDescription className="text-xs no-print">
-                  拖曳 ⡇ 可調整順序
-                </CardDescription>
+                <CardDescription className="text-xs no-print">拖曳 ⡇ 可調整順序</CardDescription>
               </div>
             </CardHeader>
             {!g.collapsed && (
@@ -578,17 +540,12 @@ function RouteSheetPage() {
                       <TableRow
                         key={stop.contact_id || idx}
                         draggable
-                        onDragStart={() =>
-                          handleDragStart(g.district, idx)
-                        }
-                        onDragOver={(e) =>
-                          handleDragOver(e, g.district, idx)
-                        }
+                        onDragStart={() => handleDragStart(g.district, idx)}
+                        onDragOver={(e) => handleDragOver(e, g.district, idx)}
                         onDrop={() => handleDrop(g.district, idx)}
                         onDragEnd={handleDragEnd}
                         className={`transition-colors ${
-                          dragOver?.district === g.district &&
-                          dragOver?.idx === idx
+                          dragOver?.district === g.district && dragOver?.idx === idx
                             ? "bg-primary/10"
                             : ""
                         } ${stop.collect_cash ? "bg-amber-50/60" : ""}`}
@@ -599,9 +556,7 @@ function RouteSheetPage() {
                         <TableCell className="text-center text-xs text-muted-foreground">
                           {idx + 1}
                         </TableCell>
-                        <TableCell className="font-medium">
-                          {stop.contact_name}
-                        </TableCell>
+                        <TableCell className="font-medium">{stop.contact_name}</TableCell>
                         <TableCell className="text-sm">{stop.items}</TableCell>
                         <TableCell className="text-center">
                           {stop.collect_cash && (
@@ -647,12 +602,8 @@ function RouteSheetPage() {
                   <TableRow key={p.name}>
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell className="text-right">{p.totalQty}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {p.unit}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {p.boxes}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{p.unit}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{p.boxes}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

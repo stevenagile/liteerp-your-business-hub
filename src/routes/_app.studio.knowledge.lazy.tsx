@@ -1,21 +1,39 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ChevronRight, Pencil, Trash2, Plus, FolderTree, Upload, Download, FileText } from "lucide-react";
+import {
+  ChevronRight,
+  Pencil,
+  Trash2,
+  Plus,
+  FolderTree,
+  Upload,
+  Download,
+  FileText,
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { useCompanyId } from "@/hooks/useCompanyId";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-  Collapsible, CollapsibleContent, CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -74,7 +92,9 @@ function KnowledgePage() {
     setLoading(false);
   }, [companyId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const departments = nodes.filter((n) => n.type === "department" && !n.parent_id);
   const topicsByParent = nodes
@@ -88,7 +108,11 @@ function KnowledgePage() {
     if (!deleteTarget) return;
     const { error } = await db().from("nodes").delete().eq("id", deleteTarget.id);
     if (error) toast.error(`刪除失敗：${error.message}`);
-    else { toast.success("已刪除"); setDeleteTarget(null); void load(); }
+    else {
+      toast.success("已刪除");
+      setDeleteTarget(null);
+      void load();
+    }
   };
 
   return (
@@ -99,7 +123,8 @@ function KnowledgePage() {
           <p className="text-sm text-muted-foreground">管理你的知識分類樹（部門 / 主題）</p>
         </div>
         <Button onClick={() => setFormMode({ kind: "new-department" })}>
-          <Plus className="h-4 w-4" />New Department
+          <Plus className="h-4 w-4" />
+          New Department
         </Button>
       </div>
 
@@ -118,13 +143,25 @@ function KnowledgePage() {
               const isOpen = expanded[dept.id] ?? true;
               return (
                 <li key={dept.id}>
-                  <Collapsible open={isOpen} onOpenChange={(o) => setExpanded((p) => ({ ...p, [dept.id]: o }))}>
+                  <Collapsible
+                    open={isOpen}
+                    onOpenChange={(o) => setExpanded((p) => ({ ...p, [dept.id]: o }))}
+                  >
                     <div className="group flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-accent">
                       <CollapsibleTrigger asChild>
                         <button type="button" className="flex flex-1 items-center gap-2 text-left">
-                          <ChevronRight className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", isOpen && "rotate-90")} />
+                          <ChevronRight
+                            className={cn(
+                              "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                              isOpen && "rotate-90",
+                            )}
+                          />
                           <span className="font-medium">{dept.name}</span>
-                          {dept.description && <span className="truncate text-xs text-muted-foreground">— {dept.description}</span>}
+                          {dept.description && (
+                            <span className="truncate text-xs text-muted-foreground">
+                              — {dept.description}
+                            </span>
+                          )}
                         </button>
                       </CollapsibleTrigger>
                       <NodeActions
@@ -136,7 +173,9 @@ function KnowledgePage() {
                     <CollapsibleContent>
                       <ul className="ml-6 space-y-1 border-l pl-2">
                         {topics.length === 0 ? (
-                          <li className="px-2 py-1.5 text-xs text-muted-foreground">No topics yet.</li>
+                          <li className="px-2 py-1.5 text-xs text-muted-foreground">
+                            No topics yet.
+                          </li>
                         ) : (
                           topics.map((t) => (
                             <li key={t.id} className="space-y-1">
@@ -144,10 +183,16 @@ function KnowledgePage() {
                                 <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                                 <span className="flex-1 text-sm">
                                   {t.name}
-                                  {t.description && <span className="ml-2 text-xs text-muted-foreground">— {t.description}</span>}
+                                  {t.description && (
+                                    <span className="ml-2 text-xs text-muted-foreground">
+                                      — {t.description}
+                                    </span>
+                                  )}
                                 </span>
                                 <NodeActions
-                                  onEdit={() => setFormMode({ kind: "edit", node: t, parent: dept })}
+                                  onEdit={() =>
+                                    setFormMode({ kind: "edit", node: t, parent: dept })
+                                  }
                                   onDelete={() => setDeleteTarget(t)}
                                 />
                               </div>
@@ -166,9 +211,13 @@ function KnowledgePage() {
       </Card>
 
       <NodeFormDialog
-        mode={formMode} companyId={companyId}
+        mode={formMode}
+        companyId={companyId}
         onOpenChange={(o) => !o && setFormMode(null)}
-        onSaved={() => { setFormMode(null); void load(); }}
+        onSaved={() => {
+          setFormMode(null);
+          void load();
+        }}
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
@@ -192,26 +241,42 @@ function KnowledgePage() {
 }
 
 function NodeActions({
-  onAddTopic, onEdit, onDelete,
+  onAddTopic,
+  onEdit,
+  onDelete,
 }: {
-  onAddTopic?: () => void; onEdit: () => void; onDelete: () => void;
+  onAddTopic?: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
   return (
     <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
       {onAddTopic && (
-        <Button variant="ghost" size="sm" onClick={onAddTopic}><Plus className="h-3.5 w-3.5" />Add Topic</Button>
+        <Button variant="ghost" size="sm" onClick={onAddTopic}>
+          <Plus className="h-3.5 w-3.5" />
+          Add Topic
+        </Button>
       )}
-      <Button variant="ghost" size="icon" onClick={onEdit}><Pencil className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" onClick={onDelete}><Trash2 className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={onEdit}>
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button variant="ghost" size="icon" onClick={onDelete}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 }
 
 function NodeFormDialog({
-  mode, companyId, onOpenChange, onSaved,
+  mode,
+  companyId,
+  onOpenChange,
+  onSaved,
 }: {
-  mode: FormMode | null; companyId: string | null;
-  onOpenChange: (o: boolean) => void; onSaved: () => void;
+  mode: FormMode | null;
+  companyId: string | null;
+  onOpenChange: (o: boolean) => void;
+  onSaved: () => void;
 }) {
   const open = !!mode;
   const [name, setName] = useState("");
@@ -241,29 +306,51 @@ function NodeFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = name.trim();
-    if (!trimmed) { toast.error("Name 為必填"); return; }
-    if (!companyId) { toast.error("無法取得 company_id"); return; }
+    if (!trimmed) {
+      toast.error("Name 為必填");
+      return;
+    }
+    if (!companyId) {
+      toast.error("無法取得 company_id");
+      return;
+    }
     setSaving(true);
 
     let res;
     if (mode.kind === "new-department") {
-      res = await db().from("nodes").insert({
-        type: "department", parent_id: null, name: trimmed,
-        path: trimmed, description: description.trim() || null,
-        company_id: companyId,
-      });
+      res = await db()
+        .from("nodes")
+        .insert({
+          type: "department",
+          parent_id: null,
+          name: trimmed,
+          path: trimmed,
+          description: description.trim() || null,
+          company_id: companyId,
+        });
     } else if (mode.kind === "new-topic") {
-      res = await db().from("nodes").insert({
-        type: "topic", parent_id: mode.parent.id, name: trimmed,
-        path: `${mode.parent.name}/${trimmed}`, description: description.trim() || null,
-        company_id: companyId,
-      });
+      res = await db()
+        .from("nodes")
+        .insert({
+          type: "topic",
+          parent_id: mode.parent.id,
+          name: trimmed,
+          path: `${mode.parent.name}/${trimmed}`,
+          description: description.trim() || null,
+          company_id: companyId,
+        });
     } else {
       const node = mode.node;
-      const newPath = node.type === "department" ? trimmed : `${mode.parent?.name ?? ""}/${trimmed}`;
-      res = await db().from("nodes").update({
-        name: trimmed, path: newPath, description: description.trim() || null,
-      }).eq("id", node.id);
+      const newPath =
+        node.type === "department" ? trimmed : `${mode.parent?.name ?? ""}/${trimmed}`;
+      res = await db()
+        .from("nodes")
+        .update({
+          name: trimmed,
+          path: newPath,
+          description: description.trim() || null,
+        })
+        .eq("id", node.id);
     }
 
     setSaving(false);
@@ -285,16 +372,38 @@ function NodeFormDialog({
             <DialogDescription>名稱必須在同層級唯一</DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="name">Name <span className="text-destructive">*</span></Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
+            <Label htmlFor="name">
+              Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              autoFocus
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+            />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>取消</Button>
-            <Button type="submit" disabled={saving}>{saving ? "儲存中…" : mode.kind === "edit" ? "更新" : "建立"}</Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={saving}
+            >
+              取消
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "儲存中…" : mode.kind === "edit" ? "更新" : "建立"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -319,7 +428,10 @@ function formatBytes(bytes: number | null): string {
   const units = ["B", "KB", "MB", "GB"];
   let v = bytes;
   let i = 0;
-  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i++;
+  }
   return `${v.toFixed(v >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
@@ -349,7 +461,9 @@ function TopicDocuments({ topicId, companyId }: { topicId: string; companyId: st
     setLoading(true);
     const { data, error } = await db()
       .from("documents")
-      .select("id,node_id,filename,storage_path,mime_type,file_size_bytes,status,uploaded_by,created_at")
+      .select(
+        "id,node_id,filename,storage_path,mime_type,file_size_bytes,status,uploaded_by,created_at",
+      )
       .eq("node_id", topicId)
       .order("created_at", { ascending: false });
     if (error) toast.error(`載入文件失敗：${error.message}`);
@@ -357,14 +471,22 @@ function TopicDocuments({ topicId, companyId }: { topicId: string; companyId: st
     setLoading(false);
   }, [topicId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (fileRef.current) fileRef.current.value = "";
     if (!file) return;
-    if (!topicId) { toast.error("Please select a topic first"); return; }
-    if (!companyId) { toast.error("無法取得 company_id"); return; }
+    if (!topicId) {
+      toast.error("Please select a topic first");
+      return;
+    }
+    if (!companyId) {
+      toast.error("無法取得 company_id");
+      return;
+    }
 
     setUploading(true);
     const uploadingToast = toast.loading("Uploading...");
@@ -392,16 +514,18 @@ function TopicDocuments({ topicId, companyId }: { topicId: string; companyId: st
       return;
     }
 
-    const { error: dbError } = await db().from("documents").insert({
-      node_id: topicId,
-      filename: file.name,
-      storage_path: path,
-      mime_type: file.type || null,
-      file_size_bytes: file.size,
-      status: "ready",
-      uploaded_by: userData.user.id,
-      company_id: companyId,
-    });
+    const { error: dbError } = await db()
+      .from("documents")
+      .insert({
+        node_id: topicId,
+        filename: file.name,
+        storage_path: path,
+        mime_type: file.type || null,
+        file_size_bytes: file.size,
+        status: "ready",
+        uploaded_by: userData.user.id,
+        company_id: companyId,
+      });
 
     if (dbError) {
       await supabase.storage.from("knowledge-files").remove([path]);
@@ -432,9 +556,15 @@ function TopicDocuments({ topicId, companyId }: { topicId: string; companyId: st
   const handleDelete = async () => {
     if (!deleteDoc) return;
     const rm = await supabase.storage.from("knowledge-files").remove([deleteDoc.storage_path]);
-    if (rm.error) { toast.error(`刪除檔案失敗：${rm.error.message}`); return; }
+    if (rm.error) {
+      toast.error(`刪除檔案失敗：${rm.error.message}`);
+      return;
+    }
     const del = await db().from("documents").delete().eq("id", deleteDoc.id);
-    if (del.error) { toast.error(`刪除記錄失敗：${del.error.message}`); return; }
+    if (del.error) {
+      toast.error(`刪除記錄失敗：${del.error.message}`);
+      return;
+    }
     toast.success("已刪除");
     setDeleteDoc(null);
     void load();
@@ -445,9 +575,21 @@ function TopicDocuments({ topicId, companyId }: { topicId: string; companyId: st
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">Documents</span>
         <div>
-          <input ref={fileRef} type="file" accept={ACCEPT} className="hidden" onChange={handleFile} />
-          <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
-            <Upload className="h-3.5 w-3.5" />{uploading ? "Uploading…" : "Upload"}
+          <input
+            ref={fileRef}
+            type="file"
+            accept={ACCEPT}
+            className="hidden"
+            onChange={handleFile}
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+          >
+            <Upload className="h-3.5 w-3.5" />
+            {uploading ? "Uploading…" : "Upload"}
           </Button>
         </div>
       </div>
@@ -461,10 +603,18 @@ function TopicDocuments({ topicId, companyId }: { topicId: string; companyId: st
             <li key={d.id} className="flex items-center gap-2 py-1.5 text-sm">
               <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
               <span className="flex-1 truncate">{d.filename}</span>
-              <span className="w-20 text-right text-xs text-muted-foreground">{formatBytes(d.file_size_bytes)}</span>
-              <span className="w-32 text-right text-xs text-muted-foreground">{new Date(d.created_at).toLocaleDateString()}</span>
-              <Button variant="ghost" size="icon" onClick={() => handleDownload(d)}><Download className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" onClick={() => setDeleteDoc(d)}><Trash2 className="h-4 w-4" /></Button>
+              <span className="w-20 text-right text-xs text-muted-foreground">
+                {formatBytes(d.file_size_bytes)}
+              </span>
+              <span className="w-32 text-right text-xs text-muted-foreground">
+                {new Date(d.created_at).toLocaleDateString()}
+              </span>
+              <Button variant="ghost" size="icon" onClick={() => handleDownload(d)}>
+                <Download className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setDeleteDoc(d)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </li>
           ))}
         </ul>
