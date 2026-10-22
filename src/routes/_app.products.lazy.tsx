@@ -108,13 +108,16 @@ function ProductsPage() {
     const kw = keyword.trim().toLowerCase();
     if (!kw) return list;
     return list.filter(
-      (p) =>
-        p.name?.toLowerCase().includes(kw) ||
-        p.code?.toLowerCase().includes(kw),
+      (p) => p.name?.toLowerCase().includes(kw) || p.code?.toLowerCase().includes(kw),
     );
   }, [list, keyword]);
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -122,9 +125,7 @@ function ProductsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">產品</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            管理銷售與庫存品項。
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">管理銷售與庫存品項。</p>
         </div>
         <div className="flex gap-2">
           <ExportExcelButton
@@ -187,18 +188,13 @@ function ProductsPage() {
               <TableHead className="w-24 text-right">售價</TableHead>
               <TableHead className="w-24 text-right">成本</TableHead>
               <TableHead className="w-24 text-right">安全存量</TableHead>
-              {canWrite && (
-                <TableHead className="w-20 text-right">操作</TableHead>
-              )}
+              {canWrite && <TableHead className="w-20 text-right">操作</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell
-                  colSpan={canWrite ? 8 : 7}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={canWrite ? 8 : 7} className="h-24 text-center">
                   <Loader2 className="inline h-5 w-5 animate-spin text-muted-foreground" />
                 </TableCell>
               </TableRow>
@@ -216,21 +212,15 @@ function ProductsPage() {
                 <TableRow key={p.id}>
                   <TableCell className="font-mono">{p.code}</TableCell>
                   <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {p.spec || "—"}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{p.spec || "—"}</TableCell>
                   <TableCell>{p.unit || "—"}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {p.price1 != null ? Number(p.price1).toLocaleString() : "—"}
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {p.cost_price != null
-                      ? Number(p.cost_price).toLocaleString()
-                      : "—"}
+                    {p.cost_price != null ? Number(p.cost_price).toLocaleString() : "—"}
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {p.safety_stock ?? "—"}
-                  </TableCell>
+                  <TableCell className="text-right tabular-nums">{p.safety_stock ?? "—"}</TableCell>
                   {canWrite && (
                     <TableCell className="text-right">
                       <Button
@@ -269,9 +259,7 @@ function ProductsPage() {
         templateFileName="products_template.csv"
         fields={PRODUCT_IMPORT_FIELDS}
         validateRows={async (parsedRows) => {
-          const codes = parsedRows
-            .map((r) => String(r.data.code ?? "").trim())
-            .filter(Boolean);
+          const codes = parsedRows.map((r) => String(r.data.code ?? "").trim()).filter(Boolean);
           const seen = new Map<string, number>();
           const dupInFile = new Set<string>();
           codes.forEach((c) => {
@@ -326,7 +314,6 @@ const PRODUCT_IMPORT_FIELDS: ImportField[] = [
   { key: "safety_stock", label: "安全庫存", type: "number", default: 0, example: 10 },
   { key: "notes", label: "備註" },
 ];
-
 
 function ProductDialog({
   open,
@@ -424,51 +411,39 @@ function ProductDialog({
             <Field label="編號" required>
               <Input
                 value={form.code}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, code: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, code: e.target.value })}
                 required
               />
             </Field>
             <Field label="名稱" required>
               <Input
                 value={form.name}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, name: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, name: e.target.value })}
                 required
               />
             </Field>
             <Field label="規格">
               <Input
                 value={form.spec ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, spec: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, spec: e.target.value })}
               />
             </Field>
             <Field label="分類">
               <Input
                 value={form.category ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, category: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, category: e.target.value })}
               />
             </Field>
             <Field label="單位">
               <Input
                 value={form.unit ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, unit: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, unit: e.target.value })}
               />
             </Field>
             <Field label="條碼">
               <Input
                 value={form.barcode ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, barcode: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, barcode: e.target.value })}
               />
             </Field>
             {numField("price1", "售價 (一般)")}
@@ -479,18 +454,12 @@ function ProductDialog({
             <Field label="備註" className="md:col-span-2">
               <Input
                 value={form.notes ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, notes: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, notes: e.target.value })}
               />
             </Field>
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               取消
             </Button>
             <Button type="submit" disabled={saving}>

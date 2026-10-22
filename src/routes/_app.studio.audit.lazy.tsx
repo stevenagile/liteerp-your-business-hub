@@ -12,14 +12,21 @@ import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 export const Route = createLazyFileRoute("/_app/studio/audit")({
@@ -58,39 +65,64 @@ const STATUS_OPTIONS = [
 
 function actionBadgeClass(action: string) {
   switch (action) {
-    case "execute_skill": return "bg-blue-500 text-white hover:bg-blue-500";
-    case "request_approval": return "bg-orange-500 text-white hover:bg-orange-500";
-    case "execute_approved": return "bg-purple-500 text-white hover:bg-purple-500";
-    default: return "bg-slate-400 text-white hover:bg-slate-400";
+    case "execute_skill":
+      return "bg-blue-500 text-white hover:bg-blue-500";
+    case "request_approval":
+      return "bg-orange-500 text-white hover:bg-orange-500";
+    case "execute_approved":
+      return "bg-purple-500 text-white hover:bg-purple-500";
+    default:
+      return "bg-slate-400 text-white hover:bg-slate-400";
   }
 }
 
 function statusBadgeClass(status: string) {
   switch (status) {
-    case "success": return "bg-emerald-500 text-white hover:bg-emerald-500";
-    case "error": return "bg-red-500 text-white hover:bg-red-500";
-    case "pending_approval": return "bg-orange-500 text-white hover:bg-orange-500";
-    case "denied": return "bg-slate-500 text-white hover:bg-slate-500";
-    default: return "bg-slate-400 text-white hover:bg-slate-400";
+    case "success":
+      return "bg-emerald-500 text-white hover:bg-emerald-500";
+    case "error":
+      return "bg-red-500 text-white hover:bg-red-500";
+    case "pending_approval":
+      return "bg-orange-500 text-white hover:bg-orange-500";
+    case "denied":
+      return "bg-slate-500 text-white hover:bg-slate-500";
+    default:
+      return "bg-slate-400 text-white hover:bg-slate-400";
   }
 }
 
 function DateField({
-  value, onChange, placeholder,
+  value,
+  onChange,
+  placeholder,
 }: {
-  value: Date | undefined; onChange: (d: Date | undefined) => void; placeholder: string;
+  value: Date | undefined;
+  onChange: (d: Date | undefined) => void;
+  placeholder: string;
 }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm"
-          className={cn("w-[160px] justify-start text-left font-normal", !value && "text-muted-foreground")}>
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn(
+            "w-[160px] justify-start text-left font-normal",
+            !value && "text-muted-foreground",
+          )}
+        >
           <CalendarIcon className="h-4 w-4" />
           {value ? format(value, "yyyy-MM-dd") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        <Calendar mode="single" selected={value} onSelect={onChange} initialFocus className={cn("p-3 pointer-events-auto")} />
+        <Calendar
+          mode="single"
+          selected={value}
+          onSelect={onChange}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+        />
       </PopoverContent>
     </Popover>
   );
@@ -98,7 +130,11 @@ function DateField({
 
 function JsonBlock({ data }: { data: unknown }) {
   let text: string;
-  try { text = JSON.stringify(data, null, 2); } catch { text = String(data); }
+  try {
+    text = JSON.stringify(data, null, 2);
+  } catch {
+    text = String(data);
+  }
   return (
     <pre className="max-h-[400px] overflow-auto rounded-md border bg-muted/40 p-3 font-mono text-xs leading-relaxed">
       {text}
@@ -112,11 +148,19 @@ function AuditLogPage() {
   const loadedOnce = useRef(false);
 
   const [applied, setApplied] = useState<{
-    limit: number; skill_name: string; action: string; status: string;
-    from: Date | undefined; to: Date | undefined;
+    limit: number;
+    skill_name: string;
+    action: string;
+    status: string;
+    from: Date | undefined;
+    to: Date | undefined;
   }>({
-    limit: 50, skill_name: "", action: "__all__", status: "__all__",
-    from: undefined, to: undefined,
+    limit: 50,
+    skill_name: "",
+    action: "__all__",
+    status: "__all__",
+    from: undefined,
+    to: undefined,
   });
 
   const [draft, setDraft] = useState(applied);
@@ -124,31 +168,34 @@ function AuditLogPage() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<AuditRow | null>(null);
 
-  const load = useCallback(async (f: typeof applied) => {
-    setLoading(true);
-    const params: Record<string, unknown> = {
-      p_limit: f.limit,
-      p_agent_id: null,
-      p_skill_name: f.skill_name.trim() || null,
-      p_action: f.action === "__all__" ? null : f.action,
-      p_status: f.status === "__all__" ? null : f.status,
-      p_from: f.from ? f.from.toISOString() : null,
-      p_to: f.to ? f.to.toISOString() : null,
-    };
-    const { data, error } = await supabase.rpc("list_audit_log", params);
-    setLoading(false);
-    if (error) {
-      console.error("list_audit_log error", error);
-      toast.error(`載入失敗:${error.message}`);
-      return;
-    }
-    if (data && !Array.isArray(data) && typeof data === "object" && "error" in (data as object)) {
-      toast.error("您沒有審計日誌權限,請聯絡管理員");
-      navigate({ to: "/" });
-      return;
-    }
-    setRows(Array.isArray(data) ? (data as AuditRow[]) : []);
-  }, [navigate]);
+  const load = useCallback(
+    async (f: typeof applied) => {
+      setLoading(true);
+      const params: Record<string, unknown> = {
+        p_limit: f.limit,
+        p_agent_id: null,
+        p_skill_name: f.skill_name.trim() || null,
+        p_action: f.action === "__all__" ? null : f.action,
+        p_status: f.status === "__all__" ? null : f.status,
+        p_from: f.from ? f.from.toISOString() : null,
+        p_to: f.to ? f.to.toISOString() : null,
+      };
+      const { data, error } = await supabase.rpc("list_audit_log", params);
+      setLoading(false);
+      if (error) {
+        console.error("list_audit_log error", error);
+        toast.error(`載入失敗:${error.message}`);
+        return;
+      }
+      if (data && !Array.isArray(data) && typeof data === "object" && "error" in (data as object)) {
+        toast.error("您沒有審計日誌權限,請聯絡管理員");
+        navigate({ to: "/" });
+        return;
+      }
+      setRows(Array.isArray(data) ? (data as AuditRow[]) : []);
+    },
+    [navigate],
+  );
 
   useEffect(() => {
     if (loadedOnce.current) return;
@@ -156,11 +203,23 @@ function AuditLogPage() {
     void load(applied);
   }, [applied, load]);
 
-  const applyFilters = () => { setApplied(draft); void load(draft); };
+  const applyFilters = () => {
+    setApplied(draft);
+    void load(draft);
+  };
 
   const resetFilters = () => {
-    const next = { limit: 50, skill_name: "", action: "__all__", status: "__all__", from: undefined, to: undefined };
-    setDraft(next); setApplied(next); void load(next);
+    const next = {
+      limit: 50,
+      skill_name: "",
+      action: "__all__",
+      status: "__all__",
+      from: undefined,
+      to: undefined,
+    };
+    setDraft(next);
+    setApplied(next);
+    void load(next);
   };
 
   const quickRange = (kind: "today" | "24h" | "week" | "month") => {
@@ -172,7 +231,9 @@ function AuditLogPage() {
     else if (kind === "week") from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     else from = new Date(now.getFullYear(), now.getMonth(), 1);
     const next = { ...draft, from, to };
-    setDraft(next); setApplied(next); void load(next);
+    setDraft(next);
+    setApplied(next);
+    void load(next);
   };
 
   return (
@@ -186,7 +247,8 @@ function AuditLogPage() {
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={() => void load(applied)} disabled={loading}>
-          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />Refresh
+          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+          Refresh
         </Button>
       </div>
 
@@ -195,58 +257,110 @@ function AuditLogPage() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">Skill 名稱</label>
-            <Input placeholder="例如 query_stock" value={draft.skill_name}
-              onChange={(e) => setDraft((d) => ({ ...d, skill_name: e.target.value }))} className="h-9 w-[180px]" />
+            <Input
+              placeholder="例如 query_stock"
+              value={draft.skill_name}
+              onChange={(e) => setDraft((d) => ({ ...d, skill_name: e.target.value }))}
+              className="h-9 w-[180px]"
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">Action</label>
-            <Select value={draft.action} onValueChange={(v) => setDraft((d) => ({ ...d, action: v }))}>
-              <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
+            <Select
+              value={draft.action}
+              onValueChange={(v) => setDraft((d) => ({ ...d, action: v }))}
+            >
+              <SelectTrigger className="h-9 w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {ACTION_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                {ACTION_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">Status</label>
-            <Select value={draft.status} onValueChange={(v) => setDraft((d) => ({ ...d, status: v }))}>
-              <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
+            <Select
+              value={draft.status}
+              onValueChange={(v) => setDraft((d) => ({ ...d, status: v }))}
+            >
+              <SelectTrigger className="h-9 w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {STATUS_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                {STATUS_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">從</label>
-            <DateField value={draft.from} onChange={(d) => setDraft((s) => ({ ...s, from: d }))} placeholder="開始日期" />
+            <DateField
+              value={draft.from}
+              onChange={(d) => setDraft((s) => ({ ...s, from: d }))}
+              placeholder="開始日期"
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">到</label>
-            <DateField value={draft.to} onChange={(d) => setDraft((s) => ({ ...s, to: d }))} placeholder="結束日期" />
+            <DateField
+              value={draft.to}
+              onChange={(d) => setDraft((s) => ({ ...s, to: d }))}
+              placeholder="結束日期"
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-muted-foreground">筆數</label>
-            <Input type="number" min={1} max={500} value={draft.limit}
+            <Input
+              type="number"
+              min={1}
+              max={500}
+              value={draft.limit}
               onChange={(e) => {
                 const n = Number.parseInt(e.target.value, 10);
-                setDraft((d) => ({ ...d, limit: Number.isFinite(n) ? Math.min(500, Math.max(1, n)) : 50 }));
-              }} className="h-9 w-[100px]" />
+                setDraft((d) => ({
+                  ...d,
+                  limit: Number.isFinite(n) ? Math.min(500, Math.max(1, n)) : 50,
+                }));
+              }}
+              className="h-9 w-[100px]"
+            />
           </div>
           <div className="flex gap-2">
-            <Button size="sm" onClick={applyFilters} disabled={loading}>套用篩選</Button>
-            <Button variant="outline" size="sm" onClick={resetFilters} disabled={loading}>重置</Button>
+            <Button size="sm" onClick={applyFilters} disabled={loading}>
+              套用篩選
+            </Button>
+            <Button variant="outline" size="sm" onClick={resetFilters} disabled={loading}>
+              重置
+            </Button>
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="text-xs text-muted-foreground">快速選擇:</span>
-          {([
-            { k: "today", label: "今天" },
-            { k: "24h", label: "最近 24h" },
-            { k: "week", label: "本週" },
-            { k: "month", label: "本月" },
-          ] as const).map((q) => (
-            <Button key={q.k} size="sm" variant="outline" className="h-7 rounded-full px-3 text-xs"
-              onClick={() => quickRange(q.k)}>{q.label}</Button>
+          {(
+            [
+              { k: "today", label: "今天" },
+              { k: "24h", label: "最近 24h" },
+              { k: "week", label: "本週" },
+              { k: "month", label: "本月" },
+            ] as const
+          ).map((q) => (
+            <Button
+              key={q.k}
+              size="sm"
+              variant="outline"
+              className="h-7 rounded-full px-3 text-xs"
+              onClick={() => quickRange(q.k)}
+            >
+              {q.label}
+            </Button>
           ))}
         </div>
       </Card>
@@ -255,10 +369,13 @@ function AuditLogPage() {
       <Card className="overflow-hidden">
         {loading && rows.length === 0 ? (
           <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />載入中...
+            <Loader2 className="h-4 w-4 animate-spin" />
+            載入中...
           </div>
         ) : rows.length === 0 ? (
-          <div className="py-16 text-center text-sm text-muted-foreground">目前沒有符合條件的紀錄</div>
+          <div className="py-16 text-center text-sm text-muted-foreground">
+            目前沒有符合條件的紀錄
+          </div>
         ) : (
           <Table>
             <TableHeader>
@@ -273,16 +390,28 @@ function AuditLogPage() {
             </TableHeader>
             <TableBody>
               {rows.map((r, idx) => (
-                <TableRow key={r.id} className={cn("cursor-pointer", idx % 2 === 1 && "bg-muted/30")}
-                  onClick={() => setSelected(r)}>
-                  <TableCell className="font-mono text-xs" title={new Date(r.created_at).toISOString()}>
+                <TableRow
+                  key={r.id}
+                  className={cn("cursor-pointer", idx % 2 === 1 && "bg-muted/30")}
+                  onClick={() => setSelected(r)}
+                >
+                  <TableCell
+                    className="font-mono text-xs"
+                    title={new Date(r.created_at).toISOString()}
+                  >
                     {format(new Date(r.created_at), "MM/dd HH:mm:ss")}
                   </TableCell>
                   <TableCell className="text-sm">{r.agent_name ?? "—"}</TableCell>
-                  <TableCell><Badge className={actionBadgeClass(r.action)}>{r.action}</Badge></TableCell>
+                  <TableCell>
+                    <Badge className={actionBadgeClass(r.action)}>{r.action}</Badge>
+                  </TableCell>
                   <TableCell className="font-mono text-xs">{r.skill_name ?? "—"}</TableCell>
-                  <TableCell><Badge className={statusBadgeClass(r.status)}>{r.status}</Badge></TableCell>
-                  <TableCell className="text-right font-mono text-xs">{r.duration_ms != null ? `${r.duration_ms}ms` : "—"}</TableCell>
+                  <TableCell>
+                    <Badge className={statusBadgeClass(r.status)}>{r.status}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-xs">
+                    {r.duration_ms != null ? `${r.duration_ms}ms` : "—"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -311,7 +440,11 @@ function AuditLogPage() {
                   <div>
                     <div className="mb-1 text-xs text-muted-foreground">Agent</div>
                     <div className="font-medium">{selected.agent_name ?? "—"}</div>
-                    {selected.agent_id && <div className="font-mono text-xs text-muted-foreground">{selected.agent_id}</div>}
+                    {selected.agent_id && (
+                      <div className="font-mono text-xs text-muted-foreground">
+                        {selected.agent_id}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <div className="mb-1 text-xs text-muted-foreground">User</div>
@@ -319,7 +452,9 @@ function AuditLogPage() {
                   </div>
                   <div>
                     <div className="mb-1 text-xs text-muted-foreground">耗時</div>
-                    <div className="font-mono">{selected.duration_ms != null ? `${selected.duration_ms}ms` : "—"}</div>
+                    <div className="font-mono">
+                      {selected.duration_ms != null ? `${selected.duration_ms}ms` : "—"}
+                    </div>
                   </div>
                 </div>
                 {selected.error_message && (

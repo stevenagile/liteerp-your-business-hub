@@ -104,29 +104,27 @@ function ParamsPage() {
 
       const { data, error } = await supabase
         .from("company")
-        .select(
-          "id,name,tax_id,address,phone,email,logo_url,tax_rate,default_currency,settings",
-        )
+        .select("id,name,tax_id,address,phone,email,logo_url,tax_rate,default_currency,settings")
         .eq("id", cid)
         .maybeSingle();
       if (error) toast.error(error.message);
 
-      const c = (data as Company | null) ?? ({
-        id: cid as string,
-        name: "",
-        tax_id: "",
-        address: "",
-        phone: "",
-        email: "",
-        logo_url: "",
-        tax_rate: 0.05,
-        default_currency: "TWD",
-        settings: {},
-      } as Company);
+      const c =
+        (data as Company | null) ??
+        ({
+          id: cid as string,
+          name: "",
+          tax_id: "",
+          address: "",
+          phone: "",
+          email: "",
+          logo_url: "",
+          tax_rate: 0.05,
+          default_currency: "TWD",
+          settings: {},
+        } as Company);
       setCompany(c);
-      setTaxRatePct(
-        c.tax_rate != null ? String(Math.round(c.tax_rate * 10000) / 100) : "",
-      );
+      setTaxRatePct(c.tax_rate != null ? String(Math.round(c.tax_rate * 10000) / 100) : "");
 
       const s = (c.settings ?? {}) as Record<string, unknown>;
       const known = [
@@ -146,8 +144,7 @@ function ParamsPage() {
         owner: (s.owner as string) ?? "",
         invoice_title: (s.invoice_title as string) ?? "",
         fiscal_year_start_month: (s.fiscal_year_start_month as number) ?? 1,
-        doc_number_format:
-          (s.doc_number_format as string) ?? DEFAULT_EXTRA.doc_number_format,
+        doc_number_format: (s.doc_number_format as string) ?? DEFAULT_EXTRA.doc_number_format,
         rounding_mode: (s.rounding_mode as string) ?? "round",
         default_warehouse_id: (s.default_warehouse_id as string) ?? "",
       });
@@ -342,9 +339,7 @@ function ParamsPage() {
               value={extra.invoice_title}
               maxLength={100}
               disabled={ro}
-              onChange={(e) =>
-                setExtra({ ...extra, invoice_title: e.target.value })
-              }
+              onChange={(e) => setExtra({ ...extra, invoice_title: e.target.value })}
             />
           </div>
           <div className="space-y-2 md:col-span-2">
@@ -366,9 +361,7 @@ function ParamsPage() {
                   value={company.logo_url ?? ""}
                   placeholder="https://..."
                   disabled={ro}
-                  onChange={(e) =>
-                    setCompany({ ...company, logo_url: e.target.value })
-                  }
+                  onChange={(e) => setCompany({ ...company, logo_url: e.target.value })}
                 />
                 <div>
                   <label
@@ -454,9 +447,7 @@ function ParamsPage() {
             <Label>會計年度起始月</Label>
             <Select
               value={String(extra.fiscal_year_start_month ?? 1)}
-              onValueChange={(v) =>
-                setExtra({ ...extra, fiscal_year_start_month: Number(v) })
-              }
+              onValueChange={(v) => setExtra({ ...extra, fiscal_year_start_month: Number(v) })}
               disabled={ro}
             >
               <SelectTrigger>
@@ -494,9 +485,7 @@ function ParamsPage() {
               rows={2}
               value={extra.doc_number_format ?? ""}
               disabled={ro}
-              onChange={(e) =>
-                setExtra({ ...extra, doc_number_format: e.target.value })
-              }
+              onChange={(e) => setExtra({ ...extra, doc_number_format: e.target.value })}
               placeholder="{TYPE}-{YYYYMMDD}-{SEQ:3}"
             />
             <p className="text-sm text-muted-foreground">
@@ -510,9 +499,7 @@ function ParamsPage() {
             <Input
               value={extra.default_warehouse_id ?? ""}
               disabled={ro}
-              onChange={(e) =>
-                setExtra({ ...extra, default_warehouse_id: e.target.value })
-              }
+              onChange={(e) => setExtra({ ...extra, default_warehouse_id: e.target.value })}
               placeholder="可暫留空"
             />
           </div>
