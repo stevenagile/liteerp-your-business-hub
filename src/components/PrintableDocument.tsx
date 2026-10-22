@@ -5,11 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 
 export type PrintDocType =
-  | "quotation"
-  | "sales_order"
-  | "sales_invoice"
-  | "purchase_order"
-  | "purchase_receipt";
+  "quotation" | "sales_order" | "sales_invoice" | "purchase_order" | "purchase_receipt";
 
 const DOC_TYPE_LABEL: Record<PrintDocType, string> = {
   quotation: "報價單",
@@ -100,30 +96,27 @@ export function PrintableDocument({
     (async () => {
       setLoading(true);
       try {
-        const [{ data: h, error: he }, { data: ls }, { data: comp }] =
-          await Promise.all([
-            supabase
-              .from("doc_headers")
-              .select(
-                "id, doc_type, doc_no, doc_date, contact_id, contact_name, notes, subtotal, tax_amount, total_amount",
-              )
-              .eq("id", docId)
-              .eq("company_id", companyId ?? "")
-              .maybeSingle(),
-            supabase
-              .from("doc_lines")
-              .select(
-                "line_no, product_code, product_name, unit, quantity, unit_price, discount_pct",
-              )
-              .eq("header_id", docId)
-              .order("line_no"),
-            supabase
-              .from("company")
-              .select("name, tax_id, address, phone, email, logo_url")
-              .eq("id", companyId ?? "")
-              .limit(1)
-              .maybeSingle(),
-          ]);
+        const [{ data: h, error: he }, { data: ls }, { data: comp }] = await Promise.all([
+          supabase
+            .from("doc_headers")
+            .select(
+              "id, doc_type, doc_no, doc_date, contact_id, contact_name, notes, subtotal, tax_amount, total_amount",
+            )
+            .eq("id", docId)
+            .eq("company_id", companyId ?? "")
+            .maybeSingle(),
+          supabase
+            .from("doc_lines")
+            .select("line_no, product_code, product_name, unit, quantity, unit_price, discount_pct")
+            .eq("header_id", docId)
+            .order("line_no"),
+          supabase
+            .from("company")
+            .select("name, tax_id, address, phone, email, logo_url")
+            .eq("id", companyId ?? "")
+            .limit(1)
+            .maybeSingle(),
+        ]);
         if (he) throw he;
         setHeader((h as Header) ?? null);
         setLines((ls ?? []) as Line[]);
@@ -157,11 +150,7 @@ export function PrintableDocument({
   }
 
   if (!header) {
-    return (
-      <div className="p-8 text-center text-sm text-muted-foreground">
-        找不到單據
-      </div>
-    );
+    return <div className="p-8 text-center text-sm text-muted-foreground">找不到單據</div>;
   }
 
   return (
@@ -188,25 +177,15 @@ export function PrintableDocument({
         <div className="flex items-start justify-between border-b-2 border-black pb-4">
           <div className="flex items-start gap-3">
             {company?.logo_url ? (
-              <img
-                src={company.logo_url}
-                alt="logo"
-                className="h-16 w-16 object-contain"
-              />
+              <img src={company.logo_url} alt="logo" className="h-16 w-16 object-contain" />
             ) : null}
             <div>
-              <div className="text-xl font-bold">
-                {company?.name ?? "公司名稱"}
-              </div>
+              <div className="text-xl font-bold">{company?.name ?? "公司名稱"}</div>
               {company?.tax_id && (
-                <div className="text-[11px] text-gray-700">
-                  統一編號：{company.tax_id}
-                </div>
+                <div className="text-[11px] text-gray-700">統一編號：{company.tax_id}</div>
               )}
               {company?.address && (
-                <div className="text-[11px] text-gray-700">
-                  {company.address}
-                </div>
+                <div className="text-[11px] text-gray-700">{company.address}</div>
               )}
               <div className="text-[11px] text-gray-700">
                 {company?.phone ? `電話：${company.phone}` : ""}
@@ -217,17 +196,13 @@ export function PrintableDocument({
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold tracking-widest">{title}</div>
-            <div className="mt-1 text-[11px] text-gray-700">
-              {DOC_TYPE_LABEL[docType]}
-            </div>
+            <div className="mt-1 text-[11px] text-gray-700">{DOC_TYPE_LABEL[docType]}</div>
           </div>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-6">
           <div className="border border-gray-400">
-            <div className="bg-gray-100 px-2 py-1 text-[11px] font-medium">
-              {partyLabel}資訊
-            </div>
+            <div className="bg-gray-100 px-2 py-1 text-[11px] font-medium">{partyLabel}資訊</div>
             <table className="w-full text-[11px]">
               <tbody>
                 <tr>
@@ -239,37 +214,23 @@ export function PrintableDocument({
                   </td>
                 </tr>
                 <tr>
-                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">
-                    統編
-                  </td>
-                  <td className="border-t border-gray-300 px-2 py-1">
-                    {contact?.tax_id ?? "—"}
-                  </td>
+                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">統編</td>
+                  <td className="border-t border-gray-300 px-2 py-1">{contact?.tax_id ?? "—"}</td>
                 </tr>
                 <tr>
-                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">
-                    地址
-                  </td>
-                  <td className="border-t border-gray-300 px-2 py-1">
-                    {contact?.address ?? "—"}
-                  </td>
+                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">地址</td>
+                  <td className="border-t border-gray-300 px-2 py-1">{contact?.address ?? "—"}</td>
                 </tr>
                 <tr>
-                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">
-                    電話
-                  </td>
-                  <td className="border-t border-gray-300 px-2 py-1">
-                    {contact?.phone ?? "—"}
-                  </td>
+                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">電話</td>
+                  <td className="border-t border-gray-300 px-2 py-1">{contact?.phone ?? "—"}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <div className="border border-gray-400">
-            <div className="bg-gray-100 px-2 py-1 text-[11px] font-medium">
-              單據資訊
-            </div>
+            <div className="bg-gray-100 px-2 py-1 text-[11px] font-medium">單據資訊</div>
             <table className="w-full text-[11px]">
               <tbody>
                 <tr>
@@ -281,17 +242,11 @@ export function PrintableDocument({
                   </td>
                 </tr>
                 <tr>
-                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">
-                    單據日期
-                  </td>
-                  <td className="border-t border-gray-300 px-2 py-1">
-                    {header.doc_date}
-                  </td>
+                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">單據日期</td>
+                  <td className="border-t border-gray-300 px-2 py-1">{header.doc_date}</td>
                 </tr>
                 <tr>
-                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">
-                    列印日期
-                  </td>
+                  <td className="border-t border-gray-300 px-2 py-1 text-gray-600">列印日期</td>
                   <td className="border-t border-gray-300 px-2 py-1">
                     {new Date().toISOString().slice(0, 10)}
                   </td>
@@ -305,25 +260,13 @@ export function PrintableDocument({
           <thead>
             <tr className="bg-gray-100">
               <th className="w-8 border border-gray-500 px-1 py-1.5">#</th>
-              <th className="w-24 border border-gray-500 px-2 py-1.5 text-left">
-                產品編號
-              </th>
-              <th className="border border-gray-500 px-2 py-1.5 text-left">
-                品名規格
-              </th>
-              <th className="w-16 border border-gray-500 px-1 py-1.5 text-right">
-                數量
-              </th>
+              <th className="w-24 border border-gray-500 px-2 py-1.5 text-left">產品編號</th>
+              <th className="border border-gray-500 px-2 py-1.5 text-left">品名規格</th>
+              <th className="w-16 border border-gray-500 px-1 py-1.5 text-right">數量</th>
               <th className="w-12 border border-gray-500 px-1 py-1.5">單位</th>
-              <th className="w-20 border border-gray-500 px-2 py-1.5 text-right">
-                單價
-              </th>
-              <th className="w-14 border border-gray-500 px-1 py-1.5 text-right">
-                折扣%
-              </th>
-              <th className="w-24 border border-gray-500 px-2 py-1.5 text-right">
-                金額
-              </th>
+              <th className="w-20 border border-gray-500 px-2 py-1.5 text-right">單價</th>
+              <th className="w-14 border border-gray-500 px-1 py-1.5 text-right">折扣%</th>
+              <th className="w-24 border border-gray-500 px-2 py-1.5 text-right">金額</th>
             </tr>
           </thead>
           <tbody>
@@ -345,15 +288,11 @@ export function PrintableDocument({
                   <td className="border border-gray-400 px-2 py-1 font-mono">
                     {l.product_code ?? "—"}
                   </td>
-                  <td className="border border-gray-400 px-2 py-1">
-                    {l.product_name ?? "—"}
-                  </td>
+                  <td className="border border-gray-400 px-2 py-1">{l.product_name ?? "—"}</td>
                   <td className="border border-gray-400 px-1 py-1 text-right tabular-nums">
                     {fmtNum(l.quantity)}
                   </td>
-                  <td className="border border-gray-400 px-1 py-1 text-center">
-                    {l.unit ?? ""}
-                  </td>
+                  <td className="border border-gray-400 px-1 py-1 text-center">{l.unit ?? ""}</td>
                   <td className="border border-gray-400 px-2 py-1 text-right tabular-nums">
                     {fmtNum(l.unit_price, 2)}
                   </td>
@@ -394,9 +333,7 @@ export function PrintableDocument({
                 </td>
               </tr>
               <tr className="border-t-2 border-black">
-                <td className="px-2 py-1.5 text-right text-base font-bold">
-                  總計
-                </td>
+                <td className="px-2 py-1.5 text-right text-base font-bold">總計</td>
                 <td className="px-2 py-1.5 text-right text-base font-bold tabular-nums">
                   {fmtNum(header.total_amount, 2)}
                 </td>
