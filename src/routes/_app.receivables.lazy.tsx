@@ -46,10 +46,7 @@ function PaymentBadge({ status }: { status: string | null }) {
   };
   return (
     <span
-      className={cn(
-        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium",
-        s.cls,
-      )}
+      className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", s.cls)}
     >
       {s.label}
     </span>
@@ -88,7 +85,12 @@ function ReceivablesPage() {
     return { total, overdue };
   }, [list]);
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -96,9 +98,7 @@ function ReceivablesPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">應收帳款</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            追蹤客戶未收款項與逾期狀況。
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">追蹤客戶未收款項與逾期狀況。</p>
         </div>
         <ExportExcelButton
           rows={list as unknown as Record<string, unknown>[]}
@@ -111,7 +111,14 @@ function ReceivablesPage() {
             { key: "total_amount", label: "總額", type: "number" },
             { key: "paid_amount", label: "已收", type: "number" },
             { key: "balance", label: "餘額", type: "number" },
-            { key: "payment_status", label: "狀態", value: (r: Record<string, unknown>) => ({ unpaid: "未收款", partial: "部分收款", paid: "已收款" }[(r.payment_status as string) ?? ""] ?? "—") },
+            {
+              key: "payment_status",
+              label: "狀態",
+              value: (r: Record<string, unknown>) =>
+                ({ unpaid: "未收款", partial: "部分收款", paid: "已收款" })[
+                  (r.payment_status as string) ?? ""
+                ] ?? "—",
+            },
             { key: "overdue_days", label: "逾期天數", type: "number" },
           ]}
         />
@@ -156,10 +163,7 @@ function ReceivablesPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={9}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={9} className="h-24 text-center text-sm text-muted-foreground">
                   目前無應收帳款
                 </TableCell>
               </TableRow>
@@ -167,13 +171,8 @@ function ReceivablesPage() {
               list.map((r, i) => {
                 const overdue = (r.overdue_days ?? 0) > 0;
                 return (
-                  <TableRow
-                    key={`${r.doc_no}-${i}`}
-                    className={cn(overdue && "bg-destructive/5")}
-                  >
-                    <TableCell className="font-medium">
-                      {r.customer_name ?? "—"}
-                    </TableCell>
+                  <TableRow key={`${r.doc_no}-${i}`} className={cn(overdue && "bg-destructive/5")}>
+                    <TableCell className="font-medium">{r.customer_name ?? "—"}</TableCell>
                     <TableCell className="font-mono">{r.doc_no}</TableCell>
                     <TableCell>{r.doc_date}</TableCell>
                     <TableCell>{r.due_date ?? "—"}</TableCell>
@@ -192,9 +191,7 @@ function ReceivablesPage() {
                     <TableCell
                       className={cn(
                         "text-sm",
-                        overdue
-                          ? "font-medium text-destructive"
-                          : "text-muted-foreground",
+                        overdue ? "font-medium text-destructive" : "text-muted-foreground",
                       )}
                     >
                       {overdue ? `逾期 ${r.overdue_days} 天` : "—"}
