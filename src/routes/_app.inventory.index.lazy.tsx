@@ -73,19 +73,24 @@ function InventoryPage() {
 
   const stats = useMemo(() => {
     const items = new Set(list.map((r) => r.product_code)).size;
-    const totalValue = list.reduce(
-      (acc, r) => acc + (Number(r.stock_value) || 0),
-      0,
-    );
+    const totalValue = list.reduce((acc, r) => acc + (Number(r.stock_value) || 0), 0);
     return { items, totalValue };
   }, [list]);
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
     <div className="space-y-6 print-area">
-      <ReportPrintHeader title="庫存總覽" period={`列印日：${new Date().toISOString().slice(0,10)}`} />
+      <ReportPrintHeader
+        title="庫存總覽"
+        period={`列印日：${new Date().toISOString().slice(0, 10)}`}
+      />
       <div className="flex items-start justify-between gap-4 no-print">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">庫存總覽</h1>
@@ -107,7 +112,11 @@ function InventoryPage() {
               { key: "selling_price", label: "售價", type: "number" },
               { key: "expected_margin_pct", label: "預估毛利%", type: "number" },
               { key: "safety_stock", label: "安全存量", type: "number" },
-              { key: "is_low", label: "狀態", value: (r: Record<string, unknown>) => (r.is_low ? "低庫存" : "") },
+              {
+                key: "is_low",
+                label: "狀態",
+                value: (r: Record<string, unknown>) => (r.is_low ? "低庫存" : ""),
+              },
             ]}
           />
           <PrintReportButton />
@@ -152,10 +161,7 @@ function InventoryPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={10}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={10} className="h-24 text-center text-sm text-muted-foreground">
                   尚無庫存資料
                 </TableCell>
               </TableRow>
@@ -163,38 +169,19 @@ function InventoryPage() {
               list.map((r, i) => (
                 <TableRow
                   key={`${r.product_code}-${r.warehouse_name}-${i}`}
-                  className={cn(
-                    r.is_low &&
-                      "bg-destructive/5 hover:bg-destructive/10",
-                  )}
+                  className={cn(r.is_low && "bg-destructive/5 hover:bg-destructive/10")}
                 >
                   <TableCell className="font-mono">{r.product_code}</TableCell>
-                  <TableCell className="font-medium">
-                    {r.product_name}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {r.warehouse_name}
-                  </TableCell>
+                  <TableCell className="font-medium">{r.product_name}</TableCell>
+                  <TableCell className="text-muted-foreground">{r.warehouse_name}</TableCell>
+                  <TableCell className="text-right tabular-nums">{fmt(r.quantity)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{fmt(r.avg_cost, 2)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{fmt(r.stock_value)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{fmt(r.selling_price)}</TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {fmt(r.quantity)}
+                    {r.expected_margin_pct == null ? "—" : fmt(r.expected_margin_pct, 1) + "%"}
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {fmt(r.avg_cost, 2)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {fmt(r.stock_value)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {fmt(r.selling_price)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {r.expected_margin_pct == null
-                      ? "—"
-                      : fmt(r.expected_margin_pct, 1) + "%"}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {fmt(r.safety_stock)}
-                  </TableCell>
+                  <TableCell className="text-right tabular-nums">{fmt(r.safety_stock)}</TableCell>
                   <TableCell>
                     {r.is_low && (
                       <Badge variant="destructive" className="gap-1">
@@ -213,15 +200,7 @@ function InventoryPage() {
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center gap-4 rounded-lg border bg-card p-5 shadow-sm">
       <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">

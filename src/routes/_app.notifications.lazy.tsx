@@ -22,11 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  eventTypeMeta,
-  notificationLink,
-  type Notification,
-} from "@/components/NotificationBell";
+import { eventTypeMeta, notificationLink, type Notification } from "@/components/NotificationBell";
 
 export const Route = createLazyFileRoute("/_app/notifications")({
   component: NotificationsPage,
@@ -104,8 +100,16 @@ function NotificationsPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Select value={typeFilter} onValueChange={(v) => { setPage(0); setTypeFilter(v); }}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="類型" /></SelectTrigger>
+        <Select
+          value={typeFilter}
+          onValueChange={(v) => {
+            setPage(0);
+            setTypeFilter(v);
+          }}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="類型" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">全部類型</SelectItem>
             <SelectItem value="low_stock">庫存</SelectItem>
@@ -114,8 +118,16 @@ function NotificationsPage() {
             <SelectItem value="system">系統</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={readFilter} onValueChange={(v) => { setPage(0); setReadFilter(v); }}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="狀態" /></SelectTrigger>
+        <Select
+          value={readFilter}
+          onValueChange={(v) => {
+            setPage(0);
+            setReadFilter(v);
+          }}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="狀態" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">全部</SelectItem>
             <SelectItem value="unread">未讀</SelectItem>
@@ -151,7 +163,13 @@ function NotificationsPage() {
                     className={cn("cursor-pointer", !n.is_read && "bg-blue-50/60")}
                   >
                     <TableCell>
-                      <span className={cn("inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs", meta.bg, meta.color)}>
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs",
+                          meta.bg,
+                          meta.color,
+                        )}
+                      >
                         <meta.Icon className="h-3 w-3" />
                         {meta.label}
                       </span>
@@ -183,11 +201,23 @@ function NotificationsPage() {
       <div className="flex items-center justify-between text-sm">
         <div className="text-muted-foreground">共 {total} 筆</div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === 0}
+            onClick={() => setPage((p) => p - 1)}
+          >
             上一頁
           </Button>
-          <span>{page + 1} / {totalPages}</span>
-          <Button variant="outline" size="sm" disabled={page + 1 >= totalPages} onClick={() => setPage((p) => p + 1)}>
+          <span>
+            {page + 1} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page + 1 >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
             下一頁
           </Button>
         </div>

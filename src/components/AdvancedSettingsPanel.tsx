@@ -50,7 +50,11 @@ export function AdvancedSettingsPanel() {
   useEffect(() => {
     (async () => {
       const [companyRes, peopleRes] = await Promise.all([
-        supabase.from("company").select("id, settings").eq("id", profile?.company_id ?? "").maybeSingle(),
+        supabase
+          .from("company")
+          .select("id, settings")
+          .eq("id", profile?.company_id ?? "")
+          .maybeSingle(),
         supabase
           .from("profiles")
           .select("id, display_name")
@@ -62,8 +66,7 @@ export function AdvancedSettingsPanel() {
         toast.error("讀取進階參數失敗：" + companyRes.error.message);
       } else if (companyRes.data) {
         setCompanyId(companyRes.data.id);
-        const raw = (companyRes.data as { settings?: SettingsShape | null })
-          .settings;
+        const raw = (companyRes.data as { settings?: SettingsShape | null }).settings;
         setSettings({
           ...DEFAULTS,
           ...(raw ?? {}),
@@ -119,9 +122,7 @@ export function AdvancedSettingsPanel() {
       >
         <Select
           value={String(settings.order_cutoff_hour ?? 17)}
-          onValueChange={(v) =>
-            setSettings((s) => ({ ...s, order_cutoff_hour: Number(v) }))
-          }
+          onValueChange={(v) => setSettings((s) => ({ ...s, order_cutoff_hour: Number(v) }))}
         >
           <SelectTrigger className="w-32">
             <SelectValue />
@@ -163,15 +164,10 @@ export function AdvancedSettingsPanel() {
         </Select>
       </SettingRow>
 
-      <SettingRow
-        label="允許負庫存銷貨"
-        description="關閉時，庫存不足將無法確認銷貨單（建議關閉）"
-      >
+      <SettingRow label="允許負庫存銷貨" description="關閉時，庫存不足將無法確認銷貨單（建議關閉）">
         <Switch
           checked={settings.allow_negative_stock}
-          onCheckedChange={(v) =>
-            setSettings((s) => ({ ...s, allow_negative_stock: v }))
-          }
+          onCheckedChange={(v) => setSettings((s) => ({ ...s, allow_negative_stock: v }))}
         />
       </SettingRow>
 
@@ -181,25 +177,18 @@ export function AdvancedSettingsPanel() {
       >
         <Switch
           checked={settings.price_includes_tax}
-          onCheckedChange={(v) =>
-            setSettings((s) => ({ ...s, price_includes_tax: v }))
-          }
+          onCheckedChange={(v) => setSettings((s) => ({ ...s, price_includes_tax: v }))}
         />
       </SettingRow>
 
       <SettingRow label="啟用低庫存通知">
         <Switch
           checked={settings.low_stock_alert}
-          onCheckedChange={(v) =>
-            setSettings((s) => ({ ...s, low_stock_alert: v }))
-          }
+          onCheckedChange={(v) => setSettings((s) => ({ ...s, low_stock_alert: v }))}
         />
       </SettingRow>
 
-      <SettingRow
-        label="低庫存門檻倍數"
-        description="庫存低於 安全存量 × 此倍數 時發出通知"
-      >
+      <SettingRow label="低庫存門檻倍數" description="庫存低於 安全存量 × 此倍數 時發出通知">
         <Input
           type="number"
           min={0}
@@ -208,18 +197,14 @@ export function AdvancedSettingsPanel() {
           onChange={(e) =>
             setSettings((s) => ({
               ...s,
-              low_stock_multiplier:
-                e.target.value === "" ? 0 : Number(e.target.value),
+              low_stock_multiplier: e.target.value === "" ? 0 : Number(e.target.value),
             }))
           }
           className="w-32"
         />
       </SettingRow>
 
-      <SettingRow
-        label="預設帳期天數"
-        description="新建客戶/廠商的預設帳期"
-      >
+      <SettingRow label="預設帳期天數" description="新建客戶/廠商的預設帳期">
         <Input
           type="number"
           min={0}
@@ -228,8 +213,7 @@ export function AdvancedSettingsPanel() {
           onChange={(e) =>
             setSettings((s) => ({
               ...s,
-              default_payment_terms:
-                e.target.value === "" ? 0 : Number(e.target.value),
+              default_payment_terms: e.target.value === "" ? 0 : Number(e.target.value),
             }))
           }
           className="w-32"
@@ -246,8 +230,7 @@ export function AdvancedSettingsPanel() {
           onChange={(e) =>
             setSettings((s) => ({
               ...s,
-              fiscal_year_start:
-                e.target.value === "" ? 1 : Number(e.target.value),
+              fiscal_year_start: e.target.value === "" ? 1 : Number(e.target.value),
             }))
           }
           className="w-32"
@@ -277,9 +260,7 @@ function SettingRow({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
       <div className="space-y-0.5">
         <Label className="text-sm font-medium">{label}</Label>
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
-        )}
+        {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>

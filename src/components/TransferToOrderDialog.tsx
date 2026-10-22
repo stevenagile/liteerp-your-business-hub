@@ -69,9 +69,7 @@ export function TransferToOrderDialog({
       setLoading(true);
       const { data, error } = await supabase
         .from("doc_lines")
-        .select(
-          "id, product_code, product_name, unit, quantity, delivered_qty",
-        )
+        .select("id, product_code, product_name, unit, quantity, delivered_qty")
         .eq("header_id", sourceDocId)
         .order("line_no");
       if (cancelled) return;
@@ -82,8 +80,7 @@ export function TransferToOrderDialog({
         const list = (data ?? []) as SourceLine[];
         setRows(
           list.map((l) => {
-            const remaining =
-              Number(l.quantity ?? 0) - Number(l.delivered_qty ?? 0);
+            const remaining = Number(l.quantity ?? 0) - Number(l.delivered_qty ?? 0);
             const fullyDone = remaining <= 0;
             return {
               line: l,
@@ -155,7 +152,8 @@ export function TransferToOrderDialog({
       <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            轉{targetLabel}{sourceDocNo ? ` · 來源 ${sourceDocNo}` : ""}
+            轉{targetLabel}
+            {sourceDocNo ? ` · 來源 ${sourceDocNo}` : ""}
           </DialogTitle>
         </DialogHeader>
 
@@ -179,10 +177,7 @@ export function TransferToOrderDialog({
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    className="h-20 text-center text-sm text-muted-foreground"
-                  >
+                  <TableCell colSpan={7} className="h-20 text-center text-sm text-muted-foreground">
                     無明細
                   </TableCell>
                 </TableRow>
@@ -196,16 +191,12 @@ export function TransferToOrderDialog({
                       <Checkbox
                         disabled={r.fullyDone}
                         checked={r.checked}
-                        onCheckedChange={(v) =>
-                          updateRow(idx, { checked: Boolean(v) })
-                        }
+                        onCheckedChange={(v) => updateRow(idx, { checked: Boolean(v) })}
                       />
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{r.line.product_name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {r.line.product_code}
-                      </div>
+                      <div className="text-xs text-muted-foreground">{r.line.product_code}</div>
                     </TableCell>
                     <TableCell>{r.line.unit ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">
