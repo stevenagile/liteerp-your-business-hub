@@ -17,12 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -71,9 +66,7 @@ function SalesReturnListPage() {
     setLoading(true);
     let q = supabase
       .from("doc_headers")
-      .select(
-        "id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no",
-      )
+      .select("id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no")
       .eq("doc_type", "sales_return")
       .eq("company_id", profile?.company_id ?? "")
       .order("doc_date", { ascending: false })
@@ -106,7 +99,12 @@ function SalesReturnListPage() {
     setDialogOpen(true);
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -183,7 +181,13 @@ function SalesReturnListPage() {
               { key: "doc_date", label: "日期" },
               { key: "contact_name", label: "客戶" },
               { key: "total_amount", label: "總金額", type: "number" },
-              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              {
+                key: "status",
+                label: "狀態",
+                value: (r: Record<string, unknown>) =>
+                  DOC_STATUS_LABEL[(r as { status: string }).status] ??
+                  (r as { status: string }).status,
+              },
               { key: "source_doc_no", label: "來源銷貨單" },
             ]}
           />
@@ -212,10 +216,7 @@ function SalesReturnListPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
                   尚無銷退單
                 </TableCell>
               </TableRow>
@@ -228,9 +229,7 @@ function SalesReturnListPage() {
                 >
                   <TableCell className="font-mono">{d.doc_no ?? "—"}</TableCell>
                   <TableCell>{d.doc_date}</TableCell>
-                  <TableCell className="font-medium">
-                    {d.contact_name ?? "—"}
-                  </TableCell>
+                  <TableCell className="font-medium">{d.contact_name ?? "—"}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {Number(d.total_amount ?? 0).toLocaleString()}
                   </TableCell>
@@ -272,7 +271,13 @@ function SalesReturnListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯銷退單" : "檢視銷退單") : "新增銷退單"}</DialogTitle>
+            <DialogTitle>
+              {editingId
+                ? list.find((d) => d.id === editingId)?.status === "draft"
+                  ? "編輯銷退單"
+                  : "檢視銷退單"
+                : "新增銷退單"}
+            </DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm

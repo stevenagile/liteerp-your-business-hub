@@ -51,8 +51,7 @@ const currentYearMonth = () => {
 const matchMonth = <T extends { month: string }>(rows: T[], ym: string) =>
   rows.find((r) => r.month && r.month.startsWith(ym));
 
-const num = (n: number | null | undefined) =>
-  n == null ? "0" : Number(n).toLocaleString();
+const num = (n: number | null | undefined) => (n == null ? "0" : Number(n).toLocaleString());
 
 function Dashboard() {
   const { profile } = useAuth();
@@ -62,9 +61,7 @@ function Dashboard() {
   const [lowStockCount, setLowStockCount] = useState(0);
   const [inventoryValue, setInventoryValue] = useState(0);
   const [overdueAmount, setOverdueAmount] = useState(0);
-  const [topDebtors, setTopDebtors] = useState<
-    { name: string; amount: number }[]
-  >([]);
+  const [topDebtors, setTopDebtors] = useState<{ name: string; amount: number }[]>([]);
 
   useEffect(() => {
     if (!companyId) return;
@@ -85,15 +82,8 @@ function Dashboard() {
             .eq("company_id", companyId)
             .order("month", { ascending: false })
             .limit(12),
-          supabase
-            .from("v_stock")
-            .select("is_low")
-            .eq("company_id", companyId)
-            .eq("is_low", true),
-          supabase
-            .from("inventory")
-            .select("quantity, avg_cost")
-            .eq("company_id", companyId),
+          supabase.from("v_stock").select("is_low").eq("company_id", companyId).eq("is_low", true),
+          supabase.from("inventory").select("quantity, avg_cost").eq("company_id", companyId),
           supabase
             .from("doc_headers")
             .select("contact_name, total_amount, paid_amount, due_date")
@@ -133,9 +123,7 @@ function Dashboard() {
         );
       } catch (e) {
         if (!cancelled)
-          toast.error(
-            "營運數據讀取失敗：" + (e instanceof Error ? e.message : String(e)),
-          );
+          toast.error("營運數據讀取失敗：" + (e instanceof Error ? e.message : String(e)));
       }
     })();
     return () => {
@@ -169,9 +157,7 @@ function Dashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">儀表板</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          歡迎使用 LiteERP，以下為今日營運概況。
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">歡迎使用 LiteERP，以下為今日營運概況。</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -192,7 +178,8 @@ function Dashboard() {
           value={num(grossProfit)}
           sub={
             <span className="text-muted-foreground">
-              毛利率 <span className="font-semibold text-foreground">{grossMarginPct.toFixed(1)}%</span>
+              毛利率{" "}
+              <span className="font-semibold text-foreground">{grossMarginPct.toFixed(1)}%</span>
             </span>
           }
         />
@@ -215,9 +202,7 @@ function Dashboard() {
           value={num(inventoryValue)}
           sub={
             lowStockCount > 0 ? (
-              <span className="text-warning">
-                {lowStockCount} 項原料即將耗盡
-              </span>
+              <span className="text-warning">{lowStockCount} 項原料即將耗盡</span>
             ) : (
               <span className="text-muted-foreground">庫存水位正常</span>
             )
@@ -305,9 +290,7 @@ function KpiCard({
       <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </div>
-      <div className={`mt-2 text-2xl font-semibold ${valueClass ?? ""}`}>
-        {value}
-      </div>
+      <div className={`mt-2 text-2xl font-semibold ${valueClass ?? ""}`}>{value}</div>
       {sub && <div className="mt-1 text-sm">{sub}</div>}
     </div>
   );

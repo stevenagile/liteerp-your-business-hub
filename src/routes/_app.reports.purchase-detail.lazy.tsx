@@ -63,8 +63,17 @@ function PurchaseDetailReport() {
     if (!profile?.company_id) return;
     (async () => {
       const [{ data: vs }, { data: pr }] = await Promise.all([
-        supabase.from("contacts").select("id,name").in("type", ["vendor", "both"]).eq("company_id", profile?.company_id ?? "").order("name"),
-        supabase.from("products").select("id,code,name").eq("company_id", profile?.company_id ?? "").order("code"),
+        supabase
+          .from("contacts")
+          .select("id,name")
+          .in("type", ["vendor", "both"])
+          .eq("company_id", profile?.company_id ?? "")
+          .order("name"),
+        supabase
+          .from("products")
+          .select("id,code,name")
+          .eq("company_id", profile?.company_id ?? "")
+          .order("code"),
       ]);
       setVendors((vs ?? []) as { id: string; name: string }[]);
       setProducts((pr ?? []) as { id: string; code: string; name: string }[]);
@@ -77,7 +86,9 @@ function PurchaseDetailReport() {
     try {
       let q = supabase
         .from("v_purchase_detail")
-        .select("doc_date,doc_no,contact_id,vendor_name,product_code,product_name,quantity,unit_price,amount")
+        .select(
+          "doc_date,doc_no,contact_id,vendor_name,product_code,product_name,quantity,unit_price,amount",
+        )
         .eq("company_id", profile?.company_id ?? "")
         .gte("doc_date", start)
         .lte("doc_date", end)
@@ -101,32 +112,65 @@ function PurchaseDetailReport() {
 
   const total = useMemo(() => rows.reduce((s, r) => s + Number(r.amount ?? 0), 0), [rows]);
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">進貨明細報表</h1>
       <div className="flex flex-wrap items-end gap-3 rounded-md border bg-card p-4">
-        <div className="grid gap-1.5"><Label>起日</Label><Input className="w-40" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></div>
-        <div className="grid gap-1.5"><Label>迄日</Label><Input className="w-40" type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></div>
+        <div className="grid gap-1.5">
+          <Label>起日</Label>
+          <Input
+            className="w-40"
+            type="date"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <Label>迄日</Label>
+          <Input
+            className="w-40"
+            type="date"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+          />
+        </div>
         <div className="grid gap-1.5">
           <Label>廠商</Label>
           <Select value={vendorId} onValueChange={setVendorId}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部廠商</SelectItem>
-              {vendors.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              {vendors.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         <div className="grid gap-1.5">
           <Label>產品</Label>
           <Select value={productId} onValueChange={setProductId}>
-            <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-56">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部產品</SelectItem>
-              {products.map((p) => <SelectItem key={p.id} value={p.code}>{p.code} {p.name}</SelectItem>)}
+              {products.map((p) => (
+                <SelectItem key={p.id} value={p.code}>
+                  {p.code} {p.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -170,7 +214,11 @@ function PurchaseDetailReport() {
           </TableHeader>
           <TableBody>
             {rows.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground">無資料</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={8} className="text-center text-sm text-muted-foreground">
+                  無資料
+                </TableCell>
+              </TableRow>
             )}
             {rows.map((r, i) => (
               <TableRow key={i}>
