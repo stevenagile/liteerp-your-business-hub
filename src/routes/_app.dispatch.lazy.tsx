@@ -187,9 +187,7 @@ function DispatchPage() {
       }
       map.get(key)!.rows.push(r);
     }
-    return [...map.values()].sort(
-      (a, b) => (TRUCK_ORDER[a.key] ?? 5) - (TRUCK_ORDER[b.key] ?? 5),
-    );
+    return [...map.values()].sort((a, b) => (TRUCK_ORDER[a.key] ?? 5) - (TRUCK_ORDER[b.key] ?? 5));
   }, [rows]);
 
   const unassignedCount = useMemo(
@@ -221,7 +219,12 @@ function DispatchPage() {
     }
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -249,10 +252,7 @@ function DispatchPage() {
               重新套用派車規則
             </Button>
             <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
-              <Checkbox
-                checked={fullRecalc}
-                onCheckedChange={(v) => setFullRecalc(Boolean(v))}
-              />
+              <Checkbox checked={fullRecalc} onCheckedChange={(v) => setFullRecalc(Boolean(v))} />
               重算 {date} 全部單（會覆蓋手動指定）
             </label>
           </div>
@@ -279,9 +279,7 @@ function DispatchPage() {
                 key: "doc_type",
                 label: "單別",
                 value: (r: Record<string, unknown>) =>
-                  (r as { doc_type: string }).doc_type === "sales_invoice"
-                    ? "銷貨單"
-                    : "訂單",
+                  (r as { doc_type: string }).doc_type === "sales_invoice" ? "銷貨單" : "訂單",
               },
               { key: "order_no", label: "單號" },
               { key: "contact_name", label: "客戶" },
@@ -372,7 +370,14 @@ function DispatchPage() {
           {date} 沒有排定配送的{truck !== "all" ? truck : ""}單據。
         </div>
       ) : (
-        groups.map((g) => <TruckManifest key={g.key} group={g} date={date} lastRunAt={lastRun?.generated_at ?? null} />)
+        groups.map((g) => (
+          <TruckManifest
+            key={g.key}
+            group={g}
+            date={date}
+            lastRunAt={lastRun?.generated_at ?? null}
+          />
+        ))
       )}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -397,12 +402,26 @@ function DispatchPage() {
   );
 }
 
-function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: string; lastRunAt: string | null }) {
+function TruckManifest({
+  group,
+  date,
+  lastRunAt,
+}: {
+  group: TruckGroup;
+  date: string;
+  lastRunAt: string | null;
+}) {
   // 備貨彙總：同產品（品名+單位）跨客戶加總，方便倉庫一次備齊
   const productSummary = useMemo(() => {
     const map = new Map<
       string,
-      { code: string | null; name: string | null; unit: string | null; qty: number; packPerBox: number | null }
+      {
+        code: string | null;
+        name: string | null;
+        unit: string | null;
+        qty: number;
+        packPerBox: number | null;
+      }
     >();
     for (const r of group.rows) {
       const key = `${r.product_id ?? r.product_code}|${r.unit ?? ""}`;
@@ -419,9 +438,7 @@ function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: st
         });
       }
     }
-    return [...map.values()].sort((a, b) =>
-      (a.code ?? "").localeCompare(b.code ?? ""),
-    );
+    return [...map.values()].sort((a, b) => (a.code ?? "").localeCompare(b.code ?? ""));
   }, [group.rows]);
 
   // 各站明細：依路順→地區→客戶→單號→行號排序（view 已排好，這裡保留順序用 Map）
@@ -481,7 +498,9 @@ function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: st
         <div className="text-sm text-muted-foreground">配送日：{date}</div>
         <div className="ml-auto flex gap-4 text-sm text-muted-foreground">
           <span>{orders.length} 站</span>
-          {cashStations > 0 && <span className="text-warning-foreground">收現 {cashStations} 站</span>}
+          {cashStations > 0 && (
+            <span className="text-warning-foreground">收現 {cashStations} 站</span>
+          )}
           <span>合計 {totalQty.toLocaleString()}</span>
         </div>
       </div>
@@ -489,9 +508,7 @@ function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: st
       <div className="grid gap-4 p-4 lg:grid-cols-2">
         {/* 備貨彙總 */}
         <div>
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
-            備貨彙總
-          </h3>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">備貨彙總</h3>
           <Table>
             <TableHeader>
               <TableRow>
@@ -505,13 +522,9 @@ function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: st
             <TableBody>
               {productSummary.map((p, i) => (
                 <TableRow key={i}>
-                  <TableCell className="font-mono text-xs">
-                    {p.code ?? "—"}
-                  </TableCell>
+                  <TableCell className="font-mono text-xs">{p.code ?? "—"}</TableCell>
                   <TableCell>{p.name ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {p.unit ?? "—"}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{p.unit ?? "—"}</TableCell>
                   <TableCell className="text-right text-muted-foreground">
                     {p.packPerBox ?? "—"}
                   </TableCell>
@@ -526,9 +539,7 @@ function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: st
 
         {/* 各站明細 */}
         <div>
-          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
-            各站明細
-          </h3>
+          <h3 className="mb-2 text-sm font-semibold text-muted-foreground">各站明細</h3>
           <Table>
             <TableHeader>
               <TableRow>
@@ -542,7 +553,10 @@ function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: st
               {orders.map((o, oi) => {
                 const isLate = lastRunAt && o.confirmed_at && o.confirmed_at > lastRunAt;
                 return o.lines.map((l, li) => (
-                  <TableRow key={`${oi}-${li}`} className={isLate ? "bg-amber-50 dark:bg-amber-500/5" : ""}>
+                  <TableRow
+                    key={`${oi}-${li}`}
+                    className={isLate ? "bg-amber-50 dark:bg-amber-500/5" : ""}
+                  >
                     {li === 0 ? (
                       <>
                         <TableCell
@@ -551,17 +565,21 @@ function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: st
                         >
                           {o.route_seq ?? "—"}
                         </TableCell>
-                        <TableCell
-                          rowSpan={o.lines.length}
-                          className="align-top"
-                        >
+                        <TableCell rowSpan={o.lines.length} className="align-top">
                           <div className="font-medium">
                             {o.contact_name ?? "—"}
                             {o.collect_cash && (
-                              <span className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-warning text-xs text-warning-foreground" title="收現">◯</span>
+                              <span
+                                className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-warning text-xs text-warning-foreground"
+                                title="收現"
+                              >
+                                ◯
+                              </span>
                             )}
                             {isLate && (
-                              <span title="出單後才確認（late addition）"><AlertTriangle className="ml-1 inline h-3.5 w-3.5 text-amber-500" /></span>
+                              <span title="出單後才確認（late addition）">
+                                <AlertTriangle className="ml-1 inline h-3.5 w-3.5 text-amber-500" />
+                              </span>
                             )}
                             {o.district && (
                               <span className="ml-1.5 text-xs font-normal text-muted-foreground">
@@ -593,9 +611,7 @@ function TruckManifest({ group, date, lastRunAt }: { group: TruckGroup; date: st
                     <TableCell>{l.product_name ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">
                       {Number(l.quantity).toLocaleString()}
-                      <span className="ml-1 text-xs text-muted-foreground">
-                        {l.unit ?? ""}
-                      </span>
+                      <span className="ml-1 text-xs text-muted-foreground">{l.unit ?? ""}</span>
                     </TableCell>
                   </TableRow>
                 ));

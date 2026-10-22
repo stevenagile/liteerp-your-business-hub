@@ -221,10 +221,7 @@ function FoodsPage() {
     const total = list.length;
     const organic = list.filter((f) => f.organic).length;
     const halal = list.filter((f) => f.halal).length;
-    const lowStock = list.filter(
-      (f) =>
-        f.safety_stock != null && f.safety_stock > 0,
-    ).length; // 簡化：僅計算有設定安全存量的
+    const lowStock = list.filter((f) => f.safety_stock != null && f.safety_stock > 0).length; // 簡化：僅計算有設定安全存量的
     return { total, organic, halal, lowStock };
   }, [list]);
 
@@ -241,10 +238,7 @@ function FoodsPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <Leaf
-              className="h-6 w-6"
-              style={{ color: FOOD_TOKENS.accentGreen }}
-            />
+            <Leaf className="h-6 w-6" style={{ color: FOOD_TOKENS.accentGreen }} />
             <h1
               className="text-2xl font-semibold tracking-tight"
               style={{ color: FOOD_TOKENS.text }}
@@ -353,17 +347,11 @@ function FoodsPage() {
               >
                 <s.icon className="h-4 w-4" />
               </div>
-              <span
-                className="text-sm font-medium"
-                style={{ color: FOOD_TOKENS.textMuted }}
-              >
+              <span className="text-sm font-medium" style={{ color: FOOD_TOKENS.textMuted }}>
                 {s.label}
               </span>
             </div>
-            <div
-              className="mt-2 text-2xl font-bold"
-              style={{ color: FOOD_TOKENS.text }}
-            >
+            <div className="mt-2 text-2xl font-bold" style={{ color: FOOD_TOKENS.text }}>
               {s.value}
             </div>
           </div>
@@ -410,18 +398,13 @@ function FoodsPage() {
               <TableHead className="w-24">單位</TableHead>
               <TableHead className="w-24 text-right">售價</TableHead>
               <TableHead className="w-36">標籤</TableHead>
-              {canWrite && (
-                <TableHead className="w-20 text-right">操作</TableHead>
-              )}
+              {canWrite && <TableHead className="w-20 text-right">操作</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell
-                  colSpan={canWrite ? 9 : 8}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={canWrite ? 9 : 8} className="h-24 text-center">
                   <Loader2
                     className="inline h-5 w-5 animate-spin"
                     style={{ color: FOOD_TOKENS.textMuted }}
@@ -440,20 +423,11 @@ function FoodsPage() {
               </TableRow>
             ) : (
               filtered.map((p) => (
-                <TableRow
-                  key={p.id}
-                  style={{ borderBottomColor: FOOD_TOKENS.borderLight }}
-                >
-                  <TableCell
-                    className="font-mono text-xs"
-                    style={{ color: FOOD_TOKENS.textMuted }}
-                  >
+                <TableRow key={p.id} style={{ borderBottomColor: FOOD_TOKENS.borderLight }}>
+                  <TableCell className="font-mono text-xs" style={{ color: FOOD_TOKENS.textMuted }}>
                     {p.code}
                   </TableCell>
-                  <TableCell
-                    className="font-medium"
-                    style={{ color: FOOD_TOKENS.text }}
-                  >
+                  <TableCell className="font-medium" style={{ color: FOOD_TOKENS.text }}>
                     {p.name}
                   </TableCell>
                   <TableCell style={{ color: FOOD_TOKENS.textMuted }}>
@@ -478,16 +452,12 @@ function FoodsPage() {
                       "—"
                     )}
                   </TableCell>
-                  <TableCell style={{ color: FOOD_TOKENS.textMuted }}>
-                    {p.unit || "—"}
-                  </TableCell>
+                  <TableCell style={{ color: FOOD_TOKENS.textMuted }}>{p.unit || "—"}</TableCell>
                   <TableCell
                     className="text-right tabular-nums"
                     style={{ color: FOOD_TOKENS.text }}
                   >
-                    {p.price1 != null
-                      ? Number(p.price1).toLocaleString()
-                      : "—"}
+                    {p.price1 != null ? Number(p.price1).toLocaleString() : "—"}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
@@ -515,10 +485,7 @@ function FoodsPage() {
                         />
                       )}
                       {!p.organic && !p.halal && p.expiry_days != null && p.expiry_days > 7 && (
-                        <span
-                          className="text-xs"
-                          style={{ color: FOOD_TOKENS.textMuted }}
-                        >
+                        <span className="text-xs" style={{ color: FOOD_TOKENS.textMuted }}>
                           —
                         </span>
                       )}
@@ -564,9 +531,7 @@ function FoodsPage() {
         templateFileName="foods_template.csv"
         fields={FOOD_IMPORT_FIELDS}
         validateRows={async (parsedRows) => {
-          const codes = parsedRows
-            .map((r) => String(r.data.code ?? "").trim())
-            .filter(Boolean);
+          const codes = parsedRows.map((r) => String(r.data.code ?? "").trim()).filter(Boolean);
           const seen = new Map<string, number>();
           const dupInFile = new Set<string>();
           codes.forEach((c) => {
@@ -581,15 +546,12 @@ function FoodsPage() {
               .select("code")
               .eq("company_id", companyId)
               .in("code", codes);
-            existing = new Set(
-              (data ?? []).map((d: { code: string }) => d.code),
-            );
+            existing = new Set((data ?? []).map((d: { code: string }) => d.code));
           }
           return parsedRows.map((r) => {
             const code = String(r.data.code ?? "").trim();
             const errs = [...r.errors];
-            if (code && dupInFile.has(code))
-              errs.push("檔案內 code 重複");
+            if (code && dupInFile.has(code)) errs.push("檔案內 code 重複");
             if (code && existing.has(code)) errs.push("code 已存在");
             return { ...r, errors: errs };
           });
@@ -704,8 +666,7 @@ function FoodDialog({
             (f) =>
               f && {
                 ...f,
-                [key]:
-                  e.target.value === "" ? null : Number(e.target.value),
+                [key]: e.target.value === "" ? null : Number(e.target.value),
               },
           )
         }
@@ -717,9 +678,7 @@ function FoodDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle
-            style={{ color: FOOD_TOKENS.text }}
-          >
+          <DialogTitle style={{ color: FOOD_TOKENS.text }}>
             {isEdit ? "編輯食品" : "新增食品"}
           </DialogTitle>
         </DialogHeader>
@@ -739,51 +698,39 @@ function FoodDialog({
               <Field label="編號" required>
                 <Input
                   value={form.code}
-                  onChange={(e) =>
-                    setForm((f) => f && { ...f, code: e.target.value })
-                  }
+                  onChange={(e) => setForm((f) => f && { ...f, code: e.target.value })}
                   required
                 />
               </Field>
               <Field label="名稱" required>
                 <Input
                   value={form.name}
-                  onChange={(e) =>
-                    setForm((f) => f && { ...f, name: e.target.value })
-                  }
+                  onChange={(e) => setForm((f) => f && { ...f, name: e.target.value })}
                   required
                 />
               </Field>
               <Field label="規格">
                 <Input
                   value={form.spec ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => f && { ...f, spec: e.target.value })
-                  }
+                  onChange={(e) => setForm((f) => f && { ...f, spec: e.target.value })}
                 />
               </Field>
               <Field label="分類">
                 <Input
                   value={form.category ?? "食品"}
-                  onChange={(e) =>
-                    setForm((f) => f && { ...f, category: e.target.value })
-                  }
+                  onChange={(e) => setForm((f) => f && { ...f, category: e.target.value })}
                 />
               </Field>
               <Field label="單位">
                 <Input
                   value={form.unit ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => f && { ...f, unit: e.target.value })
-                  }
+                  onChange={(e) => setForm((f) => f && { ...f, unit: e.target.value })}
                 />
               </Field>
               <Field label="條碼">
                 <Input
                   value={form.barcode ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => f && { ...f, barcode: e.target.value })
-                  }
+                  onChange={(e) => setForm((f) => f && { ...f, barcode: e.target.value })}
                 />
               </Field>
               {numField("price1", "售價")}
@@ -800,7 +747,10 @@ function FoodDialog({
               borderColor: FOOD_TOKENS.border,
             }}
           >
-            <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: FOOD_TOKENS.accentGreen }}>
+            <div
+              className="flex items-center gap-2 text-sm font-semibold"
+              style={{ color: FOOD_TOKENS.accentGreen }}
+            >
               <Leaf className="h-4 w-4" />
               食品專屬資訊
             </div>
@@ -809,9 +759,7 @@ function FoodDialog({
                 <Input
                   value={form.origin ?? ""}
                   placeholder="例如：台灣雲林"
-                  onChange={(e) =>
-                    setForm((f) => f && { ...f, origin: e.target.value })
-                  }
+                  onChange={(e) => setForm((f) => f && { ...f, origin: e.target.value })}
                 />
               </Field>
               {numField("expiry_days", "有效天數")}
@@ -819,11 +767,7 @@ function FoodDialog({
                 <Input
                   value={form.storage_method ?? "常溫"}
                   placeholder="常溫 / 冷藏 / 冷凍"
-                  onChange={(e) =>
-                    setForm(
-                      (f) => f && { ...f, storage_method: e.target.value },
-                    )
-                  }
+                  onChange={(e) => setForm((f) => f && { ...f, storage_method: e.target.value })}
                 />
               </Field>
               <div className="flex items-center gap-6 pt-6">
@@ -831,11 +775,7 @@ function FoodDialog({
                   <input
                     type="checkbox"
                     checked={form.organic}
-                    onChange={(e) =>
-                      setForm(
-                        (f) => f && { ...f, organic: e.target.checked },
-                      )
-                    }
+                    onChange={(e) => setForm((f) => f && { ...f, organic: e.target.checked })}
                     className="h-4 w-4 rounded border"
                     style={{ accentColor: FOOD_TOKENS.accentGreen }}
                   />
@@ -845,11 +785,7 @@ function FoodDialog({
                   <input
                     type="checkbox"
                     checked={form.halal}
-                    onChange={(e) =>
-                      setForm(
-                        (f) => f && { ...f, halal: e.target.checked },
-                      )
-                    }
+                    onChange={(e) => setForm((f) => f && { ...f, halal: e.target.checked })}
                     className="h-4 w-4 rounded border"
                   />
                   <span className="text-sm">清真認證</span>
@@ -859,11 +795,7 @@ function FoodDialog({
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               取消
             </Button>
             <Button
@@ -874,9 +806,7 @@ function FoodDialog({
                 color: "#FFF",
               }}
             >
-              {saving && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               儲存
             </Button>
           </DialogFooter>
