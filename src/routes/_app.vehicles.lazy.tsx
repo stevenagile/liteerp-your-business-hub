@@ -219,7 +219,12 @@ function VehiclesPage() {
     load();
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -259,10 +264,7 @@ function VehiclesPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="py-10 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
                   尚無車輛資料，點右上「新增車輛」開始建立。
                 </TableCell>
               </TableRow>
@@ -270,13 +272,9 @@ function VehiclesPage() {
               list.map((v) => (
                 <TableRow key={v.id}>
                   <TableCell className="font-medium">{v.name}</TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {v.plate_no ?? "—"}
-                  </TableCell>
+                  <TableCell className="font-mono text-sm">{v.plate_no ?? "—"}</TableCell>
                   <TableCell>{v.truck_type ?? "—"}</TableCell>
-                  <TableCell className="text-sm">
-                    {formatDays(v.delivery_days)}
-                  </TableCell>
+                  <TableCell className="text-sm">{formatDays(v.delivery_days)}</TableCell>
                   <TableCell>{v.driver_name ?? "—"}</TableCell>
                   <TableCell className="text-center">
                     {v.is_active ? (
@@ -329,9 +327,7 @@ function VehiclesPage() {
                 <Label>車型</Label>
                 <Select
                   value={form.truck_type || "none"}
-                  onValueChange={(v) =>
-                    setForm({ ...form, truck_type: v === "none" ? "" : v })
-                  }
+                  onValueChange={(v) => setForm({ ...form, truck_type: v === "none" ? "" : v })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="選擇車型" />
@@ -347,9 +343,7 @@ function VehiclesPage() {
                 <Label>司機</Label>
                 <Input
                   value={form.driver_name}
-                  onChange={(e) =>
-                    setForm({ ...form, driver_name: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, driver_name: e.target.value })}
                 />
               </div>
             </div>
@@ -398,9 +392,7 @@ function VehiclesPage() {
             <div className="flex items-center justify-between rounded-md border p-3">
               <div>
                 <Label>啟用</Label>
-                <p className="text-xs text-muted-foreground">
-                  停用後不會出現在訂單的派車選擇中。
-                </p>
+                <p className="text-xs text-muted-foreground">停用後不會出現在訂單的派車選擇中。</p>
               </div>
               <Switch
                 checked={form.is_active}

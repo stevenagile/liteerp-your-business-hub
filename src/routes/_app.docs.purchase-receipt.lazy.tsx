@@ -24,12 +24,7 @@ import { PaymentDialog } from "@/components/PaymentDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -81,10 +76,7 @@ function PayableBadge({ status }: { status: string | null }) {
   };
   return (
     <span
-      className={cn(
-        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium",
-        s.cls,
-      )}
+      className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", s.cls)}
     >
       {s.label}
     </span>
@@ -135,10 +127,7 @@ function PurchaseReceiptListPage() {
   }, [status, dateFrom, dateTo, profile?.company_id]);
 
   const summary = useMemo(() => {
-    const total = list.reduce(
-      (s, d) => s + (Number(d.total_amount) || 0),
-      0,
-    );
+    const total = list.reduce((s, d) => s + (Number(d.total_amount) || 0), 0);
     return { count: list.length, total };
   }, [list]);
 
@@ -151,7 +140,12 @@ function PurchaseReceiptListPage() {
     setDialogOpen(true);
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -229,8 +223,20 @@ function PurchaseReceiptListPage() {
               { key: "contact_name", label: "廠商" },
               { key: "total_amount", label: "總金額", type: "number" },
               { key: "paid_amount", label: "已付", type: "number" },
-              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
-              { key: "payment_status", label: "付款狀態", value: (r: Record<string, unknown>) => PAY_STATUS_LABEL[(r as { payment_status: string | null }).payment_status ?? ""] ?? "—" },
+              {
+                key: "status",
+                label: "狀態",
+                value: (r: Record<string, unknown>) =>
+                  DOC_STATUS_LABEL[(r as { status: string }).status] ??
+                  (r as { status: string }).status,
+              },
+              {
+                key: "payment_status",
+                label: "付款狀態",
+                value: (r: Record<string, unknown>) =>
+                  PAY_STATUS_LABEL[(r as { payment_status: string | null }).payment_status ?? ""] ??
+                  "—",
+              },
               { key: "source_doc_no", label: "來源採購單" },
             ]}
           />
@@ -260,10 +266,7 @@ function PurchaseReceiptListPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={8} className="h-24 text-center text-sm text-muted-foreground">
                   尚無進貨單
                 </TableCell>
               </TableRow>
@@ -276,9 +279,7 @@ function PurchaseReceiptListPage() {
                 >
                   <TableCell className="font-mono">{d.doc_no ?? "—"}</TableCell>
                   <TableCell>{d.doc_date}</TableCell>
-                  <TableCell className="font-medium">
-                    {d.contact_name ?? "—"}
-                  </TableCell>
+                  <TableCell className="font-medium">{d.contact_name ?? "—"}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {Number(d.total_amount ?? 0).toLocaleString()}
                   </TableCell>
@@ -293,21 +294,19 @@ function PurchaseReceiptListPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      {canPay &&
-                        d.status === "confirmed" &&
-                        d.payment_status !== "paid" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPayTarget(d);
-                            }}
-                          >
-                            <Wallet className="mr-1 h-3.5 w-3.5" />
-                            付款
-                          </Button>
-                        )}
+                      {canPay && d.status === "confirmed" && d.payment_status !== "paid" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPayTarget(d);
+                          }}
+                        >
+                          <Wallet className="mr-1 h-3.5 w-3.5" />
+                          付款
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" asChild title="列印">
                         <a
                           href={`/print/purchase_receipt/${d.id}`}
@@ -348,7 +347,13 @@ function PurchaseReceiptListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯進貨單" : "檢視進貨單") : "新增進貨單"}</DialogTitle>
+            <DialogTitle>
+              {editingId
+                ? list.find((d) => d.id === editingId)?.status === "draft"
+                  ? "編輯進貨單"
+                  : "檢視進貨單"
+                : "新增進貨單"}
+            </DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm

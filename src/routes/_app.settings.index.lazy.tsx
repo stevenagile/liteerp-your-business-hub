@@ -49,9 +49,7 @@ function SettingsPage() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <ShieldAlert className="h-10 w-10 text-warning" />
         <h2 className="mt-3 text-lg font-semibold">權限不足</h2>
-        <p className="text-sm text-muted-foreground">
-          僅管理員 (admin) 可進入系統設定。
-        </p>
+        <p className="text-sm text-muted-foreground">僅管理員 (admin) 可進入系統設定。</p>
       </div>
     );
   }
@@ -60,9 +58,7 @@ function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">系統設定</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          管理公司基本資料與倉庫。
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">管理公司基本資料與倉庫。</p>
       </div>
 
       <Tabs defaultValue="company">
@@ -129,8 +125,7 @@ function CompanyForm() {
           address: data.address ?? "",
           phone: data.phone ?? "",
           email: (data as { email?: string | null }).email ?? "",
-          tax_rate:
-            (data as { tax_rate?: number | null }).tax_rate ?? 5,
+          tax_rate: (data as { tax_rate?: number | null }).tax_rate ?? 5,
         });
       }
       setLoading(false);
@@ -169,10 +164,7 @@ function CompanyForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
-    >
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-card p-6 shadow-sm">
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="公司名稱" required>
           <Input
@@ -184,9 +176,7 @@ function CompanyForm() {
         <Field label="統一編號">
           <Input
             value={form.tax_id ?? ""}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, tax_id: e.target.value }))
-            }
+            onChange={(e) => setForm((f) => ({ ...f, tax_id: e.target.value }))}
           />
         </Field>
         <Field label="電話">
@@ -205,9 +195,7 @@ function CompanyForm() {
         <Field label="地址" className="md:col-span-2">
           <Input
             value={form.address ?? ""}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, address: e.target.value }))
-            }
+            onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
           />
         </Field>
         <Field label="稅率 (%)">
@@ -314,9 +302,7 @@ function WarehousesPanel() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          共 {list.length} 個倉庫
-        </div>
+        <div className="text-sm text-muted-foreground">共 {list.length} 個倉庫</div>
         <Button size="sm" onClick={openCreate}>
           <Plus className="mr-1.5 h-4 w-4" />
           新增倉庫
@@ -343,10 +329,7 @@ function WarehousesPanel() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={5} className="h-24 text-center text-sm text-muted-foreground">
                   尚無倉庫，請新增
                 </TableCell>
               </TableRow>
@@ -355,20 +338,10 @@ function WarehousesPanel() {
                 <TableRow key={w.id}>
                   <TableCell className="font-mono">{w.code}</TableCell>
                   <TableCell className="font-medium">{w.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {w.address || "—"}
-                  </TableCell>
-                  <TableCell>
-                    {w.is_default && (
-                      <Badge variant="secondary">預設</Badge>
-                    )}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{w.address || "—"}</TableCell>
+                  <TableCell>{w.is_default && <Badge variant="secondary">預設</Badge>}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => openEdit(w)}
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => openEdit(w)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -449,44 +422,32 @@ function WarehouseDialog({
           <Field label="代碼" required>
             <Input
               value={form.code}
-              onChange={(e) =>
-                setForm((f) => f && { ...f, code: e.target.value })
-              }
+              onChange={(e) => setForm((f) => f && { ...f, code: e.target.value })}
               required
             />
           </Field>
           <Field label="名稱" required>
             <Input
               value={form.name}
-              onChange={(e) =>
-                setForm((f) => f && { ...f, name: e.target.value })
-              }
+              onChange={(e) => setForm((f) => f && { ...f, name: e.target.value })}
               required
             />
           </Field>
           <Field label="地址">
             <Input
               value={form.address ?? ""}
-              onChange={(e) =>
-                setForm((f) => f && { ...f, address: e.target.value })
-              }
+              onChange={(e) => setForm((f) => f && { ...f, address: e.target.value })}
             />
           </Field>
           <label className="flex items-center gap-2 text-sm">
             <Checkbox
               checked={form.is_default}
-              onCheckedChange={(v) =>
-                setForm((f) => f && { ...f, is_default: Boolean(v) })
-              }
+              onCheckedChange={(v) => setForm((f) => f && { ...f, is_default: Boolean(v) })}
             />
             設為預設倉庫
           </label>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               取消
             </Button>
             <Button type="submit" disabled={saving}>
