@@ -103,8 +103,7 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
     Math.max(0, Number(d.total_amount ?? 0) - Number(d.paid_amount ?? 0));
 
   const allocated = useMemo(
-    () =>
-      Object.values(allocs).reduce((s, v) => s + (Number(v) || 0), 0),
+    () => Object.values(allocs).reduce((s, v) => s + (Number(v) || 0), 0),
     [allocs],
   );
   const incoming = Number(totalAmount) || 0;
@@ -129,9 +128,7 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
     }
     setAllocs(next);
     if (left > 0) {
-      toast.warning(
-        `仍有 ${left.toLocaleString()} 未分配,超出未結金額`,
-      );
+      toast.warning(`仍有 ${left.toLocaleString()} 未分配,超出未結金額`);
     }
   };
 
@@ -240,11 +237,7 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
         </div>
         <div className="space-y-1.5 md:col-span-2">
           <Label>備註</Label>
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={2}
-          />
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
         </div>
       </section>
 
@@ -256,9 +249,7 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
           <div className="flex items-center gap-4 text-sm">
             <span>
               已分配:
-              <span className="ml-1 font-semibold tabular-nums">
-                {allocated.toLocaleString()}
-              </span>
+              <span className="ml-1 font-semibold tabular-nums">{allocated.toLocaleString()}</span>
             </span>
             <span>
               未分配:
@@ -281,17 +272,11 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
         </div>
 
         {loading ? (
-          <div className="p-6 text-center text-sm text-muted-foreground">
-            載入中...
-          </div>
+          <div className="p-6 text-center text-sm text-muted-foreground">載入中...</div>
         ) : !contactId ? (
-          <div className="p-6 text-center text-sm text-muted-foreground">
-            請先選擇{partyLabel}
-          </div>
+          <div className="p-6 text-center text-sm text-muted-foreground">請先選擇{partyLabel}</div>
         ) : docs.length === 0 ? (
-          <div className="p-6 text-center text-sm text-muted-foreground">
-            無未結清單據
-          </div>
+          <div className="p-6 text-center text-sm text-muted-foreground">無未結清單據</div>
         ) : (
           <Table>
             <TableHeader>
@@ -299,13 +284,9 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
                 <TableHead>單號</TableHead>
                 <TableHead>日期</TableHead>
                 <TableHead className="text-right">總額</TableHead>
-                <TableHead className="text-right">
-                  已{isCustomer ? "收" : "付"}
-                </TableHead>
+                <TableHead className="text-right">已{isCustomer ? "收" : "付"}</TableHead>
                 <TableHead className="text-right">未結餘額</TableHead>
-                <TableHead className="w-44 text-right">
-                  本次分配
-                </TableHead>
+                <TableHead className="w-44 text-right">本次分配</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -347,11 +328,7 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
         <Button
           onClick={submit}
           disabled={
-            submitting ||
-            !canWrite ||
-            !contactId ||
-            incoming <= 0 ||
-            Math.abs(remaining) > 0.001
+            submitting || !canWrite || !contactId || incoming <= 0 || Math.abs(remaining) > 0.001
           }
         >
           {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
