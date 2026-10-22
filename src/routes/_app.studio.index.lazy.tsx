@@ -57,9 +57,7 @@ function StudioOverviewPage() {
         {stats.map((s) => (
           <Card key={s.label}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {s.label}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{s.label}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-semibold">{s.value}</div>

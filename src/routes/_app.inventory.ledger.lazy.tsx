@@ -89,12 +89,8 @@ function InventoryLedgerPage() {
   const [selectedTypes, setSelectedTypes] = useState<MovementKey[]>([]);
 
   // filter options
-  const [productOptions, setProductOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
-  const [warehouseOptions, setWarehouseOptions] = useState<
-    { value: string; label: string }[]
-  >([]);
+  const [productOptions, setProductOptions] = useState<{ value: string; label: string }[]>([]);
+  const [warehouseOptions, setWarehouseOptions] = useState<{ value: string; label: string }[]>([]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -116,15 +112,18 @@ function InventoryLedgerPage() {
       ]);
       const prods = Array.from(
         new Map(
-          (pd ?? []).map((r: any) => [r.product_code, r.product_name]),
+          (pd ?? []).map((r: Record<string, string>) => [r.product_code, r.product_name]),
         ).entries(),
       ).map(([code, name]) => ({
         value: code,
         label: `${code} — ${name}`,
       }));
       const whs = Array.from(
-        new Set((wh ?? []).map((r: any) => r.warehouse_name)),
-      ).map((w) => ({ value: w as string, label: w as string }));
+        new Set((wh ?? []).map((r: Record<string, string>) => r.warehouse_name)),
+      ).map((w) => ({
+        value: w as string,
+        label: w as string,
+      }));
       setProductOptions(prods);
       setWarehouseOptions(whs);
     })();
@@ -186,18 +185,20 @@ function InventoryLedgerPage() {
     setPage(0);
   };
 
-  const hasFilters =
-    productCode || warehouse || dateFrom || dateTo || selectedTypes.length > 0;
+  const hasFilters = productCode || warehouse || dateFrom || dateTo || selectedTypes.length > 0;
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          庫存異動明細
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">庫存異動明細</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           追蹤所有庫存異動紀錄，包含銷貨、進貨、退貨與調整。共 {total} 筆。
         </p>
@@ -257,12 +258,7 @@ function InventoryLedgerPage() {
             />
           </div>
           {hasFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="mb-0.5"
-            >
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="mb-0.5">
               <RotateCcw className="mr-1 h-3.5 w-3.5" />
               清除篩選
             </Button>
@@ -276,7 +272,22 @@ function InventoryLedgerPage() {
                 { key: "product_code", label: "產品編號" },
                 { key: "product_name", label: "產品名稱" },
                 { key: "warehouse_name", label: "倉庫" },
-                { key: "movement_type", label: "異動類型", value: (r: Record<string, unknown>) => ({ opening: "期初入庫", sale: "銷貨出庫", purchase: "進貨入庫", sales_return: "銷退入庫", purchase_return: "進退出庫", adjust: "庫存調整", void_reverse: "作廢沖回" }[(r.movement_type as string) ?? ""] ?? (r.movement_type as string) ?? "") },
+                {
+                  key: "movement_type",
+                  label: "異動類型",
+                  value: (r: Record<string, unknown>) =>
+                    ({
+                      opening: "期初入庫",
+                      sale: "銷貨出庫",
+                      purchase: "進貨入庫",
+                      sales_return: "銷退入庫",
+                      purchase_return: "進退出庫",
+                      adjust: "庫存調整",
+                      void_reverse: "作廢沖回",
+                    })[(r.movement_type as string) ?? ""] ??
+                    (r.movement_type as string) ??
+                    "",
+                },
                 { key: "quantity_change", label: "異動數量", type: "number" },
                 { key: "balance_after", label: "異動後餘額", type: "number" },
                 { key: "unit_cost", label: "單位成本", type: "number" },
@@ -338,10 +349,7 @@ function InventoryLedgerPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={9}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={9} className="h-24 text-center text-sm text-muted-foreground">
                   尚無庫存異動紀錄
                 </TableCell>
               </TableRow>
@@ -353,13 +361,9 @@ function InventoryLedgerPage() {
                   </TableCell>
                   <TableCell>
                     <div className="font-medium">{r.product_name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {r.product_code}
-                    </div>
+                    <div className="text-xs text-muted-foreground">{r.product_code}</div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {r.warehouse_name}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{r.warehouse_name}</TableCell>
                   <TableCell>
                     <MovementTypeBadge type={r.movement_type} />
                   </TableCell>

@@ -31,7 +31,12 @@ const LOG: Entry[] = [
 
 function ChangelogPage() {
   const { allowed, checking } = usePermissionGuard("/docs/changelog");
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (

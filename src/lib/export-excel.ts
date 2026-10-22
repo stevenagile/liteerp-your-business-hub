@@ -30,9 +30,7 @@ export async function exportToExcel<T extends Record<string, unknown>>(
   const header = columns.map((c) => c.label);
   const data = rows.map((row) =>
     columns.map((c) => {
-      const raw = c.value
-        ? c.value(row)
-        : (row as Record<string, unknown>)[c.key as string];
+      const raw = c.value ? c.value(row) : (row as Record<string, unknown>)[c.key as string];
       if (raw == null || raw === "") return "";
       if (c.type === "number") {
         const n = Number(raw);

@@ -2,10 +2,7 @@ import { createLazyFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import {
-  PrintableDocument,
-  type PrintDocType,
-} from "@/components/PrintableDocument";
+import { PrintableDocument, type PrintDocType } from "@/components/PrintableDocument";
 
 const VALID: PrintDocType[] = [
   "quotation",

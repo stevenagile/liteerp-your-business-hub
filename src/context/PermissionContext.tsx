@@ -33,11 +33,7 @@ export function PermissionProvider({
     return { allowedRoutes: routes, ready: !loading, menuItems: menu };
   }, [menu, loading]);
 
-  return (
-    <PermissionContext.Provider value={value}>
-      {children}
-    </PermissionContext.Provider>
-  );
+  return <PermissionContext.Provider value={value}>{children}</PermissionContext.Provider>;
 }
 
 export function usePermissions() {

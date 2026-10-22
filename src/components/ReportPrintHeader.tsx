@@ -12,13 +12,7 @@ type Company = {
  * 列印用報表抬頭（公司名 + 報表標題 + 期間）。
  * 平時隱藏，列印時顯示。需要外層使用 `.print-area`。
  */
-export function ReportPrintHeader({
-  title,
-  period,
-}: {
-  title: string;
-  period?: string;
-}) {
+export function ReportPrintHeader({ title, period }: { title: string; period?: string }) {
   const [company, setCompany] = useState<Company | null>(null);
   useEffect(() => {
     supabase
@@ -36,12 +30,8 @@ export function ReportPrintHeader({
           {company?.tax_id && (
             <div className="text-xs text-gray-600">統一編號：{company.tax_id}</div>
           )}
-          {company?.address && (
-            <div className="text-xs text-gray-600">{company.address}</div>
-          )}
-          {company?.phone && (
-            <div className="text-xs text-gray-600">電話：{company.phone}</div>
-          )}
+          {company?.address && <div className="text-xs text-gray-600">{company.address}</div>}
+          {company?.phone && <div className="text-xs text-gray-600">電話：{company.phone}</div>}
         </div>
         <div className="text-right">
           <div className="text-xl font-bold tracking-wider">{title}</div>

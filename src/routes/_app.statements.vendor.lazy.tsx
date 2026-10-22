@@ -8,7 +8,12 @@ export const Route = createLazyFileRoute("/_app/statements/vendor")({
 });
 function StatementsVendorPage() {
   const { allowed, checking } = usePermissionGuard("/statements/vendor");
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
   return <StatementPage kind="vendor" />;
 }

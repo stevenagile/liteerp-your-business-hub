@@ -8,7 +8,12 @@ export const Route = createLazyFileRoute("/_app/settlement/vendor")({
 });
 function SettlementVendorPage() {
   const { allowed, checking } = usePermissionGuard("/settlement/vendor");
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
   return <SettlementPage kind="vendor" />;
 }

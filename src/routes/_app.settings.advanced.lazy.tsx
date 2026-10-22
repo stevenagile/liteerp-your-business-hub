@@ -31,9 +31,7 @@ function AdvancedSettingsPage() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <ShieldAlert className="h-10 w-10 text-warning" />
         <h2 className="mt-3 text-lg font-semibold">權限不足</h2>
-        <p className="text-sm text-muted-foreground">
-          僅管理員 (admin) 可進入進階參數。
-        </p>
+        <p className="text-sm text-muted-foreground">僅管理員 (admin) 可進入進階參數。</p>
       </div>
     );
   }
@@ -42,9 +40,7 @@ function AdvancedSettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">進階參數</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          管理公司進階設定與營運參數。
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">管理公司進階設定與營運參數。</p>
       </div>
       <AdvancedSettingsPanel />
     </div>

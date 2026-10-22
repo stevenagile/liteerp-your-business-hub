@@ -1,11 +1,7 @@
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function PrintReportButton({
-  size = "default",
-}: {
-  size?: "sm" | "default";
-}) {
+export function PrintReportButton({ size = "default" }: { size?: "sm" | "default" }) {
   return (
     <Button
       type="button"
