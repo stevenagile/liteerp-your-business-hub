@@ -21,10 +21,8 @@ type Row = {
   avg_unit_cost: number | null;
 };
 
-const num = (n: number | null | undefined) =>
-  n == null ? "-" : Number(n).toLocaleString();
-const pct = (n: number | null | undefined) =>
-  n == null ? "-" : `${Number(n).toFixed(2)}%`;
+const num = (n: number | null | undefined) => (n == null ? "-" : Number(n).toLocaleString());
+const pct = (n: number | null | undefined) => (n == null ? "-" : `${Number(n).toFixed(2)}%`);
 
 type SortKey = "total_profit" | "avg_margin_pct";
 
@@ -49,14 +47,16 @@ function ProductProfitReport() {
   }, [profile?.company_id]);
 
   const sorted = useMemo(
-    () =>
-      [...rows].sort(
-        (a, b) => (Number(b[sortKey] ?? 0)) - (Number(a[sortKey] ?? 0)),
-      ),
+    () => [...rows].sort((a, b) => Number(b[sortKey] ?? 0) - Number(a[sortKey] ?? 0)),
     [rows, sortKey],
   );
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -64,9 +64,7 @@ function ProductProfitReport() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">產品利潤排行</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            點擊欄位標頭切換排序依據
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">點擊欄位標頭切換排序依據</p>
         </div>
         <ExportExcelButton
           rows={sorted as unknown as Record<string, unknown>[]}

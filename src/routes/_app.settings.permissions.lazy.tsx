@@ -84,9 +84,7 @@ function PermissionsPage() {
     const row = findRow(role, module);
     if (row) {
       // optimistic
-      setRows((prev) =>
-        prev.map((r) => (r.id === row.id ? { ...r, [action]: value } : r)),
-      );
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, [action]: value } : r)));
       const { error } = await supabase
         .from("role_permissions")
         .update({ [action]: value })
@@ -147,7 +145,8 @@ function PermissionsPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">功能權限（業務模組）</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          管理各角色對各業務模組的操作權限（讀取 / 編輯 / 確認 / 作廢）。管理員擁有所有權限,不在此表控管。注：「選單顯示」請到「角色權限」頁設定。
+          管理各角色對各業務模組的操作權限（讀取 / 編輯 / 確認 /
+          作廢）。管理員擁有所有權限,不在此表控管。注：「選單顯示」請到「角色權限」頁設定。
         </p>
       </div>
 
@@ -178,15 +177,10 @@ function PermissionsPage() {
                       <TableCell key={mod} className="align-top">
                         <div className="grid grid-cols-2 gap-1.5">
                           {ACTIONS.map((a) => (
-                            <label
-                              key={a.key}
-                              className="flex items-center gap-1.5 text-sm"
-                            >
+                            <label key={a.key} className="flex items-center gap-1.5 text-sm">
                               <Checkbox
                                 checked={Boolean(row?.[a.key as keyof Perm])}
-                                onCheckedChange={(v) =>
-                                  toggle(role, mod, a.key, Boolean(v))
-                                }
+                                onCheckedChange={(v) => toggle(role, mod, a.key, Boolean(v))}
                               />
                               {a.label}
                             </label>

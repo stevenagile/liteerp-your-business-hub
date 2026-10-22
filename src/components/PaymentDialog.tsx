@@ -96,7 +96,9 @@ export function PaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{titleVerb} {docNo ? `· ${docNo}` : ""}</DialogTitle>
+          <DialogTitle>
+            {titleVerb} {docNo ? `· ${docNo}` : ""}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -169,11 +171,7 @@ export function PaymentDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={saving}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
             取消
           </Button>
           <Button onClick={submit} disabled={saving || balance <= 0}>

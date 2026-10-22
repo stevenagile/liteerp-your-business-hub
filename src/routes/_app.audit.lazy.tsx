@@ -86,7 +86,12 @@ function AuditPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, profile?.company_id]);
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   if (guardLoading) {
@@ -140,10 +145,7 @@ function AuditPage() {
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="py-10 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
                   尚無紀錄
                 </TableCell>
               </TableRow>
