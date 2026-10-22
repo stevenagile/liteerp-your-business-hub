@@ -17,12 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -118,7 +113,12 @@ function InventoryAdjustListPage() {
     setDialogOpen(true);
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -192,8 +192,19 @@ function InventoryAdjustListPage() {
             columns={[
               { key: "doc_no", label: "單號" },
               { key: "doc_date", label: "日期" },
-              { key: "warehouse_id", label: "倉庫", value: (r: Record<string, unknown>) => warehouseMap[(r as { warehouse_id: string | null }).warehouse_id ?? ""] ?? "—" },
-              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              {
+                key: "warehouse_id",
+                label: "倉庫",
+                value: (r: Record<string, unknown>) =>
+                  warehouseMap[(r as { warehouse_id: string | null }).warehouse_id ?? ""] ?? "—",
+              },
+              {
+                key: "status",
+                label: "狀態",
+                value: (r: Record<string, unknown>) =>
+                  DOC_STATUS_LABEL[(r as { status: string }).status] ??
+                  (r as { status: string }).status,
+              },
               { key: "notes", label: "備註" },
             ]}
           />
@@ -221,10 +232,7 @@ function InventoryAdjustListPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
                   尚無調整單
                 </TableCell>
               </TableRow>
@@ -237,15 +245,11 @@ function InventoryAdjustListPage() {
                 >
                   <TableCell className="font-mono">{d.doc_no ?? "—"}</TableCell>
                   <TableCell>{d.doc_date}</TableCell>
-                  <TableCell>
-                    {(d.warehouse_id && warehouseMap[d.warehouse_id]) ?? "—"}
-                  </TableCell>
+                  <TableCell>{(d.warehouse_id && warehouseMap[d.warehouse_id]) ?? "—"}</TableCell>
                   <TableCell>
                     <StatusBadge status={d.status} />
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {d.notes ?? "—"}
-                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{d.notes ?? "—"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <VoidDocumentButton
@@ -279,7 +283,11 @@ function InventoryAdjustListPage() {
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯調整單" : "檢視調整單") : "新增調整單"}
+              {editingId
+                ? list.find((d) => d.id === editingId)?.status === "draft"
+                  ? "編輯調整單"
+                  : "檢視調整單"
+                : "新增調整單"}
             </DialogTitle>
           </DialogHeader>
           {dialogOpen && (

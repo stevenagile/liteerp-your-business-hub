@@ -13,13 +13,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createLazyFileRoute("/_app/settings/supabase-status")({
@@ -130,7 +124,13 @@ function SupabaseStatusPage() {
           message: e instanceof Error ? e.message : String(e),
         });
       }
-      setTables([...results, ...REQUIRED_TABLES.slice(results.length).map((r) => ({ ...r, status: "pending" as CheckStatus }))]);
+      setTables([
+        ...results,
+        ...REQUIRED_TABLES.slice(results.length).map((r) => ({
+          ...r,
+          status: "pending" as CheckStatus,
+        })),
+      ]);
     }
     setCheckedAt(new Date());
     setChecking(false);
@@ -138,7 +138,6 @@ function SupabaseStatusPage() {
 
   useEffect(() => {
     if (profile?.role === "admin") runChecks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.role]);
 
   if (loading) {
@@ -154,9 +153,7 @@ function SupabaseStatusPage() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <ShieldAlert className="h-10 w-10 text-warning" />
         <h2 className="mt-3 text-lg font-semibold">權限不足</h2>
-        <p className="text-sm text-muted-foreground">
-          僅管理員 (admin) 可檢視連線狀態。
-        </p>
+        <p className="text-sm text-muted-foreground">僅管理員 (admin) 可檢視連線狀態。</p>
       </div>
     );
   }
@@ -168,9 +165,7 @@ function SupabaseStatusPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Supabase 連線狀態
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Supabase 連線狀態</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             檢查目前連接的 Supabase 專案、連線狀況與必要資料表是否可讀取。
           </p>
@@ -213,9 +208,7 @@ function SupabaseStatusPage() {
               連線測試
             </CardTitle>
             <CardDescription>
-              {checkedAt
-                ? `上次檢查：${checkedAt.toLocaleTimeString("zh-TW")}`
-                : "尚未檢查"}
+              {checkedAt ? `上次檢查：${checkedAt.toLocaleTimeString("zh-TW")}` : "尚未檢查"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
@@ -286,9 +279,7 @@ function SupabaseStatusPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   {t.message && (
-                    <span className="max-w-md truncate text-xs text-destructive">
-                      {t.message}
-                    </span>
+                    <span className="max-w-md truncate text-xs text-destructive">{t.message}</span>
                   )}
                   {t.status === "pending" ? (
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -302,8 +293,8 @@ function SupabaseStatusPage() {
             ))}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            若某張表顯示失敗，常見原因：資料表不存在、RLS 政策未開放讀取，或該
-            schema 未對 API 開放。
+            若某張表顯示失敗，常見原因：資料表不存在、RLS 政策未開放讀取，或該 schema 未對 API
+            開放。
           </p>
         </CardContent>
       </Card>

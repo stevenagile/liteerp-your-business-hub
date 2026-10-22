@@ -19,12 +19,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -97,10 +92,7 @@ function QuotationListPage() {
   }, [status, dateFrom, dateTo, profile?.company_id]);
 
   const summary = useMemo(() => {
-    const total = list.reduce(
-      (s, d) => s + (Number(d.total_amount) || 0),
-      0,
-    );
+    const total = list.reduce((s, d) => s + (Number(d.total_amount) || 0), 0);
     return { count: list.length, total };
   }, [list]);
 
@@ -113,7 +105,12 @@ function QuotationListPage() {
     setDialogOpen(true);
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -191,7 +188,13 @@ function QuotationListPage() {
               { key: "doc_date", label: "日期" },
               { key: "contact_name", label: "客戶" },
               { key: "total_amount", label: "總金額", type: "number" },
-              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              {
+                key: "status",
+                label: "狀態",
+                value: (r: Record<string, unknown>) =>
+                  DOC_STATUS_LABEL[(r as { status: string }).status] ??
+                  (r as { status: string }).status,
+              },
             ]}
           />
         </div>
@@ -219,10 +222,7 @@ function QuotationListPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
                   尚無資料
                 </TableCell>
               </TableRow>
@@ -231,9 +231,7 @@ function QuotationListPage() {
                 <TableRow key={d.id}>
                   <TableCell className="font-mono">{d.doc_no ?? "—"}</TableCell>
                   <TableCell>{d.doc_date}</TableCell>
-                  <TableCell className="font-medium">
-                    {d.contact_name ?? "—"}
-                  </TableCell>
+                  <TableCell className="font-medium">{d.contact_name ?? "—"}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {Number(d.total_amount ?? 0).toLocaleString()}
                   </TableCell>
@@ -243,21 +241,13 @@ function QuotationListPage() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       {canWrite && d.status === "confirmed" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setTransferTarget(d)}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => setTransferTarget(d)}>
                           <ArrowRightLeft className="mr-1 h-3.5 w-3.5" />
                           轉訂單
                         </Button>
                       )}
                       <Button size="sm" variant="ghost" asChild title="列印">
-                        <a
-                          href={`/print/quotation/${d.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
+                        <a href={`/print/quotation/${d.id}`} target="_blank" rel="noreferrer">
                           <Printer className="h-4 w-4" />
                         </a>
                       </Button>
@@ -269,11 +259,7 @@ function QuotationListPage() {
                         variant="ghost"
                         onVoided={load}
                       />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openEdit(d.id)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => openEdit(d.id)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </div>
@@ -289,7 +275,13 @@ function QuotationListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯報價單" : "檢視報價單") : "新增報價單"}</DialogTitle>
+            <DialogTitle>
+              {editingId
+                ? list.find((d) => d.id === editingId)?.status === "draft"
+                  ? "編輯報價單"
+                  : "檢視報價單"
+                : "新增報價單"}
+            </DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm

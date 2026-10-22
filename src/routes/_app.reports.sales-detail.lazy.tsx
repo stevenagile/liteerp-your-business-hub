@@ -70,9 +70,22 @@ function SalesDetailReport() {
     if (!profile?.company_id) return;
     (async () => {
       const [{ data: cs }, { data: pp }, { data: pr }] = await Promise.all([
-        supabase.from("contacts").select("id,name").in("type", ["customer", "both"]).eq("company_id", profile?.company_id ?? "").order("name"),
-        supabase.from("profiles").select("id,display_name").eq("company_id", profile?.company_id ?? "").order("display_name"),
-        supabase.from("products").select("id,code,name").eq("company_id", profile?.company_id ?? "").order("code"),
+        supabase
+          .from("contacts")
+          .select("id,name")
+          .in("type", ["customer", "both"])
+          .eq("company_id", profile?.company_id ?? "")
+          .order("name"),
+        supabase
+          .from("profiles")
+          .select("id,display_name")
+          .eq("company_id", profile?.company_id ?? "")
+          .order("display_name"),
+        supabase
+          .from("products")
+          .select("id,code,name")
+          .eq("company_id", profile?.company_id ?? "")
+          .order("code"),
       ]);
       setContacts((cs ?? []) as { id: string; name: string }[]);
       setPeople((pp ?? []) as { id: string; display_name: string | null }[]);
@@ -121,7 +134,12 @@ function SalesDetailReport() {
     return { amt, gp, margin: amt > 0 ? (gp / amt) * 100 : 0 };
   }, [rows]);
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -129,35 +147,69 @@ function SalesDetailReport() {
       <h1 className="text-2xl font-semibold">銷貨明細報表</h1>
 
       <div className="flex flex-wrap items-end gap-3 rounded-md border bg-card p-4">
-        <div className="grid gap-1.5"><Label>起日</Label><Input className="w-40" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></div>
-        <div className="grid gap-1.5"><Label>迄日</Label><Input className="w-40" type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></div>
+        <div className="grid gap-1.5">
+          <Label>起日</Label>
+          <Input
+            className="w-40"
+            type="date"
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <Label>迄日</Label>
+          <Input
+            className="w-40"
+            type="date"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+          />
+        </div>
         <div className="grid gap-1.5">
           <Label>客戶</Label>
           <Select value={customerId} onValueChange={setCustomerId}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部客戶</SelectItem>
-              {contacts.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              {contacts.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         <div className="grid gap-1.5">
           <Label>業務員</Label>
           <Select value={personId} onValueChange={setPersonId}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部</SelectItem>
-              {people.map((p) => <SelectItem key={p.id} value={p.id}>{p.display_name ?? p.id.slice(0,8)}</SelectItem>)}
+              {people.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.display_name ?? p.id.slice(0, 8)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         <div className="grid gap-1.5">
           <Label>產品</Label>
           <Select value={productId} onValueChange={setProductId}>
-            <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-56">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">全部產品</SelectItem>
-              {products.map((p) => <SelectItem key={p.id} value={p.code}>{p.code} {p.name}</SelectItem>)}
+              {products.map((p) => (
+                <SelectItem key={p.id} value={p.code}>
+                  {p.code} {p.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -185,9 +237,18 @@ function SalesDetailReport() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <div className="rounded-md border bg-card p-4"><div className="text-xs text-muted-foreground">總銷售額</div><div className="text-2xl font-bold">{fmt(totals.amt)}</div></div>
-        <div className="rounded-md border bg-card p-4"><div className="text-xs text-muted-foreground">總毛利</div><div className="text-2xl font-bold">{fmt(totals.gp)}</div></div>
-        <div className="rounded-md border bg-card p-4"><div className="text-xs text-muted-foreground">毛利率</div><div className="text-2xl font-bold">{totals.margin.toFixed(2)}%</div></div>
+        <div className="rounded-md border bg-card p-4">
+          <div className="text-xs text-muted-foreground">總銷售額</div>
+          <div className="text-2xl font-bold">{fmt(totals.amt)}</div>
+        </div>
+        <div className="rounded-md border bg-card p-4">
+          <div className="text-xs text-muted-foreground">總毛利</div>
+          <div className="text-2xl font-bold">{fmt(totals.gp)}</div>
+        </div>
+        <div className="rounded-md border bg-card p-4">
+          <div className="text-xs text-muted-foreground">毛利率</div>
+          <div className="text-2xl font-bold">{totals.margin.toFixed(2)}%</div>
+        </div>
       </div>
 
       <div className="rounded-md border bg-card">
@@ -210,7 +271,11 @@ function SalesDetailReport() {
           </TableHeader>
           <TableBody>
             {rows.length === 0 && (
-              <TableRow><TableCell colSpan={12} className="text-center text-sm text-muted-foreground">無資料</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={12} className="text-center text-sm text-muted-foreground">
+                  無資料
+                </TableCell>
+              </TableRow>
             )}
             {rows.map((r, i) => (
               <TableRow key={i}>
@@ -225,7 +290,9 @@ function SalesDetailReport() {
                 <TableCell className="text-right">{fmt(r.amount)}</TableCell>
                 <TableCell className="text-right">{fmt(r.unit_cost)}</TableCell>
                 <TableCell className="text-right">{fmt(r.gross_profit)}</TableCell>
-                <TableCell className="text-right">{Number(r.margin_pct ?? 0).toFixed(2)}%</TableCell>
+                <TableCell className="text-right">
+                  {Number(r.margin_pct ?? 0).toFixed(2)}%
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
