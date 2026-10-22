@@ -59,10 +59,7 @@ function LoginPage() {
           <p className="text-xs text-muted-foreground">進銷存管理系統</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-card p-6 shadow-sm">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input

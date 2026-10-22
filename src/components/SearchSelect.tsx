@@ -2,11 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -60,16 +56,11 @@ export function SearchSelect({
             className,
           )}
         >
-          <span className="truncate">
-            {selected ? selected.label : placeholder}
-          </span>
+          <span className="truncate">{selected ? selected.label : placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="w-(--radix-popover-trigger-width) p-0"
-        align="start"
-      >
+      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command>
           <CommandInput placeholder="搜尋..." />
           <CommandList>
@@ -96,9 +87,7 @@ export function SearchSelect({
                     <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
                       <span className="truncate">{opt.label}</span>
                       {opt.hint && (
-                        <span className="shrink-0 text-xs text-muted-foreground">
-                          {opt.hint}
-                        </span>
+                        <span className="shrink-0 text-xs text-muted-foreground">{opt.hint}</span>
                       )}
                     </div>
                   )}

@@ -64,9 +64,7 @@ export function VoidDocumentButton({
     });
     setSubmitting(false);
     if (error) {
-      toast.error(
-        "作廢失敗:" + (error.message || error.details || JSON.stringify(error)),
-      );
+      toast.error("作廢失敗:" + (error.message || error.details || JSON.stringify(error)));
       return;
     }
     toast.success("已作廢");
@@ -92,9 +90,7 @@ export function VoidDocumentButton({
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent onClick={(e) => e.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              確認作廢{docNo ? ` ${docNo}` : "此單據"}?
-            </AlertDialogTitle>
+            <AlertDialogTitle>確認作廢{docNo ? ` ${docNo}` : "此單據"}?</AlertDialogTitle>
             <AlertDialogDescription>
               {isCompleted
                 ? "此單據已完成，作廢將反向沖回庫存、成本及流水帳。此動作無法復原，請確認已知悉影響。"
