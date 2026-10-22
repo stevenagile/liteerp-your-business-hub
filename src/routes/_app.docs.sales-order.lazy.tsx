@@ -29,12 +29,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -102,9 +97,7 @@ function SalesOrderListPage() {
     setLoading(true);
     let q = supabase
       .from("doc_headers")
-      .select(
-        "id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no",
-      )
+      .select("id, doc_no, doc_date, contact_name, total_amount, status, source_doc_no")
       .eq("doc_type", "sales_order")
       .eq("company_id", profile?.company_id ?? "")
       .order("doc_date", { ascending: false })
@@ -127,10 +120,7 @@ function SalesOrderListPage() {
   }, [status, dateFrom, dateTo, profile?.company_id]);
 
   const summary = useMemo(() => {
-    const total = list.reduce(
-      (s, d) => s + (Number(d.total_amount) || 0),
-      0,
-    );
+    const total = list.reduce((s, d) => s + (Number(d.total_amount) || 0), 0);
     return { count: list.length, total };
   }, [list]);
 
@@ -143,7 +133,12 @@ function SalesOrderListPage() {
     setDialogOpen(true);
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -221,7 +216,13 @@ function SalesOrderListPage() {
               { key: "doc_date", label: "日期" },
               { key: "contact_name", label: "客戶" },
               { key: "total_amount", label: "總金額", type: "number" },
-              { key: "status", label: "狀態", value: (r: Record<string, unknown>) => DOC_STATUS_LABEL[(r as { status: string }).status] ?? (r as { status: string }).status },
+              {
+                key: "status",
+                label: "狀態",
+                value: (r: Record<string, unknown>) =>
+                  DOC_STATUS_LABEL[(r as { status: string }).status] ??
+                  (r as { status: string }).status,
+              },
               { key: "source_doc_no", label: "來源報價單" },
             ]}
           />
@@ -251,10 +252,7 @@ function SalesOrderListPage() {
               </TableRow>
             ) : list.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-24 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={7} className="h-24 text-center text-sm text-muted-foreground">
                   尚無資料
                 </TableCell>
               </TableRow>
@@ -263,9 +261,7 @@ function SalesOrderListPage() {
                 <TableRow key={d.id}>
                   <TableCell className="font-mono">{d.doc_no ?? "—"}</TableCell>
                   <TableCell>{d.doc_date}</TableCell>
-                  <TableCell className="font-medium">
-                    {d.contact_name ?? "—"}
-                  </TableCell>
+                  <TableCell className="font-medium">{d.contact_name ?? "—"}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {Number(d.total_amount ?? 0).toLocaleString()}
                   </TableCell>
@@ -278,31 +274,19 @@ function SalesOrderListPage() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       {canConfirm && d.status === "confirmed" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setTransferTarget(d)}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => setTransferTarget(d)}>
                           <ArrowRightLeft className="mr-1 h-3.5 w-3.5" />
                           轉銷貨
                         </Button>
                       )}
                       {canConfirm && d.status === "confirmed" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setShipTarget(d)}
-                        >
+                        <Button size="sm" variant="outline" onClick={() => setShipTarget(d)}>
                           <Truck className="mr-1 h-3.5 w-3.5" />
                           出貨
                         </Button>
                       )}
                       <Button size="sm" variant="ghost" asChild title="列印">
-                        <a
-                          href={`/print/sales_order/${d.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
+                        <a href={`/print/sales_order/${d.id}`} target="_blank" rel="noreferrer">
                           <Printer className="h-4 w-4" />
                         </a>
                       </Button>
@@ -314,11 +298,7 @@ function SalesOrderListPage() {
                         variant="ghost"
                         onVoided={load}
                       />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openEdit(d.id)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => openEdit(d.id)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </div>
@@ -334,7 +314,13 @@ function SalesOrderListPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? (list.find((d) => d.id === editingId)?.status === "draft" ? "編輯訂單" : "檢視訂單") : "新增訂單"}</DialogTitle>
+            <DialogTitle>
+              {editingId
+                ? list.find((d) => d.id === editingId)?.status === "draft"
+                  ? "編輯訂單"
+                  : "檢視訂單"
+                : "新增訂單"}
+            </DialogTitle>
           </DialogHeader>
           {dialogOpen && (
             <DocumentForm
@@ -365,7 +351,10 @@ function SalesOrderListPage() {
         }}
       />
 
-      <AlertDialog open={Boolean(shipTarget)} onOpenChange={(v) => !v && !shipping && setShipTarget(null)}>
+      <AlertDialog
+        open={Boolean(shipTarget)}
+        onOpenChange={(v) => !v && !shipping && setShipTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>確定出貨？</AlertDialogTitle>
@@ -375,7 +364,13 @@ function SalesOrderListPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={shipping}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={(e) => { e.preventDefault(); handleShip(); }} disabled={shipping}>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleShip();
+              }}
+              disabled={shipping}
+            >
               {shipping ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
               確定出貨
             </AlertDialogAction>

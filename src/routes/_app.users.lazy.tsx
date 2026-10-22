@@ -97,10 +97,7 @@ function UsersPage() {
 
   const load = async () => {
     setLoading(true);
-    const [u, r] = await Promise.all([
-      core().rpc("list_users"),
-      core().rpc("list_roles"),
-    ]);
+    const [u, r] = await Promise.all([core().rpc("list_users"), core().rpc("list_roles")]);
     if (u.error) toast.error(u.error.message);
     else setUsers((u.data ?? []) as UserRow[]);
     if (r.error) toast.error(r.error.message);
@@ -110,7 +107,6 @@ function UsersPage() {
 
   useEffect(() => {
     if (canView) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView]);
 
   const updateRole = async (user: UserRow, role: string) => {
@@ -120,9 +116,7 @@ function UsersPage() {
     });
     if (error) return toast.error(error.message);
     toast.success("已更新角色");
-    setUsers((prev) =>
-      prev.map((u) => (u.id === user.id ? { ...u, role } : u)),
-    );
+    setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, role } : u)));
   };
 
   const toggleActive = async (user: UserRow, next: boolean) => {
@@ -132,9 +126,7 @@ function UsersPage() {
     });
     if (error) return toast.error(error.message);
     toast.success(next ? "已啟用" : "已停用");
-    setUsers((prev) =>
-      prev.map((u) => (u.id === user.id ? { ...u, is_active: next } : u)),
-    );
+    setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, is_active: next } : u)));
   };
 
   const saveName = async (e: FormEvent) => {
@@ -206,9 +198,7 @@ function UsersPage() {
           <h1 className="text-2xl font-semibold">使用者管理</h1>
           <p className="text-sm text-muted-foreground">
             管理系統使用者、角色與啟用狀態
-            {!canEdit && (
-              <span className="ml-2 text-xs">(目前為唯讀檢視)</span>
-            )}
+            {!canEdit && <span className="ml-2 text-xs">(目前為唯讀檢視)</span>}
           </p>
         </div>
         <Button onClick={() => setCreateOpen(true)} disabled={!canEdit} size="sm">
@@ -238,26 +228,18 @@ function UsersPage() {
               </TableRow>
             ) : users.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="py-10 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
                   尚無使用者
                 </TableCell>
               </TableRow>
             ) : (
               users.map((u) => (
                 <TableRow key={u.id}>
-                  <TableCell className="font-medium">
-                    {u.display_name || "—"}
-                  </TableCell>
+                  <TableCell className="font-medium">{u.display_name || "—"}</TableCell>
                   <TableCell>{u.email || "—"}</TableCell>
                   <TableCell>
                     {canEdit ? (
-                      <Select
-                        value={u.role ?? ""}
-                        onValueChange={(v) => updateRole(u, v)}
-                      >
+                      <Select value={u.role ?? ""} onValueChange={(v) => updateRole(u, v)}>
                         <SelectTrigger className="h-9">
                           <SelectValue placeholder="選擇角色" />
                         </SelectTrigger>
@@ -337,11 +319,7 @@ function UsersPage() {
               />
             </div>
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setEditing(null)}
-              >
+              <Button type="button" variant="outline" onClick={() => setEditing(null)}>
                 取消
               </Button>
               <Button type="submit">儲存</Button>
@@ -404,11 +382,7 @@ function UsersPage() {
               </Select>
             </div>
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setCreateOpen(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
                 取消
               </Button>
               <Button type="submit" disabled={creating}>

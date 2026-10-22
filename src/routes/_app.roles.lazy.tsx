@@ -68,10 +68,7 @@ function buildTree(items: MenuItem[]): MenuNode[] {
   return roots;
 }
 
-function flattenTree(
-  nodes: MenuNode[],
-  depth = 0,
-): Array<MenuNode & { depth: number }> {
+function flattenTree(nodes: MenuNode[], depth = 0): Array<MenuNode & { depth: number }> {
   const out: Array<MenuNode & { depth: number }> = [];
   for (const n of nodes) {
     out.push({ ...n, depth });
@@ -117,18 +114,14 @@ function RolesPage() {
     setLoadingList(true);
     const [r, m] = await Promise.all([
       core().rpc("list_roles"),
-      core()
-        .from("menu_items")
-        .select("id,parent_id,label,sort_order")
-        .order("sort_order"),
+      core().from("menu_items").select("id,parent_id,label,sort_order").order("sort_order"),
     ]);
     if (r.error) toast.error(r.error.message);
     else {
       const list = (r.data ?? []) as Role[];
       setRoles(list);
       setSelectedRole(
-        (cur) =>
-          cur ?? list.find((x) => x.code !== "admin")?.code ?? list[0]?.code ?? null,
+        (cur) => cur ?? list.find((x) => x.code !== "admin")?.code ?? list[0]?.code ?? null,
       );
     }
     if (m.error) toast.error(m.error.message);
@@ -138,7 +131,6 @@ function RolesPage() {
 
   useEffect(() => {
     if (canView) loadRolesAndMenus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView]);
 
   // Load matrix for selected role
@@ -177,8 +169,7 @@ function RolesPage() {
 
   const flat = useMemo(() => flattenTree(buildTree(menus)), [menus]);
 
-  const getCell = (menuId: string, key: keyof Cell) =>
-    access[menuId]?.[key] ?? false;
+  const getCell = (menuId: string, key: keyof Cell) => access[menuId]?.[key] ?? false;
 
   const setCell = (menuId: string, key: keyof Cell, value: boolean) => {
     setAccess((prev) => {
@@ -209,8 +200,7 @@ function RolesPage() {
       const cur = access[m.id];
       const orig = originalAccess[m.id];
       const allFalse =
-        !cur ||
-        (!cur.can_view && !cur.can_create && !cur.can_edit && !cur.can_approve);
+        !cur || (!cur.can_view && !cur.can_create && !cur.can_edit && !cur.can_approve);
       if (allFalse) {
         if (orig) deletes.push(m.id);
       } else {
@@ -308,9 +298,7 @@ function RolesPage() {
                     >
                       <div className="min-w-0 flex-1">
                         <div className="truncate font-medium">{r.label}</div>
-                        <div className="truncate text-[11px] text-muted-foreground">
-                          {r.code}
-                        </div>
+                        <div className="truncate text-[11px] text-muted-foreground">{r.code}</div>
                       </div>
                       {r.code === "admin" && (
                         <Badge variant="secondary" className="gap-1 text-[10px]">
@@ -328,9 +316,7 @@ function RolesPage() {
         {/* Matrix */}
         <div className="rounded-md border bg-card">
           <div className="flex items-center justify-between border-b px-4 py-2.5">
-            <div className="text-sm font-medium">
-              {selected ? selected.label : "請選擇角色"}
-            </div>
+            <div className="text-sm font-medium">{selected ? selected.label : "請選擇角色"}</div>
             <Button
               size="sm"
               onClick={saveMatrix}
@@ -346,9 +332,7 @@ function RolesPage() {
           </div>
 
           {!selectedRole ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">
-              請先從左側選擇角色
-            </div>
+            <div className="p-8 text-center text-sm text-muted-foreground">請先從左側選擇角色</div>
           ) : isAdminRole ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
               管理員 (admin) 預設擁有所有選單與動作權限，不需個別設定。
@@ -364,10 +348,7 @@ function RolesPage() {
                   <tr className="border-b bg-muted/30 text-xs text-muted-foreground">
                     <th className="px-4 py-2 text-left font-medium">選單</th>
                     {ACTIONS.map((a) => (
-                      <th
-                        key={a.key}
-                        className="w-20 px-2 py-2 text-center font-medium"
-                      >
+                      <th key={a.key} className="w-20 px-2 py-2 text-center font-medium">
                         {a.label}
                       </th>
                     ))}
@@ -379,10 +360,7 @@ function RolesPage() {
                     return (
                       <tr
                         key={n.id}
-                        className={cn(
-                          "border-b last:border-b-0",
-                          isGroup && "bg-muted/20",
-                        )}
+                        className={cn("border-b last:border-b-0", isGroup && "bg-muted/20")}
                       >
                         <td
                           className="px-4 py-2"
@@ -402,9 +380,7 @@ function RolesPage() {
                           <td key={a.key} className="px-2 py-2 text-center">
                             <Checkbox
                               checked={getCell(n.id, a.key)}
-                              onCheckedChange={(v) =>
-                                setCell(n.id, a.key, v === true)
-                              }
+                              onCheckedChange={(v) => setCell(n.id, a.key, v === true)}
                             />
                           </td>
                         ))}

@@ -103,7 +103,11 @@ function DeliveryRulesPage() {
         .eq("company_id", profile?.company_id ?? "")
         .order("weekday")
         .order("district"),
-      supabase.from("vehicles").select("id, name, is_active").eq("company_id", profile?.company_id ?? "").order("name"),
+      supabase
+        .from("vehicles")
+        .select("id, name, is_active")
+        .eq("company_id", profile?.company_id ?? "")
+        .order("name"),
     ]);
     if (error) {
       toast.error("讀取失敗:" + error.message);
@@ -121,9 +125,7 @@ function DeliveryRulesPage() {
 
   const filtered = useMemo(
     () =>
-      weekdayFilter === "all"
-        ? list
-        : list.filter((r) => r.weekday === Number(weekdayFilter)),
+      weekdayFilter === "all" ? list : list.filter((r) => r.weekday === Number(weekdayFilter)),
     [list, weekdayFilter],
   );
 
@@ -182,10 +184,7 @@ function DeliveryRulesPage() {
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
-    const { error } = await supabase
-      .from("delivery_rules")
-      .delete()
-      .eq("id", deleteTarget.id);
+    const { error } = await supabase.from("delivery_rules").delete().eq("id", deleteTarget.id);
     if (error) {
       toast.error("刪除失敗:" + error.message);
       return;
@@ -194,7 +193,12 @@ function DeliveryRulesPage() {
     load();
   };
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -229,9 +233,7 @@ function DeliveryRulesPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="pb-1 text-sm text-muted-foreground">
-          共 {filtered.length} 條規則
-        </div>
+        <div className="pb-1 text-sm text-muted-foreground">共 {filtered.length} 條規則</div>
       </div>
 
       <div className="rounded-lg border bg-card shadow-sm">
@@ -255,10 +257,7 @@ function DeliveryRulesPage() {
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="py-10 text-center text-sm text-muted-foreground"
-                >
+                <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
                   尚無規則，點右上「新增規則」開始建立。
                 </TableCell>
               </TableRow>
@@ -266,18 +265,14 @@ function DeliveryRulesPage() {
               filtered.map((r) => (
                 <TableRow key={r.id}>
                   <TableCell>{WEEKDAY_LABEL[r.weekday] ?? r.weekday}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {r.city ?? "—"}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{r.city ?? "—"}</TableCell>
                   <TableCell className="font-medium">{r.district}</TableCell>
                   <TableCell>{r.truck}</TableCell>
                   <TableCell>
                     {r.vehicle_id ? (
                       vehicleName(r.vehicle_id)
                     ) : (
-                      <span className="text-xs text-muted-foreground">
-                        未指定
-                      </span>
+                      <span className="text-xs text-muted-foreground">未指定</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -306,9 +301,7 @@ function DeliveryRulesPage() {
                 <Label>星期 *</Label>
                 <Select
                   value={String(form.weekday)}
-                  onValueChange={(v) =>
-                    setForm({ ...form, weekday: Number(v) })
-                  }
+                  onValueChange={(v) => setForm({ ...form, weekday: Number(v) })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -324,10 +317,7 @@ function DeliveryRulesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>車型 *</Label>
-                <Select
-                  value={form.truck}
-                  onValueChange={(v) => setForm({ ...form, truck: v })}
-                >
+                <Select value={form.truck} onValueChange={(v) => setForm({ ...form, truck: v })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -351,9 +341,7 @@ function DeliveryRulesPage() {
                 <Label>地區 *</Label>
                 <Input
                   value={form.district}
-                  onChange={(e) =>
-                    setForm({ ...form, district: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, district: e.target.value })}
                   placeholder="員林"
                 />
               </div>
@@ -362,9 +350,7 @@ function DeliveryRulesPage() {
               <Label>指定車輛</Label>
               <Select
                 value={form.vehicle_id ?? "none"}
-                onValueChange={(v) =>
-                  setForm({ ...form, vehicle_id: v === "none" ? null : v })
-                }
+                onValueChange={(v) => setForm({ ...form, vehicle_id: v === "none" ? null : v })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="未指定" />
