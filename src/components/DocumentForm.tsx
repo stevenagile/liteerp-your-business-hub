@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Loader2, Plus, Trash2, Printer, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
@@ -15,11 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -205,9 +196,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const [taxRate, setTaxRate] = useState<number>(5);
 
   const showSalesPerson =
-    docType === "sales_invoice" ||
-    docType === "sales_order" ||
-    docType === "quotation";
+    docType === "sales_invoice" || docType === "sales_order" || docType === "quotation";
 
   // 訂單與銷貨單都有派車（車種 + 預計配送日，實體車輛選配）；轉單而來的銷貨單由後端觸發器繼承來源訂單
   const showDispatch = docType === "sales_order" || docType === "sales_invoice";
@@ -241,7 +230,10 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     let cancelled = false;
     (async () => {
       setLoading(true);
-      if (!profile?.company_id) { setLoading(false); return; }
+      if (!profile?.company_id) {
+        setLoading(false);
+        return;
+      }
       const cid = profile.company_id;
       const [{ data: c }, { data: p }, { data: w }, { data: comp }, { data: sp }, { data: vh }] =
         await Promise.all([
@@ -261,11 +253,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             .select("id, code, name, is_default")
             .eq("company_id", cid)
             .order("code"),
-          supabase
-            .from("company")
-            .select("tax_rate")
-            .eq("id", cid)
-            .maybeSingle(),
+          supabase.from("company").select("tax_rate").eq("id", cid).maybeSingle(),
           showSalesPerson
             ? supabase
                 .from("profiles")
@@ -311,7 +299,6 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docId, profile?.company_id]);
 
-
   // ---- 試算 ----
   const totals = useMemo(() => {
     const lineSum = lines.reduce((sum, l) => {
@@ -338,8 +325,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   const isDraft = header.status === "draft";
   const readOnly = !isDraft || !canWrite;
   const showCostCols =
-    (docType === "sales_invoice" || docType === "purchase_receipt") &&
-    header.status !== "draft";
+    (docType === "sales_invoice" || docType === "purchase_receipt") && header.status !== "draft";
 
   // ---- 派車建議：依客戶配送規則帶「車種 + 預計配送日」（實體車輛若規則有綁也一併帶） ----
   const applyDispatchSuggestion = async (contactId: string, opts?: { force?: boolean }) => {
@@ -422,8 +408,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     const p = products.find((x) => x.id === productId);
     if (!p) return;
     const level = selectedContact?.price_level ?? 1;
-    const salesPrice =
-      level === 2 ? p.price2 : level === 3 ? p.price3 : p.price1;
+    const salesPrice = level === 2 ? p.price2 : level === 3 ? p.price3 : p.price1;
     const price = isPurchase ? p.cost_price : salesPrice;
     updateLine(idx, {
       product_id: p.id,
@@ -515,10 +500,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     };
 
     if (isEdit) {
-      const { error } = await supabase
-        .from("doc_headers")
-        .update(headerPayload)
-        .eq("id", headerId);
+      const { error } = await supabase.from("doc_headers").update(headerPayload).eq("id", headerId);
       if (error) {
         setSaving(false);
         toast.error("儲存失敗:" + error.message);
@@ -574,9 +556,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     });
     if (error) {
       setConfirming(false);
-      toast.error(
-        "確認失敗:" + (error.message || error.details || JSON.stringify(error)),
-      );
+      toast.error("確認失敗:" + (error.message || error.details || JSON.stringify(error)));
       return;
     }
     toast.success("已確認,庫存與成本已更新");
@@ -586,7 +566,6 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     // 通知父層列表 refetch,讓 status / payment_status 立即更新
     onChanged?.();
   };
-
 
   if (loading) {
     return (
@@ -600,15 +579,13 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     <div className="space-y-6">
       {isEdit && !isDraft && header.status !== "voided" && (
         <div className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
-          🔒 此單據已{header.status === "completed" ? "完成" : "確認"}，內容已鎖定不可修改。流程操作（收付款、轉單、作廢等）仍可使用。
+          🔒 此單據已{header.status === "completed" ? "完成" : "確認"}
+          ，內容已鎖定不可修改。流程操作（收付款、轉單、作廢等）仍可使用。
         </div>
       )}
       {/* ============ 表頭 ============ */}
       <section className="rounded-lg border bg-card p-4 shadow-sm">
-
-        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">
-          表頭資訊
-        </h3>
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">表頭資訊</h3>
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="單據日期" required>
             <Popover>
@@ -629,9 +606,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={
-                    header.doc_date ? new Date(header.doc_date) : undefined
-                  }
+                  selected={header.doc_date ? new Date(header.doc_date) : undefined}
                   onSelect={(d) =>
                     d &&
                     setHeader((h) => ({
@@ -677,16 +652,10 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             </Field>
           )}
 
-          <Field
-            label="倉庫"
-            required
-            className={isAdjust ? "md:col-span-2" : undefined}
-          >
+          <Field label="倉庫" required className={isAdjust ? "md:col-span-2" : undefined}>
             <Select
               value={header.warehouse_id ?? ""}
-              onValueChange={(v) =>
-                setHeader((h) => ({ ...h, warehouse_id: v }))
-              }
+              onValueChange={(v) => setHeader((h) => ({ ...h, warehouse_id: v }))}
               disabled={readOnly}
             >
               <SelectTrigger>
@@ -706,9 +675,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             <Field label="業務員">
               <Select
                 value={header.sales_person_id ?? ""}
-                onValueChange={(v) =>
-                  setHeader((h) => ({ ...h, sales_person_id: v || null }))
-                }
+                onValueChange={(v) => setHeader((h) => ({ ...h, sales_person_id: v || null }))}
                 disabled={readOnly}
               >
                 <SelectTrigger>
@@ -790,9 +757,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
               <div className="flex h-9 items-center gap-2">
                 <Switch
                   checked={header.price_includes_tax}
-                  onCheckedChange={(v) =>
-                    setHeader((h) => ({ ...h, price_includes_tax: v }))
-                  }
+                  onCheckedChange={(v) => setHeader((h) => ({ ...h, price_includes_tax: v }))}
                   disabled={readOnly}
                 />
                 <span className="text-sm text-muted-foreground">
@@ -832,9 +797,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             <Field label="配送備註" className="md:col-span-2">
               <Input
                 value={header.delivery_note ?? ""}
-                onChange={(e) =>
-                  setHeader((h) => ({ ...h, delivery_note: e.target.value }))
-                }
+                onChange={(e) => setHeader((h) => ({ ...h, delivery_note: e.target.value }))}
                 disabled={readOnly}
                 placeholder="此單的配送注意事項（印在出貨單上）"
               />
@@ -848,9 +811,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
           >
             <Input
               value={header.notes ?? ""}
-              onChange={(e) =>
-                setHeader((h) => ({ ...h, notes: e.target.value }))
-              }
+              onChange={(e) => setHeader((h) => ({ ...h, notes: e.target.value }))}
               disabled={readOnly}
               placeholder={isAdjust ? "盤點差異 / 報廢 / 樣品出庫 ..." : ""}
             />
@@ -863,12 +824,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-muted-foreground">明細</h3>
           {!readOnly && (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={addLine}
-            >
+            <Button type="button" size="sm" variant="outline" onClick={addLine}>
               <Plus className="mr-1 h-4 w-4" />
               新增一行
             </Button>
@@ -902,9 +858,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                 (1 - (Number(l.discount_pct) || 0) / 100);
               return (
                 <TableRow key={idx}>
-                  <TableCell className="text-muted-foreground">
-                    {idx + 1}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                   <TableCell>
                     <SearchSelect
                       disabled={readOnly}
@@ -918,9 +872,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                       placeholder="選擇產品"
                     />
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {l.unit ?? "—"}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{l.unit ?? "—"}</TableCell>
                   <TableCell>
                     <Input
                       type="number"
@@ -993,9 +945,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
                           : "—"}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
-                        {l.margin_pct != null
-                          ? `${Number(l.margin_pct).toFixed(1)}%`
-                          : "—"}
+                        {l.margin_pct != null ? `${Number(l.margin_pct).toFixed(1)}%` : "—"}
                       </TableCell>
                     </>
                   )}
@@ -1048,9 +998,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             <div>
               作廢時間:
               <span className="ml-2 text-foreground">
-                {header.voided_at
-                  ? new Date(header.voided_at).toLocaleString()
-                  : "—"}
+                {header.voided_at ? new Date(header.voided_at).toLocaleString() : "—"}
               </span>
             </div>
           </div>
@@ -1058,17 +1006,16 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       )}
 
       {/* ============ 收/付款明細 ============ */}
-      {isEdit &&
-        (docType === "sales_invoice" || docType === "purchase_receipt") && (
-          <PaymentHistoryList
-            docId={header.id!}
-            mode={docType === "purchase_receipt" ? "pay" : "receive"}
-            onChanged={() => {
-              loadDoc(header.id!);
-              onChanged?.();
-            }}
-          />
-        )}
+      {isEdit && (docType === "sales_invoice" || docType === "purchase_receipt") && (
+        <PaymentHistoryList
+          docId={header.id!}
+          mode={docType === "purchase_receipt" ? "pay" : "receive"}
+          onChanged={() => {
+            loadDoc(header.id!);
+            onChanged?.();
+          }}
+        />
+      )}
 
       {/* ============ 操作 ============ */}
       <div className="flex items-center justify-end gap-2">
@@ -1088,11 +1035,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             ] as DocType[]
           ).includes(docType) && (
             <Button type="button" variant="outline" asChild>
-              <a
-                href={`/print/${docType}/${header.id}`}
-                target="_blank"
-                rel="noreferrer"
-              >
+              <a href={`/print/${docType}/${header.id}`} target="_blank" rel="noreferrer">
                 <Printer className="mr-1 h-4 w-4" />
                 列印
               </a>
@@ -1134,15 +1077,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
   );
 }
 
-function Row({
-  label,
-  value,
-  bold,
-}: {
-  label: string;
-  value: number;
-  bold?: boolean;
-}) {
+function Row({ label, value, bold }: { label: string; value: number; bold?: boolean }) {
   return (
     <div
       className={cn(
@@ -1151,9 +1086,7 @@ function Row({
       )}
     >
       <span className="text-muted-foreground">{label}</span>
-      <span>
-        {value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-      </span>
+      <span>{value.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
     </div>
   );
 }
@@ -1183,7 +1116,10 @@ function Field({
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     draft: { label: "草稿", cls: "bg-muted text-muted-foreground" },
-    confirmed: { label: "已確認", cls: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" },
+    confirmed: {
+      label: "已確認",
+      cls: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+    },
     completed: { label: "已完成", cls: "bg-success/15 text-success" },
     voided: {
       label: "已作廢",
@@ -1193,10 +1129,7 @@ export function StatusBadge({ status }: { status: string }) {
   const s = map[status] ?? { label: status, cls: "bg-muted" };
   return (
     <span
-      className={cn(
-        "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium",
-        s.cls,
-      )}
+      className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", s.cls)}
     >
       {s.label}
     </span>
