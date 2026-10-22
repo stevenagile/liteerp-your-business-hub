@@ -61,9 +61,7 @@ export function PaymentHistoryList({
     setLoading(true);
     const { data, error } = await supabase
       .from("payments")
-      .select(
-        "id,payment_date,amount,method,reference,notes,created_at",
-      )
+      .select("id,payment_date,amount,method,reference,notes,created_at")
       .eq("doc_header_id", docId)
       .order("created_at", { ascending: true });
     setLoading(false);
@@ -98,15 +96,11 @@ export function PaymentHistoryList({
 
   return (
     <section className="rounded-lg border">
-      <div className="border-b px-4 py-2 text-sm font-medium">
-        {verb}明細
-      </div>
+      <div className="border-b px-4 py-2 text-sm font-medium">{verb}明細</div>
       {loading ? (
         <div className="p-4 text-sm text-muted-foreground">載入中...</div>
       ) : rows.length === 0 ? (
-        <div className="p-4 text-sm text-muted-foreground">
-          尚無{verb}紀錄
-        </div>
+        <div className="p-4 text-sm text-muted-foreground">尚無{verb}紀錄</div>
       ) : (
         <Table>
           <TableHeader>
@@ -126,13 +120,9 @@ export function PaymentHistoryList({
               return (
                 <TableRow key={p.id}>
                   <TableCell>{p.payment_date ?? "—"}</TableCell>
-                  <TableCell>
-                    {methodLabel[p.method ?? ""] ?? p.method ?? "—"}
-                  </TableCell>
+                  <TableCell>{methodLabel[p.method ?? ""] ?? p.method ?? "—"}</TableCell>
                   <TableCell>{p.reference ?? "—"}</TableCell>
-                  <TableCell className="max-w-[240px] truncate">
-                    {p.notes ?? "—"}
-                  </TableCell>
+                  <TableCell className="max-w-[240px] truncate">{p.notes ?? "—"}</TableCell>
                   <TableCell
                     className={`text-right tabular-nums ${isReversal ? "text-destructive" : ""}`}
                   >
@@ -140,12 +130,7 @@ export function PaymentHistoryList({
                   </TableCell>
                   <TableCell className="text-right">
                     {amt > 0 && canWrite && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setTarget(p)}
-                      >
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setTarget(p)}>
                         沖銷
                       </Button>
                     )}
@@ -157,10 +142,7 @@ export function PaymentHistoryList({
         </Table>
       )}
 
-      <AlertDialog
-        open={!!target}
-        onOpenChange={(o) => !o && setTarget(null)}
-      >
+      <AlertDialog open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>沖銷此筆{verb}?</AlertDialogTitle>

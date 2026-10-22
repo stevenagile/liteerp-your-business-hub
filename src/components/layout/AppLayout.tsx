@@ -25,8 +25,14 @@ export function AppLayout() {
 
   const displayName = profile?.display_name || user?.email || "使用者";
   const roleLabel = profile?.role
-    ? { admin: "系統管理員", manager: "主管", sales: "業務", warehouse: "倉管", accountant: "會計", staff: "一般員工" }[profile.role] ??
-      profile.role
+    ? ({
+        admin: "系統管理員",
+        manager: "主管",
+        sales: "業務",
+        warehouse: "倉管",
+        accountant: "會計",
+        staff: "一般員工",
+      }[profile.role] ?? profile.role)
     : "尚未設定角色";
 
   // Load dynamic menu from core.get_my_menu
@@ -35,9 +41,7 @@ export function AppLayout() {
     let cancelled = false;
     (async () => {
       setMenuLoading(true);
-      const { data, error } = await supabase
-        .schema("core" as never)
-        .rpc("get_my_menu");
+      const { data, error } = await supabase.schema("core" as never).rpc("get_my_menu");
       if (cancelled) return;
       if (error) {
         console.error("[menu] get_my_menu error", error);
@@ -123,9 +127,7 @@ export function AppLayout() {
                 >
                   <UserCircle2 className="h-6 w-6 text-muted-foreground" />
                   <div className="hidden text-left text-sm sm:block">
-                    <div className="font-medium leading-tight">
-                      {displayName}
-                    </div>
+                    <div className="font-medium leading-tight">{displayName}</div>
                     <div className="text-[11px] leading-tight text-muted-foreground">
                       {roleLabel}
                     </div>
@@ -135,9 +137,7 @@ export function AppLayout() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="text-sm font-medium">{displayName}</div>
-                  <div className="text-xs font-normal text-muted-foreground">
-                    {user?.email}
-                  </div>
+                  <div className="text-xs font-normal text-muted-foreground">{user?.email}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

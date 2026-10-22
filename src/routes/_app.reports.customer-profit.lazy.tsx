@@ -19,10 +19,8 @@ type Row = {
   outstanding: number | null;
 };
 
-const num = (n: number | null | undefined) =>
-  n == null ? "-" : Number(n).toLocaleString();
-const pct = (n: number | null | undefined) =>
-  n == null ? "-" : `${Number(n).toFixed(2)}%`;
+const num = (n: number | null | undefined) => (n == null ? "-" : Number(n).toLocaleString());
+const pct = (n: number | null | undefined) => (n == null ? "-" : `${Number(n).toFixed(2)}%`);
 
 function CustomerProfitReport() {
   const { allowed, checking } = usePermissionGuard("/reports/customer-profit");
@@ -44,14 +42,16 @@ function CustomerProfitReport() {
   }, [profile?.company_id]);
 
   const sorted = useMemo(
-    () =>
-      [...rows].sort(
-        (a, b) => Number(b.total_profit ?? 0) - Number(a.total_profit ?? 0),
-      ),
+    () => [...rows].sort((a, b) => Number(b.total_profit ?? 0) - Number(a.total_profit ?? 0)),
     [rows],
   );
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (

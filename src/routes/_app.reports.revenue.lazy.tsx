@@ -26,10 +26,8 @@ const fmtMonth = (m: string) => {
   if (isNaN(d.getTime())) return m.slice(0, 7).replace("-", "/");
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
-const num = (n: number | null | undefined) =>
-  n == null ? "-" : Number(n).toLocaleString();
-const pct = (n: number | null | undefined) =>
-  n == null ? "-" : `${Number(n).toFixed(2)}%`;
+const num = (n: number | null | undefined) => (n == null ? "-" : Number(n).toLocaleString());
+const pct = (n: number | null | undefined) => (n == null ? "-" : `${Number(n).toFixed(2)}%`);
 
 function RevenueReport() {
   const { allowed, checking } = usePermissionGuard("/reports/revenue");
@@ -51,7 +49,12 @@ function RevenueReport() {
     })();
   }, [profile?.company_id]);
 
-  if (checking) return <div className="flex justify-center p-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  if (checking)
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
   if (!allowed) return null;
 
   return (
@@ -59,15 +62,17 @@ function RevenueReport() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">月營收報表</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            每月銷售額、成本與收款狀況
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">每月銷售額、成本與收款狀況</p>
         </div>
         <ExportExcelButton
           rows={rows as unknown as Record<string, unknown>[]}
           filename="月營收"
           columns={[
-            { key: "month", label: "月份", value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7) },
+            {
+              key: "month",
+              label: "月份",
+              value: (r: Record<string, unknown>) => String(r.month ?? "").slice(0, 7),
+            },
             { key: "invoice_count", label: "單數", type: "number" },
             { key: "revenue", label: "營收", type: "number" },
             { key: "cogs", label: "銷貨成本", type: "number" },
