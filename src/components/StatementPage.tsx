@@ -93,7 +93,7 @@ const txnLabel = (t: string | null) => {
     purchase_return: "進退",
     payment: "付款",
   };
-  return map[t ?? ""] ?? (t ?? "—");
+  return map[t ?? ""] ?? t ?? "—";
 };
 
 export function StatementPage({ kind }: { kind: StatementKind }) {
@@ -189,9 +189,7 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
       );
       // 全部模式：只保留期間內有異動或期初有餘額的對象
       const filtered =
-        contactId === ALL
-          ? results.filter((s) => s.rows.length > 0 || s.opening !== 0)
-          : results;
+        contactId === ALL ? results.filter((s) => s.rows.length > 0 || s.opening !== 0) : results;
       if (filtered.length === 0) {
         toast.info("期間內沒有任何異動或餘額");
         return;
@@ -230,7 +228,11 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
           `[data-statement-id="${s.contact.id}"]`,
         );
         if (!el) continue;
-        const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+        const canvas = await html2canvas(el, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+        });
         const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
         const pageW = pdf.internal.pageSize.getWidth();
         const pageH = pdf.internal.pageSize.getHeight();
@@ -285,7 +287,9 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
               <SelectContent>
                 <SelectItem value={ALL}>全部{partyLabel}</SelectItem>
                 {contacts.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -301,11 +305,21 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
           </div>
           <div className="grid gap-1.5">
             <Label>起日</Label>
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-44" />
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-44"
+            />
           </div>
           <div className="grid gap-1.5">
             <Label>迄日</Label>
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-44" />
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-44"
+            />
           </div>
           <Button onClick={generate} disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -319,7 +333,11 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
                 columns={[
                   { key: "contact_name", label: partyLabel },
                   { key: "txn_date", label: "日期" },
-                  { key: "txn_type", label: "摘要", value: (r: Record<string, unknown>) => txnLabel(r.txn_type as string | null) },
+                  {
+                    key: "txn_type",
+                    label: "摘要",
+                    value: (r: Record<string, unknown>) => txnLabel(r.txn_type as string | null),
+                  },
                   { key: "doc_no", label: "單號" },
                   { key: "debit", label: "借方", type: "number" },
                   { key: "credit", label: "貸方", type: "number" },
@@ -343,7 +361,8 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
         </div>
         {generated && contactId === ALL && (
           <p className="text-sm text-muted-foreground">
-            共產生 {statements.length} 張對帳單（已略過期間內無異動且無餘額的{partyLabel}），列印時每張自動分頁。
+            共產生 {statements.length} 張對帳單（已略過期間內無異動且無餘額的{partyLabel}
+            ），列印時每張自動分頁。
           </p>
         )}
       </div>
@@ -416,12 +435,8 @@ function StatementSheet({
             {company?.tax_id && (
               <div className="text-xs text-gray-600">統一編號：{company.tax_id}</div>
             )}
-            {company?.address && (
-              <div className="text-xs text-gray-600">{company.address}</div>
-            )}
-            {company?.phone && (
-              <div className="text-xs text-gray-600">電話：{company.phone}</div>
-            )}
+            {company?.address && <div className="text-xs text-gray-600">{company.address}</div>}
+            {company?.phone && <div className="text-xs text-gray-600">電話：{company.phone}</div>}
           </div>
         </div>
         <div className="text-right">
@@ -462,7 +477,9 @@ function StatementSheet({
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell colSpan={5} className="text-xs text-gray-600">期初餘額</TableCell>
+              <TableCell colSpan={5} className="text-xs text-gray-600">
+                期初餘額
+              </TableCell>
               <TableCell className="text-right font-medium">{fmt(opening)}</TableCell>
             </TableRow>
             {running.length === 0 && (
@@ -487,7 +504,9 @@ function StatementSheet({
               </TableRow>
             ))}
             <TableRow className="border-t-2">
-              <TableCell colSpan={3} className="font-semibold">合計</TableCell>
+              <TableCell colSpan={3} className="font-semibold">
+                合計
+              </TableCell>
               <TableCell className="text-right font-semibold">{fmt(totalDebit)}</TableCell>
               <TableCell className="text-right font-semibold">{fmt(totalCredit)}</TableCell>
               <TableCell></TableCell>
