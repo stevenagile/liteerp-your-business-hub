@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Bell, Package, AlertTriangle, BarChart3, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -66,7 +66,7 @@ export function NotificationBell() {
   const [animate, setAnimate] = useState(false);
   const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!companyId) return;
     const { data: list } = await supabase
       .from("notifications")
@@ -81,7 +81,7 @@ export function NotificationBell() {
       .eq("company_id", companyId)
       .eq("is_read", false);
     setUnread(count ?? 0);
-  };
+  }, [companyId]);
 
   useEffect(() => {
     if (!user || !companyId) return;
@@ -110,7 +110,7 @@ export function NotificationBell() {
       supabase.removeChannel(channel);
       if (animTimer.current) clearTimeout(animTimer.current);
     };
-  }, [user, companyId]);
+  }, [user, companyId, load]);
 
   const markRead = async (n: Notification) => {
     if (n.is_read) return;

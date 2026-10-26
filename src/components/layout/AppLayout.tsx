@@ -54,7 +54,7 @@ export function AppLayout() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [user]);
 
   // Update last_login_at once per session
   useEffect(() => {
@@ -68,7 +68,7 @@ export function AppLayout() {
       .then(({ error }) => {
         if (error) console.error("[auth] touch_last_login error", error);
       });
-  }, [user?.id]);
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut();
