@@ -117,7 +117,9 @@ export function ImportDialog({
       } else {
         const Papa = await import("papaparse");
         const text = await file.text();
-        const parsed = Papa.default.parse<string[]>(text.replace(/^﻿/, ""), {
+        // Strip BOM (U+FEFF) if present — common in Excel-exported CSV
+        const cleaned = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+        const parsed = Papa.default.parse<string[]>(cleaned, {
           skipEmptyLines: true,
         });
         records = rowsToRecords(parsed.data as string[][]);
