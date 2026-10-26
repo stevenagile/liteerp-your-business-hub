@@ -163,16 +163,18 @@ function ContactsPage() {
       return;
     }
     setLoading(true);
-    const [{ data: contactsData, error: contactsError }, { data: companyData }] = await Promise.all([
-      supabase
-        .from("contacts")
-        .select(
-          "id, code, name, type, tax_id, contact_person, phone, email, address, region, delivery_days, route_seq, collect_cash, delivery_note, bind_code, payment_terms, price_level, credit_limit, price_includes_tax, notes, company_id",
-        )
-        .eq("company_id", companyId)
-        .order("code", { ascending: true }),
-      supabase.from("company").select("settings").limit(1).single(),
-    ]);
+    const [{ data: contactsData, error: contactsError }, { data: companyData }] = await Promise.all(
+      [
+        supabase
+          .from("contacts")
+          .select(
+            "id, code, name, type, tax_id, contact_person, phone, email, address, region, delivery_days, route_seq, collect_cash, delivery_note, bind_code, payment_terms, price_level, credit_limit, price_includes_tax, notes, company_id",
+          )
+          .eq("company_id", companyId)
+          .order("code", { ascending: true }),
+        supabase.from("company").select("settings").limit(1).single(),
+      ],
+    );
     if (contactsError) {
       toast.error("讀取客戶廠商失敗:" + contactsError.message);
     } else {
@@ -190,10 +192,8 @@ function ContactsPage() {
     const kw = keyword.trim().toLowerCase();
     return list.filter((c) => {
       if (tab !== "all") {
-        if (tab === "customer" && c.type !== "customer" && c.type !== "both")
-          return false;
-        if (tab === "vendor" && c.type !== "vendor" && c.type !== "both")
-          return false;
+        if (tab === "customer" && c.type !== "customer" && c.type !== "both") return false;
+        if (tab === "vendor" && c.type !== "vendor" && c.type !== "both") return false;
       }
       if (!kw) return true;
       return (
@@ -222,18 +222,25 @@ function ContactsPage() {
             columns={[
               { key: "code", label: "客戶代碼" },
               { key: "name", label: "店名" },
-              { key: "type", label: "類型", value: (r: Record<string, unknown>) => TYPE_LABEL[r.type as ContactType] ?? String(r.type ?? "") },
+              {
+                key: "type",
+                label: "類型",
+                value: (r: Record<string, unknown>) =>
+                  TYPE_LABEL[r.type as ContactType] ?? String(r.type ?? ""),
+              },
               { key: "region", label: "地區" },
               {
                 key: "delivery_days",
                 label: "配送星期",
-                value: (r: Record<string, unknown>) => formatDays(r.delivery_days as number[] | null),
+                value: (r: Record<string, unknown>) =>
+                  formatDays(r.delivery_days as number[] | null),
               },
               { key: "route_seq", label: "路順" },
               {
                 key: "collect_cash",
                 label: "收現",
-                value: (r: Record<string, unknown>) => (r as { collect_cash: boolean }).collect_cash ? "Y" : "",
+                value: (r: Record<string, unknown>) =>
+                  (r as { collect_cash: boolean }).collect_cash ? "Y" : "",
               },
               { key: "delivery_note", label: "配送備註" },
               { key: "phone", label: "電話" },
@@ -241,7 +248,8 @@ function ContactsPage() {
               {
                 key: "bind_link",
                 label: "LINE綁定連結",
-                value: (r: Record<string, unknown>) => bindDeepLink((r as { bind_code: string | null }).bind_code) ?? "",
+                value: (r: Record<string, unknown>) =>
+                  bindDeepLink((r as { bind_code: string | null }).bind_code) ?? "",
               },
             ]}
           />
@@ -254,7 +262,9 @@ function ContactsPage() {
               <Button
                 onClick={() => {
                   const defaults = emptyContact();
-                  defaults.price_includes_tax = Boolean(companySettings?.price_includes_tax ?? false);
+                  defaults.price_includes_tax = Boolean(
+                    companySettings?.price_includes_tax ?? false,
+                  );
                   setEditing(defaults);
                   setDialogOpen(true);
                 }}
@@ -298,9 +308,7 @@ function ContactsPage() {
               <TableHead className="w-40">電話</TableHead>
               <TableHead className="w-32">綁定碼</TableHead>
               <TableHead className="w-24 text-right">帳期(天)</TableHead>
-              {canWrite && (
-                <TableHead className="w-20 text-right">操作</TableHead>
-              )}
+              {canWrite && <TableHead className="w-20 text-right">操作</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -325,9 +333,7 @@ function ContactsPage() {
                   <TableCell className="font-mono">{c.code}</TableCell>
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={c.type === "vendor" ? "secondary" : "default"}
-                    >
+                    <Badge variant={c.type === "vendor" ? "secondary" : "default"}>
                       {TYPE_LABEL[c.type] ?? c.type}
                     </Badge>
                   </TableCell>
@@ -338,7 +344,9 @@ function ContactsPage() {
                       <div className="leading-tight">
                         <div>{c.region || <span className="text-warning">未設地區</span>}</div>
                         <div className="text-xs text-muted-foreground">
-                          {formatDays(c.delivery_days) ? `週${formatDays(c.delivery_days)}` : "未設配送日"}
+                          {formatDays(c.delivery_days)
+                            ? `週${formatDays(c.delivery_days)}`
+                            : "未設配送日"}
                         </div>
                       </div>
                     )}
@@ -355,9 +363,7 @@ function ContactsPage() {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {c.phone || "—"}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{c.phone || "—"}</TableCell>
                   <TableCell>
                     {c.bind_code ? (
                       <div className="space-y-0.5">
@@ -395,9 +401,7 @@ function ContactsPage() {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
-                    {c.payment_terms ?? "—"}
-                  </TableCell>
+                  <TableCell className="text-right">{c.payment_terms ?? "—"}</TableCell>
                   {canWrite && (
                     <TableCell className="text-right">
                       <Button
@@ -436,9 +440,7 @@ function ContactsPage() {
         templateFileName="contacts_template.csv"
         fields={CONTACT_IMPORT_FIELDS}
         validateRows={async (parsedRows) => {
-          const codes = parsedRows
-            .map((r) => String(r.data.code ?? "").trim())
-            .filter(Boolean);
+          const codes = parsedRows.map((r) => String(r.data.code ?? "").trim()).filter(Boolean);
           const seen = new Map<string, number>();
           const dupInFile = new Set<string>();
           codes.forEach((c) => {
@@ -470,7 +472,11 @@ function ContactsPage() {
             return {
               ...rest,
               delivery_days: parseDays(delivery_days),
-              collect_cash: collect_cash === true || collect_cash === "true" || collect_cash === "Y" || collect_cash === "1",
+              collect_cash:
+                collect_cash === true ||
+                collect_cash === "true" ||
+                collect_cash === "Y" ||
+                collect_cash === "1",
               company_id: companyId,
             };
           });
@@ -512,7 +518,6 @@ const CONTACT_IMPORT_FIELDS: ImportField[] = [
   { key: "credit_limit", label: "信用額度", type: "number", default: 0, example: 0 },
   { key: "notes", label: "備註" },
 ];
-
 
 function ContactDialog({
   open,
@@ -605,27 +610,21 @@ function ContactDialog({
             <Field label="編號" required>
               <Input
                 value={form.code}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, code: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, code: e.target.value })}
                 required
               />
             </Field>
             <Field label="名稱" required>
               <Input
                 value={form.name}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, name: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, name: e.target.value })}
                 required
               />
             </Field>
             <Field label="類型">
               <Select
                 value={form.type}
-                onValueChange={(v) =>
-                  setForm((f) => f && { ...f, type: v as ContactType })
-                }
+                onValueChange={(v) => setForm((f) => f && { ...f, type: v as ContactType })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -640,42 +639,32 @@ function ContactDialog({
             <Field label="統一編號">
               <Input
                 value={form.tax_id ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, tax_id: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, tax_id: e.target.value })}
               />
             </Field>
             <Field label="聯絡人">
               <Input
                 value={form.contact_person ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, contact_person: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, contact_person: e.target.value })}
               />
             </Field>
             <Field label="電話">
               <Input
                 value={form.phone ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, phone: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, phone: e.target.value })}
               />
             </Field>
             <Field label="Email">
               <Input
                 type="email"
                 value={form.email ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, email: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, email: e.target.value })}
               />
             </Field>
             <Field label="地址" className="md:col-span-2">
               <Input
                 value={form.address ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, address: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, address: e.target.value })}
               />
             </Field>
 
@@ -686,9 +675,7 @@ function ContactDialog({
                   <Input
                     value={form.region ?? ""}
                     placeholder="例：溪湖"
-                    onChange={(e) =>
-                      setForm((f) => f && { ...f, region: e.target.value })
-                    }
+                    onChange={(e) => setForm((f) => f && { ...f, region: e.target.value })}
                   />
                 </Field>
                 <Field label="配送星期" hint="可複選；LINE 下單與開單依此排下一趨">
@@ -718,10 +705,13 @@ function ContactDialog({
                     value={form.route_seq ?? ""}
                     placeholder="例：1"
                     onChange={(e) =>
-                      setForm((f) => f && {
-                        ...f,
-                        route_seq: e.target.value === "" ? null : Number(e.target.value),
-                      })
+                      setForm(
+                        (f) =>
+                          f && {
+                            ...f,
+                            route_seq: e.target.value === "" ? null : Number(e.target.value),
+                          },
+                      )
                     }
                   />
                 </Field>
@@ -734,16 +724,20 @@ function ContactDialog({
                         setForm((f) => f && { ...f, collect_cash: Boolean(v) })
                       }
                     />
-                    <Label htmlFor="collect_cash" className="cursor-pointer">收現</Label>
+                    <Label htmlFor="collect_cash" className="cursor-pointer">
+                      收現
+                    </Label>
                   </div>
                 </div>
-                <Field label="配送備註" hint="印在出貨單上，例：走後門、週二才收" className="md:col-span-2">
+                <Field
+                  label="配送備註"
+                  hint="印在出貨單上，例：走後門、週二才收"
+                  className="md:col-span-2"
+                >
                   <Input
                     value={form.delivery_note ?? ""}
                     placeholder="例：走後門"
-                    onChange={(e) =>
-                      setForm((f) => f && { ...f, delivery_note: e.target.value })
-                    }
+                    onChange={(e) => setForm((f) => f && { ...f, delivery_note: e.target.value })}
                   />
                 </Field>
               </>
@@ -759,8 +753,7 @@ function ContactDialog({
                     (f) =>
                       f && {
                         ...f,
-                        payment_terms:
-                          e.target.value === "" ? null : Number(e.target.value),
+                        payment_terms: e.target.value === "" ? null : Number(e.target.value),
                       },
                   )
                 }
@@ -769,9 +762,7 @@ function ContactDialog({
             <Field label="售價等級">
               <Select
                 value={String(form.price_level ?? 1)}
-                onValueChange={(v) =>
-                  setForm((f) => f && { ...f, price_level: Number(v) })
-                }
+                onValueChange={(v) => setForm((f) => f && { ...f, price_level: Number(v) })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -793,8 +784,7 @@ function ContactDialog({
                     (f) =>
                       f && {
                         ...f,
-                        credit_limit:
-                          e.target.value === "" ? null : Number(e.target.value),
+                        credit_limit: e.target.value === "" ? null : Number(e.target.value),
                       },
                   )
                 }
@@ -804,9 +794,7 @@ function ContactDialog({
               <Switch
                 id="price_includes_tax"
                 checked={form.price_includes_tax ?? false}
-                onCheckedChange={(v) =>
-                  setForm((f) => f && { ...f, price_includes_tax: v })
-                }
+                onCheckedChange={(v) => setForm((f) => f && { ...f, price_includes_tax: v })}
               />
               <Label htmlFor="price_includes_tax" className="cursor-pointer">
                 售價含稅
@@ -815,9 +803,7 @@ function ContactDialog({
             <Field label="備註" className="md:col-span-2">
               <Input
                 value={form.notes ?? ""}
-                onChange={(e) =>
-                  setForm((f) => f && { ...f, notes: e.target.value })
-                }
+                onChange={(e) => setForm((f) => f && { ...f, notes: e.target.value })}
               />
             </Field>
             {isEdit && form.bind_code && (
@@ -852,16 +838,14 @@ function ContactDialog({
                     </>
                   )}
                 </div>
-                <div className="mt-1 text-muted-foreground">系統自動產生，不可修改。把連結或 QR Code 傳給客戶，客戶點開即可在 LINE 完成綁定。</div>
+                <div className="mt-1 text-muted-foreground">
+                  系統自動產生，不可修改。把連結或 QR Code 傳給客戶，客戶點開即可在 LINE 完成綁定。
+                </div>
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               取消
             </Button>
             <Button type="submit" disabled={saving}>
