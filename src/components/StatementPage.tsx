@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FileDown, Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import JSZip from "jszip";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -215,10 +212,17 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
   }, [statements]);
 
   // 匯出 PDF：每個客戶/廠商各自一份 PDF；多份時打包成 ZIP
+  // jspdf、html2canvas、jszip 改為動態載入，避免拖慢首屏（共省 ~825 KB）
   const exportPdf = async () => {
     if (!sheetsRef.current || statements.length === 0) return;
     setPdfExporting(true);
     try {
+      const [{ default: jsPDF }, { default: html2canvas }, { default: JSZip }] = await Promise.all([
+        import("jspdf"),
+        import("html2canvas"),
+        import("jszip"),
+      ]);
+
       const period = `${startDate}_${endDate}`;
       const safeName = (n: string) => n.replace(/[\\/:*?"<>|]/g, "_");
       const pdfs: { name: string; blob: Blob }[] = [];
