@@ -1,5 +1,5 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Loader2, Plus, Pencil, Search, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -78,7 +78,7 @@ function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!companyId) {
       setList([]);
       setLoading(false);
@@ -98,11 +98,11 @@ function ProductsPage() {
       setList((data ?? []) as Product[]);
     }
     setLoading(false);
-  };
+  }, [companyId]);
 
   useEffect(() => {
     load();
-  }, [companyId]);
+  }, [load]);
 
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase();

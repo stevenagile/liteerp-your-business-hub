@@ -1,6 +1,6 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -62,20 +62,20 @@ function PermissionsPage() {
     }
   }, [loading, profile, navigate]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setBusy(true);
     const { data, error } = await supabase
       .from("role_permissions")
       .select("id, role, module, can_read, can_write, can_confirm, can_void")
       .eq("company_id", profile?.company_id ?? "");
-    if (error) toast.error("讀取失敗:" + error.message);
+    if (error) toast.error("讀取失敗：" + error.message);
     else setRows((data ?? []) as Perm[]);
     setBusy(false);
-  };
+  }, [profile?.company_id]);
 
   useEffect(() => {
     if (profile?.role === "admin") load();
-  }, [profile]);
+  }, [profile, load]);
 
   const findRow = (role: string, module: string) =>
     rows.find((r) => r.role === role && r.module === module);
@@ -90,14 +90,14 @@ function PermissionsPage() {
         .update({ [action]: value })
         .eq("id", row.id);
       if (error) {
-        toast.error("更新失敗:" + error.message);
+        toast.error("更新失敗：" + error.message);
         load();
       }
     } else {
       // 新增時需帶 company_id（NOT NULL）
       const { data: cid, error: cErr } = await supabase.rpc("my_company_id");
       if (cErr) {
-        toast.error("取得公司失敗:" + cErr.message);
+        toast.error("取得公司失敗：" + cErr.message);
         return;
       }
       const payload = {
@@ -116,7 +116,7 @@ function PermissionsPage() {
         .select()
         .single();
       if (error) {
-        toast.error("新增失敗:" + error.message);
+        toast.error("新增失敗：" + error.message);
         return;
       }
       setRows((prev) => [...prev, data as Perm]);

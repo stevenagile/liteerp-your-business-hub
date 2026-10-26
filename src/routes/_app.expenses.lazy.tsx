@@ -1,5 +1,5 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { usePermissionGuard } from "@/hooks/usePermissionGuard";
 import { toast } from "sonner";
@@ -67,7 +67,7 @@ function ExpensesPage() {
     receipt_url: "",
   });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!profile?.company_id) return;
     setLoading(true);
     const { data, error } = await supabase
@@ -80,7 +80,7 @@ function ExpensesPage() {
     if (error) toast.error("讀取費用失敗：" + error.message);
     else setList((data ?? []) as unknown as ExpenseRow[]);
     setLoading(false);
-  };
+  }, [profile?.company_id]);
 
   useEffect(() => {
     load();
@@ -90,7 +90,7 @@ function ExpensesPage() {
       const { data } = await q;
       setCategories((data ?? []) as Category[]);
     })();
-  }, [profile?.company_id]);
+  }, [load, profile?.company_id]);
 
   const total = useMemo(() => list.reduce((s, e) => s + (Number(e.amount) || 0), 0), [list]);
 

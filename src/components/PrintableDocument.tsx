@@ -139,7 +139,7 @@ export function PrintableDocument({
         setLoading(false);
       }
     })();
-  }, [docId]);
+  }, [docId, companyId]);
 
   if (loading) {
     return (
