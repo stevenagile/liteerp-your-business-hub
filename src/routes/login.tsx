@@ -8,22 +8,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/login")({
+  head: () => ({ meta: [
+    { title: "登入 · LiteERP 進銷存" },
+    { name: "description", content: "登入 LiteERP 進銷存管理系統。" },
+    { property: "og:title", content: "登入 · LiteERP 進銷存" },
+    { property: "og:description", content: "登入 LiteERP，管理企業進銷存。" },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: LoginPage,
 });
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { session, loading } = useAuth();
+  const { session, loading, error: authError, retryAuth } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && session) {
+    if (!loading && session && !authError) {
       navigate({ to: "/" });
     }
-  }, [loading, session, navigate]);
+  }, [loading, session, authError, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -84,12 +92,13 @@ function LoginPage() {
             />
           </div>
 
-          {error && (
+          {(error || authError) && (
             <div className="flex items-start gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{error}</span>
+              <span>{error || authError}</span>
             </div>
           )}
+          {authError && <Button type="button" variant="outline" onClick={retryAuth} className="w-full">重試登入檢查</Button>}
 
           <Button type="submit" className="w-full" disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
