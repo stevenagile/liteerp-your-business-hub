@@ -37,7 +37,7 @@ type Row = {
 const fmt = (n: number | null | undefined) =>
   Number(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
-function useAging(view: string, partyKey: "customer_name" | "vendor_name") {
+function useAging(view: "v_ar_aging" | "v_ap_aging", partyKey: "customer_name" | "vendor_name") {
   const { profile } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,12 +47,12 @@ function useAging(view: string, partyKey: "customer_name" | "vendor_name") {
       setLoading(true);
       const { data, error } = await supabase
         .from(view)
-        .select(`${partyKey},doc_no,due_date,balance,overdue_days,aging_bucket`)
+        .select("*")
         .eq("company_id", profile?.company_id ?? "")
         .order("overdue_days", { ascending: false });
       if (error) toast.error(error.message);
-      const mapped = (data ?? []).map((r: Record<string, unknown>) => ({
-        party_name: r[partyKey] as string | null,
+      const mapped = (data ?? []).map((r) => ({
+        party_name: "customer_name" in r ? r.customer_name : r.vendor_name,
         doc_no: r.doc_no as string | null,
         due_date: r.due_date as string | null,
         balance: r.balance as number | null,

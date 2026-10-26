@@ -109,7 +109,7 @@ function ApprovalsPage() {
 
   const handleApprove = async (req: ApprovalRequest) => {
     if (busy[req.id]) return;
-    const note = notes[req.id]?.trim() || null;
+    const note = notes[req.id]?.trim() || undefined;
     setBusy((b) => ({ ...b, [req.id]: true }));
     try {
       const { data, error } = await supabase.rpc("approve_request", {
@@ -160,7 +160,7 @@ function ApprovalsPage() {
 
   const handleReject = async (req: ApprovalRequest) => {
     if (busy[req.id]) return;
-    const note = notes[req.id]?.trim() || null;
+    const note = notes[req.id]?.trim() || undefined;
     setBusy((b) => ({ ...b, [req.id]: true }));
     try {
       const { data, error } = await supabase.rpc("reject_request", {

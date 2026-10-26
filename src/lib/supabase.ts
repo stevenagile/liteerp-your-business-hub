@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import type { ERPDatabase } from "@/lib/extended-database";
 
 // Re-export Database schema types for convenience.
 // Usage: import { supabase, type Tables } from "@/lib/supabase";
@@ -25,7 +26,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase = createClient<ERPDatabase>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,

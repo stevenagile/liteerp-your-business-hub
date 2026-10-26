@@ -240,7 +240,7 @@ function SkillFormDialog({
       return;
     }
 
-    let parsedSchema: unknown;
+    let parsedSchema: import("@/integrations/supabase/types").Json;
     try {
       parsedSchema = JSON.parse(jsonSchema.trim() || DEFAULT_JSON_SCHEMA);
     } catch {
