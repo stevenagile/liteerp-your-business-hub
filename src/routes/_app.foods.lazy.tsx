@@ -1,5 +1,5 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   Loader2,
   Plus,
@@ -175,7 +175,7 @@ function FoodsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!companyId) {
       setList([]);
       setLoading(false);
@@ -199,11 +199,11 @@ function FoodsPage() {
       setList(mapped);
     }
     setLoading(false);
-  };
+  }, [companyId]);
 
   useEffect(() => {
     load();
-  }, [companyId]);
+  }, [load]);
 
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase();

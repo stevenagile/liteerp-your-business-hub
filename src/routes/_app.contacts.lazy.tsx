@@ -1,5 +1,5 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Loader2, Plus, Pencil, Search, Upload, Link2, QrCode } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -156,7 +156,7 @@ function ContactsPage() {
   const { profile } = useAuth();
   const companyId = profile?.company_id ?? null;
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!companyId) {
       setList([]);
       setLoading(false);
@@ -182,11 +182,11 @@ function ContactsPage() {
     }
     setCompanySettings((companyData?.settings as Record<string, unknown>) ?? null);
     setLoading(false);
-  };
+  }, [companyId]);
 
   useEffect(() => {
     load();
-  }, [companyId]);
+  }, [load]);
 
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase();

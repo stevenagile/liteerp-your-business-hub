@@ -1,5 +1,5 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Loader2, Plus, Pencil, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -264,7 +264,7 @@ function WarehousesPanel() {
   const [editing, setEditing] = useState<Warehouse | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("warehouses")
@@ -277,11 +277,11 @@ function WarehousesPanel() {
       setList((data ?? []) as Warehouse[]);
     }
     setLoading(false);
-  };
+  }, [companyId]);
 
   useEffect(() => {
     load();
-  }, [companyId]);
+  }, [load]);
 
   const openCreate = () => {
     setEditing({
