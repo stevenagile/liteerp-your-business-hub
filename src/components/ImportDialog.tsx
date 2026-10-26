@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
-// papaparse and xlsx are loaded on-demand via dynamic import to reduce initial bundle
+// papaparse and exceljs are loaded on-demand via dynamic import to reduce initial bundle
 import {
   Download,
   Loader2,
@@ -62,6 +62,31 @@ export type ImportDialogProps = {
 
 const BATCH_SIZE = 200;
 
+/** Convert an exceljs cell value to a plain string */
+function cellToString(v: unknown): string {
+  if (v == null) return "";
+  if (v instanceof Date) {
+    const y = v.getFullYear();
+    const m = String(v.getMonth() + 1).padStart(2, "0");
+    const d = String(v.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  if (typeof v === "object" && v !== null) {
+    // exceljs rich text: { richText: [{ text: '...' }, ...] }
+    if ("richText" in v) {
+      return (v as { richText: { text: string }[] }).richText
+        .map((rt) => rt.text)
+        .join("");
+    }
+    // exceljs formula result: { formula: '...', result: ... }
+    if ("result" in v) {
+      return cellToString((v as { result: unknown }).result);
+    }
+    return String(v);
+  }
+  return String(v);
+}
+
 export function ImportDialog({
   open,
   onOpenChange,
@@ -107,13 +132,26 @@ export function ImportDialog({
     try {
       let records: Record<string, string>[] = [];
       const ext = file.name.toLowerCase().split(".").pop();
-      if (ext === "xlsx" || ext === "xls") {
-        const XLSX = await import("xlsx");
+      if (ext === "xlsx") {
+        const { Workbook } = await import("exceljs");
         const buf = await file.arrayBuffer();
-        const wb = XLSX.read(buf, { type: "array" });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const arr: string[][] = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: false });
+        const workbook = new Workbook();
+        await workbook.xlsx.load(buf);
+        const ws = workbook.worksheets[0];
+        if (!ws) {
+          toast.error("Excel 檔案中無工作表");
+          return;
+        }
+        const arr: string[][] = [];
+        ws.eachRow({ includeEmpty: false }, (row) => {
+          const values = row.values as unknown[];
+          // row.values is 1-indexed (index 0 is always empty), so slice from 1
+          arr.push(values.slice(1).map(cellToString));
+        });
         records = rowsToRecords(arr);
+      } else if (ext === "xls") {
+        toast.error("不支援舊版 .xls 格式，請先以 Excel「另存新檔」為 .xlsx 後再上傳");
+        return;
       } else {
         const Papa = await import("papaparse");
         const text = await file.text();
@@ -252,7 +290,7 @@ export function ImportDialog({
             <input
               ref={fileRef}
               type="file"
-              accept=".csv,.xlsx,.xls"
+              accept=".csv,.xlsx"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];

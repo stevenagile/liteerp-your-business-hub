@@ -1,9 +1,7 @@
 export type ExportColumn<T = Record<string, unknown>> = {
   key: keyof T | string;
   label: string;
-  /** Optional value mapper. Return number for numeric Excel cell, string for text. */
   value?: (row: T) => unknown;
-  /** Hint: 'number' to force numeric coercion when possible. */
   type?: "number" | "string";
 };
 
@@ -15,21 +13,25 @@ function todayStamp(): string {
   return `${y}${m}${day}`;
 }
 
-/**
- * Export rows to .xlsx, filename pattern: {name}_YYYYMMDD.xlsx
- * Numeric columns are emitted as real numbers so Excel can sum them.
- * xlsx library is loaded on-demand (dynamic import) to reduce initial bundle.
- */
 export async function exportToExcel<T extends Record<string, unknown>>(
   rows: T[],
   columns: ExportColumn<T>[],
   reportName: string,
 ): Promise<void> {
-  const XLSX = await import("xlsx");
+  const { Workbook } = await import("exceljs");
 
-  const header = columns.map((c) => c.label);
-  const data = rows.map((row) =>
-    columns.map((c) => {
+  const workbook = new Workbook();
+  const ws = workbook.addWorksheet("Sheet1");
+
+  // Set columns with headers and widths
+  ws.columns = columns.map((c) => ({
+    header: c.label,
+    width: Math.max(10, Math.min(40, c.label.length * 2 + 4)),
+  }));
+
+  // Add data rows
+  for (const row of rows) {
+    const rowData = columns.map((c) => {
       const raw = c.value ? c.value(row) : (row as Record<string, unknown>)[c.key as string];
       if (raw == null || raw === "") return "";
       if (c.type === "number") {
@@ -38,17 +40,21 @@ export async function exportToExcel<T extends Record<string, unknown>>(
       }
       if (typeof raw === "number") return raw;
       return String(raw);
-    }),
-  );
+    });
+    ws.addRow(rowData);
+  }
 
-  const ws = XLSX.utils.aoa_to_sheet([header, ...data]);
-  // Auto width based on header length
-  ws["!cols"] = columns.map((c) => ({
-    wch: Math.max(10, Math.min(40, c.label.length * 2 + 4)),
-  }));
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-  const filename = `${reportName}_${todayStamp()}.xlsx`;
-  XLSX.writeFile(wb, filename);
+  // Write to buffer and trigger browser download
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${reportName}_${todayStamp()}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
