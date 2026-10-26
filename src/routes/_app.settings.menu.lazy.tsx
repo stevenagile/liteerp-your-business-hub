@@ -36,7 +36,7 @@ import {
 export const Route = createLazyFileRoute("/_app/settings/menu")({
   component: MenuStructurePage,
 });
-const core = () => supabase.schema("core" as never);
+const core = () => supabase.schema("core");
 
 type MenuItem = {
   id: string;

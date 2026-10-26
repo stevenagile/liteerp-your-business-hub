@@ -19,7 +19,7 @@ import {
 export const Route = createLazyFileRoute("/_app/settings/params")({
   component: ParamsPage,
 });
-const core = () => supabase.schema("core" as never);
+const core = () => supabase.schema("core");
 
 // 公司識別資料：直接讀寫 public.company（單據計稅與列印的真正來源）
 type Company = {

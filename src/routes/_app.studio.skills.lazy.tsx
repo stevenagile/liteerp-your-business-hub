@@ -51,7 +51,7 @@ interface Skill {
   created_at: string;
 }
 
-const skillsDb = () => supabase.schema("agent" as never);
+const skillsDb = () => supabase.schema("agent");
 const DEFAULT_JSON_SCHEMA = '{"type":"object","properties":{}}';
 
 function truncate(str: string | null, len: number) {

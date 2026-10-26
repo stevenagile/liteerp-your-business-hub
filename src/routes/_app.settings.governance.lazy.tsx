@@ -37,7 +37,7 @@ import {
 export const Route = createLazyFileRoute("/_app/settings/governance")({
   component: GovernancePage,
 });
-const core = () => supabase.schema("core" as never);
+const core = () => supabase.schema("core");
 const GOV_URL = "https://cqmmbhxldwfaopenphmr.supabase.co/functions/v1/gov-admin";
 
 async function gov(action: string, payload: Record<string, unknown> = {}) {

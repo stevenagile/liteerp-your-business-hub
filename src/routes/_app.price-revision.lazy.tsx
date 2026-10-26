@@ -42,7 +42,7 @@ import {
 export const Route = createLazyFileRoute("/_app/price-revision")({
   component: PriceRevisionPage,
 });
-const core = () => supabase.schema("core" as never);
+const core = () => supabase.schema("core");
 
 type Row = {
   product_id: string;

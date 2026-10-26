@@ -19,7 +19,7 @@ function StudioOverviewPage() {
     if (!companyId) return;
     const fetchAll = () => {
       supabase
-        .schema("agent" as never)
+        .schema("agent")
         .from("agents")
         .select("*", { count: "exact", head: true })
         .eq("company_id", companyId)
@@ -27,7 +27,7 @@ function StudioOverviewPage() {
           if (!error && typeof count === "number") setAgentCount(String(count));
         });
       supabase
-        .schema("knowledge" as never)
+        .schema("knowledge")
         .from("documents")
         .select("*", { count: "exact", head: true })
         .eq("company_id", companyId)

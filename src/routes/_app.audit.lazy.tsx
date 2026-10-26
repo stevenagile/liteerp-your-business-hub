@@ -20,7 +20,7 @@ import {
 export const Route = createLazyFileRoute("/_app/audit")({
   component: AuditPage,
 });
-const core = () => supabase.schema("core" as never);
+const core = () => supabase.schema("core");
 
 type Log = {
   id: string;

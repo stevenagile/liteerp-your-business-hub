@@ -45,7 +45,7 @@ type UserRow = {
   role: string | null;
 };
 
-const core = () => supabase.schema("core" as never);
+const core = () => supabase.schema("core");
 
 function formatDateTime(s: string | null) {
   if (!s) return "—";

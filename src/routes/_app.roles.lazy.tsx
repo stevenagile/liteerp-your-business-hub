@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 export const Route = createLazyFileRoute("/_app/roles")({
   component: RolesPage,
 });
-const core = () => supabase.schema("core" as never);
+const core = () => supabase.schema("core");
 
 type Role = { code: string; label: string };
 
