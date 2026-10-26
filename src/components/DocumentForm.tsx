@@ -472,6 +472,11 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       }
       docNo = nx as string;
     }
+    if (!docNo) {
+      setSaving(false);
+      toast.error("單號不存在，請重新載入單據。");
+      return;
+    }
 
     const headerPayload = {
       doc_type: docType,

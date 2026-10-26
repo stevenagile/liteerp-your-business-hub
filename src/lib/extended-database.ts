@@ -29,6 +29,7 @@ export type ERPDatabase = Database & {
     agent_logs: Table<{ id: string; company_id: string; created_at: string | null; agent_name: string | null; action: string | null; resource: string | null; resource_id: string | null; response_status: number | null; error_message: string | null; request_summary: string | null }>;
   }, {
     has_menu_access: { Args: { p_menu: string; p_action: string }; Returns: boolean };
+    current_company: { Args: never; Returns: string };
     get_my_menu: { Args: never; Returns: (Menu & Partial<Access>)[] };
     touch_last_login: { Args: never; Returns: undefined };
     list_users: { Args: never; Returns: User[] };
