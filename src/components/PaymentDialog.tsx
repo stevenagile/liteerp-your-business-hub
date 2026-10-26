@@ -79,8 +79,8 @@ export function PaymentDialog({
       p_doc_id: docId,
       p_amount: amt,
       p_method: method,
-      p_reference: reference || null,
-      p_notes: notes || null,
+      p_reference: reference || undefined,
+      p_notes: notes || undefined,
     });
     setSaving(false);
     if (error) {

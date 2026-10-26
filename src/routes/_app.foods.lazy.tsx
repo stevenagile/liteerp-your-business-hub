@@ -567,6 +567,8 @@ function FoodsPage() {
             const f = r.data as unknown as FoodProduct;
             return {
               ...r.data,
+            code: String(r.data.code ?? ""),
+            name: String(r.data.name ?? ""),
               company_id: companyId,
               notes: buildExtraString(f),
             };
@@ -614,6 +616,11 @@ function FoodDialog({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    if (!profile?.company_id) {
+      setSaving(false);
+      toast.error("找不到公司");
+      return;
+    }
     const payload = {
       code: form.code,
       name: form.name,
@@ -627,13 +634,8 @@ function FoodDialog({
       cost_price: form.cost_price ?? 0,
       safety_stock: form.safety_stock ?? 0,
       notes: buildExtraString(form),
-      ...(isEdit ? {} : { company_id: profile?.company_id ?? null }),
+      company_id: profile.company_id,
     };
-    if (!profile?.company_id) {
-      setSaving(false);
-      toast.error("找不到公司");
-      return;
-    }
     const query = isEdit
       ? supabase
           .from("products")

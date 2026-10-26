@@ -189,7 +189,7 @@ function ParamsPage() {
     const { error } = await supabase
       .from("company")
       .update({
-        name: company.name,
+        name: company.name ?? "",
         tax_id: company.tax_id,
         address: company.address,
         phone: company.phone,

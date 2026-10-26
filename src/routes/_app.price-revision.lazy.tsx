@@ -227,7 +227,7 @@ function PriceRevisionPage() {
       p_sell_mode: sellMode,
       p_adjust_customer: adjCust,
       p_effective_date: effDate,
-      p_note: note.trim() || null,
+      p_note: note.trim() || undefined,
     });
     setBusy(false);
     setConfirmOpen(false);

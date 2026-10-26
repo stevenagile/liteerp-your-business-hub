@@ -80,7 +80,7 @@ function PermissionsPage() {
   const findRow = (role: string, module: string) =>
     rows.find((r) => r.role === role && r.module === module);
 
-  const toggle = async (role: string, module: string, action: string, value: boolean) => {
+  const toggle = async (role: string, module: string, action: (typeof ACTIONS)[number]["key"], value: boolean) => {
     const row = findRow(role, module);
     if (row) {
       // optimistic

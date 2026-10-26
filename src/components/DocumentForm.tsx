@@ -425,6 +425,8 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
 
   // ---- 儲存 ----
   const handleSave = async () => {
+    const companyId = profile?.company_id;
+    if (!companyId) { toast.error("找不到公司"); return; }
     if (!isAdjust && !header.contact_id) {
       toast.error(`請選擇${partyLabel}`);
       return;
@@ -460,7 +462,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
     // 第一次儲存產編號
     if (!isEdit && !docNo) {
       const { data: nx, error: ne } = await supabase.rpc("generate_doc_no", {
-        p_company_id: profile?.company_id,
+        p_company_id: companyId,
         p_doc_type: docType,
       });
       if (ne) {
@@ -480,7 +482,7 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
       warehouse_id: header.warehouse_id,
       notes: header.notes || null,
       price_includes_tax: header.price_includes_tax,
-      status: "draft",
+      status: "draft" as const,
       ...(showSalesPerson ? { sales_person_id: header.sales_person_id } : {}),
       ...(showDispatch
         ? {
@@ -491,10 +493,10 @@ export function DocumentForm({ docType, docId, onSaved, onCancel, onChanged }: P
             delivery_note: header.delivery_note?.trim() || null,
           }
         : {}),
+      company_id: companyId,
       ...(isEdit
         ? {}
         : {
-            company_id: profile?.company_id ?? null,
             created_by: user?.id ?? null,
           }),
     };

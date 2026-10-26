@@ -199,7 +199,7 @@ function DispatchPage() {
     setReassigning(true);
     const { data, error } = await supabase.rpc("reassign_dispatch", {
       p_only_unassigned: !fullRecalc,
-      p_delivery_date: fullRecalc ? date : null,
+      p_delivery_date: fullRecalc ? date : undefined,
     });
     setReassigning(false);
     setConfirmOpen(false);

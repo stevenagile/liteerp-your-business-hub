@@ -82,7 +82,7 @@ function ApprovalsPage() {
       navigate({ to: "/" });
       return;
     }
-    setItems(Array.isArray(data) ? (data as ApprovalRequest[]) : []);
+    setItems(Array.isArray(data) ? (data as unknown as ApprovalRequest[]) : []);
   }, [navigate]);
 
   useEffect(() => {

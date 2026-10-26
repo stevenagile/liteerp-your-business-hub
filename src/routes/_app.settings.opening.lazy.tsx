@@ -357,7 +357,7 @@ function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
   const contactMap = Object.fromEntries(contacts.map((c) => [c.id, c.name]));
 
   const loadContacts = async () => {
-    const types = isAR ? ["customer", "both"] : ["vendor", "both"];
+    const types = isAR ? (["customer", "both"] as const) : (["vendor", "both"] as const);
     const { data } = await supabase
       .from("contacts")
       .select("id,name,type")
@@ -398,8 +398,8 @@ function OpeningPayable({ kind }: { kind: "ar" | "ap" }) {
       p_contact_id: contactId,
       p_amount: Number(amount),
       p_doc_date: docDate,
-      p_due_date: dueDate || null,
-      p_notes: notes || null,
+      p_due_date: dueDate || undefined,
+      p_notes: notes || undefined,
     });
     setSubmitting(false);
     if (error) {
