@@ -109,7 +109,7 @@ function AliasTeachingPage() {
     if (!companyId) return;
     setLoadingToLearn(true);
     const { data, error } = await supabase
-      .schema("channel" as never)
+      .schema("channel")
       .from("v_terms_to_learn")
       .select("contact_id, raw_message, issues, created_at")
       .eq("company_id", companyId)
@@ -127,7 +127,7 @@ function AliasTeachingPage() {
     if (!companyId) return;
     setLoadingAliases(true);
     const { data, error } = await supabase
-      .schema("channel" as never)
+      .schema("channel")
       .from("customer_term_aliases")
       .select("id, alias_text, product_id, confirm_count, contact_id, disabled, last_used_at")
       .eq("company_id", companyId)
@@ -193,7 +193,7 @@ function AliasTeachingPage() {
     if (!companyId) return;
     setTogglingId(row.id);
     const { error } = await supabase
-      .schema("channel" as never)
+      .schema("channel")
       .from("customer_term_aliases")
       .update({ disabled: !row.disabled })
       .eq("id", row.id);

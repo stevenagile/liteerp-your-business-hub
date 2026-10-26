@@ -73,7 +73,7 @@ interface Skill {
 }
 
 const NONE_DEPT = "__none__";
-const agentDb = () => supabase.schema("agent" as never);
+const agentDb = () => supabase.schema("agent");
 
 const statusVariant = (s: Status) =>
   s === "active" ? "default" : s === "archived" ? "secondary" : "outline";

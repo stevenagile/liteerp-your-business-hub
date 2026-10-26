@@ -114,7 +114,7 @@ export function StatementPage({ kind }: { kind: StatementKind }) {
 
   useEffect(() => {
     (async () => {
-      const types = isCustomer ? ["customer", "both"] : ["vendor", "both"];
+      const types = isCustomer ? (["customer", "both"] as const) : (["vendor", "both"] as const);
       const [{ data: cs }, { data: co }] = await Promise.all([
         supabase
           .from("contacts")

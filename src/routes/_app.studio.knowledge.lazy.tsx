@@ -58,7 +58,7 @@ interface KNode {
   updated_at: string;
 }
 
-const db = () => supabase.schema("knowledge" as never);
+const db = () => supabase.schema("knowledge");
 
 type FormMode =
   | { kind: "new-department" }

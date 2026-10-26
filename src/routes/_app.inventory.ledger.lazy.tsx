@@ -112,14 +112,14 @@ function InventoryLedgerPage() {
       ]);
       const prods = Array.from(
         new Map(
-          (pd ?? []).map((r: Record<string, string>) => [r.product_code, r.product_name]),
+          (pd ?? []).map((r) => [r.product_code ?? "", r.product_name ?? ""]),
         ).entries(),
       ).map(([code, name]) => ({
         value: code,
         label: `${code} — ${name}`,
       }));
       const whs = Array.from(
-        new Set((wh ?? []).map((r: Record<string, string>) => r.warehouse_name)),
+        new Set((wh ?? []).map((r) => r.warehouse_name ?? "")),
       ).map((w) => ({
         value: w as string,
         label: w as string,

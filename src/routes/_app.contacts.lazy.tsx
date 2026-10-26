@@ -471,6 +471,9 @@ function ContactsPage() {
             const { delivery_days, collect_cash, ...rest } = r.data as Record<string, unknown>;
             return {
               ...rest,
+              code: String(rest.code ?? ""),
+              name: String(rest.name ?? ""),
+              type: rest.type === "vendor" ? "vendor" as const : rest.type === "both" ? "both" as const : "customer" as const,
               delivery_days: parseDays(delivery_days),
               collect_cash:
                 collect_cash === true ||
@@ -556,6 +559,11 @@ function ContactDialog({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    if (!profile?.company_id) {
+      setSaving(false);
+      toast.error("找不到公司");
+      return;
+    }
     const payload = {
       code: form.code,
       name: form.name,
@@ -575,13 +583,8 @@ function ContactDialog({
       credit_limit: form.credit_limit ?? 0,
       price_includes_tax: form.price_includes_tax ?? false,
       notes: form.notes || null,
-      ...(isEdit ? {} : { company_id: profile?.company_id ?? null }),
+      company_id: profile.company_id,
     };
-    if (!profile?.company_id) {
-      setSaving(false);
-      toast.error("找不到公司");
-      return;
-    }
     const query = isEdit
       ? supabase
           .from("contacts")

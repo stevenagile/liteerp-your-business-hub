@@ -69,7 +69,7 @@ function LineManagersPage() {
     if (!companyId) return;
     setLoading(true);
     const { data, error } = await supabase
-      .schema("channel" as never)
+      .schema("channel")
       .from("managers")
       .select("line_user_id, display_name, is_active, created_at, kind")
       .eq("company_id", companyId)
@@ -109,7 +109,7 @@ function LineManagersPage() {
     }
     setSubmitting(true);
     const { error } = await supabase
-      .schema("channel" as never)
+      .schema("channel")
       .from("managers")
       .upsert(
         {
@@ -135,7 +135,7 @@ function LineManagersPage() {
   const toggleActive = async (row: ManagerRow, next: boolean) => {
     setBusy((s) => ({ ...s, [row.line_user_id]: true }));
     const { error } = await supabase
-      .schema("channel" as never)
+      .schema("channel")
       .from("managers")
       .update({ is_active: next })
       .eq("line_user_id", row.line_user_id);
@@ -153,7 +153,7 @@ function LineManagersPage() {
     if (!confirm(`確定刪除「${row.display_name ?? row.line_user_id}」?`)) return;
     setBusy((s) => ({ ...s, [row.line_user_id]: true }));
     const { error } = await supabase
-      .schema("channel" as never)
+      .schema("channel")
       .from("managers")
       .delete()
       .eq("line_user_id", row.line_user_id);

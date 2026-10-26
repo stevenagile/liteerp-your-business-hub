@@ -80,14 +80,16 @@ function PermissionsPage() {
   const findRow = (role: string, module: string) =>
     rows.find((r) => r.role === role && r.module === module);
 
-  const toggle = async (role: string, module: string, action: string, value: boolean) => {
+  const toggle = async (role: string, module: string, action: (typeof ACTIONS)[number]["key"], value: boolean) => {
     const row = findRow(role, module);
+    const changes: Partial<Pick<Perm, "can_read" | "can_write" | "can_confirm" | "can_void">> = {};
+    changes[action] = value;
     if (row) {
       // optimistic
       setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, [action]: value } : r)));
       const { error } = await supabase
         .from("role_permissions")
-        .update({ [action]: value })
+        .update(changes)
         .eq("id", row.id);
       if (error) {
         toast.error("更新失敗：" + error.message);
@@ -108,8 +110,8 @@ function PermissionsPage() {
         can_write: false,
         can_confirm: false,
         can_void: false,
-        [action]: value,
       };
+      payload[action] = value;
       const { data, error } = await supabase
         .from("role_permissions")
         .insert(payload)

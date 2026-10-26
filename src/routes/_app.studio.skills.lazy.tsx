@@ -51,7 +51,7 @@ interface Skill {
   created_at: string;
 }
 
-const skillsDb = () => supabase.schema("agent" as never);
+const skillsDb = () => supabase.schema("agent");
 const DEFAULT_JSON_SCHEMA = '{"type":"object","properties":{}}';
 
 function truncate(str: string | null, len: number) {
@@ -240,7 +240,7 @@ function SkillFormDialog({
       return;
     }
 
-    let parsedSchema: unknown;
+    let parsedSchema: import("@/integrations/supabase/types").Json;
     try {
       parsedSchema = JSON.parse(jsonSchema.trim() || DEFAULT_JSON_SCHEMA);
     } catch {

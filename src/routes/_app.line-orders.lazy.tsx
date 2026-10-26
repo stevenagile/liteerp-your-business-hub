@@ -21,7 +21,7 @@ import {
 export const Route = createLazyFileRoute("/_app/line-orders")({
   component: LineOrdersPage,
 });
-const core = () => supabase.schema("core" as never);
+const core = () => supabase.schema("core");
 const URL = "https://cqmmbhxldwfaopenphmr.supabase.co/functions/v1/line-orders";
 
 async function call(action: string, payload: Record<string, unknown> = {}) {

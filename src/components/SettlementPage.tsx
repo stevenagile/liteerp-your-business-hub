@@ -58,7 +58,7 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
 
   useEffect(() => {
     (async () => {
-      const types = isCustomer ? ["customer", "both"] : ["vendor", "both"];
+      const types = isCustomer ? (["customer", "both"] as const) : (["vendor", "both"] as const);
       const { data } = await supabase
         .from("contacts")
         .select("id,name,type")
@@ -158,8 +158,8 @@ export function SettlementPage({ kind }: { kind: SettlementKind }) {
     const { data, error } = await supabase.rpc("settle_documents", {
       p_allocations: allocations,
       p_method: method,
-      p_reference: reference || null,
-      p_notes: notes || null,
+      p_reference: reference || undefined,
+      p_notes: notes || undefined,
     });
     setSubmitting(false);
     if (error) {

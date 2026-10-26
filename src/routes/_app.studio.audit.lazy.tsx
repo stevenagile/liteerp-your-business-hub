@@ -192,7 +192,7 @@ function AuditLogPage() {
         navigate({ to: "/" });
         return;
       }
-      setRows(Array.isArray(data) ? (data as AuditRow[]) : []);
+      setRows(Array.isArray(data) ? (data as unknown as AuditRow[]) : []);
     },
     [navigate],
   );

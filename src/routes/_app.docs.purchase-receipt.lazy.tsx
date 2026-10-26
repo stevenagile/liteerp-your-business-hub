@@ -109,7 +109,7 @@ function PurchaseReceiptListPage() {
       .eq("company_id", profile?.company_id ?? "")
       .order("doc_date", { ascending: false })
       .order("doc_no", { ascending: false });
-    if (status !== "all") q = q.eq("status", status);
+    if (status === "draft" || status === "confirmed" || status === "completed" || status === "voided") q = q.eq("status", status);
     if (dateFrom) q = q.gte("doc_date", dateFrom);
     if (dateTo) q = q.lte("doc_date", dateTo);
     const { data, error } = await q;

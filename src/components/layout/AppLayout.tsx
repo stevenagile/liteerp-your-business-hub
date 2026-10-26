@@ -41,7 +41,7 @@ export function AppLayout() {
     let cancelled = false;
     (async () => {
       setMenuLoading(true);
-      const { data, error } = await supabase.schema("core" as never).rpc("get_my_menu");
+      const { data, error } = await supabase.schema("core").rpc("get_my_menu");
       if (cancelled) return;
       if (error) {
         console.error("[menu] get_my_menu error", error);
@@ -63,7 +63,7 @@ export function AppLayout() {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     supabase
-      .schema("core" as never)
+      .schema("core")
       .rpc("touch_last_login")
       .then(({ error }) => {
         if (error) console.error("[auth] touch_last_login error", error);

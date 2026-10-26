@@ -288,6 +288,8 @@ function ProductsPage() {
           if (!companyId) return { success: 0, failed: validRows.length, errors: ["找不到公司"] };
           const payload = validRows.map((r) => ({
             ...r.data,
+            code: String(r.data.code ?? ""),
+            name: String(r.data.name ?? ""),
             company_id: companyId,
           }));
           const { error } = await supabase.from("products").insert(payload);
@@ -340,6 +342,11 @@ function ProductDialog({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    if (!profile?.company_id) {
+      setSaving(false);
+      toast.error("找不到公司");
+      return;
+    }
     const payload = {
       code: form.code,
       name: form.name,
@@ -353,13 +360,8 @@ function ProductDialog({
       cost_price: form.cost_price ?? 0,
       safety_stock: form.safety_stock ?? 0,
       notes: form.notes || null,
-      ...(isEdit ? {} : { company_id: profile?.company_id ?? null }),
+      company_id: profile.company_id,
     };
-    if (!profile?.company_id) {
-      setSaving(false);
-      toast.error("找不到公司");
-      return;
-    }
     const query = isEdit
       ? supabase
           .from("products")
